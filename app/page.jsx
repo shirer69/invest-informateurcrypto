@@ -4,6 +4,8 @@ import WhyNow from "@/components/WhyNow";
 import Membership from "@/components/Membership";
 import Founder from "@/components/Founder";
 import Approach from "@/components/Approach";
+import Testimonials from "@/components/Testimonials";
+import Partners from "@/components/Partners";
 import HowToJoin from "@/components/HowToJoin";
 import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
@@ -38,6 +40,8 @@ export default function Page() {
         <Membership />
         <Founder />
         <Approach />
+        <Testimonials />
+        <Partners />
         <HowToJoin />
         <Faq />
       </main>

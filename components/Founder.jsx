@@ -1,4 +1,5 @@
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
+import FounderPhoto from "./FounderPhoto";
 import { IconLinkedin, IconArrow } from "./Icons";
 import { LINKEDIN_URL, JULIEN_SITE_URL } from "@/lib/site";
 
@@ -39,22 +40,7 @@ export default function Founder() {
         <Reveal>
           <div className="lg:sticky lg:top-28">
             <div className="relative rounded-2xl glass overflow-hidden">
-              {/* portrait placeholder élégant */}
-              <div className="relative aspect-[4/5] bg-gradient-to-b from-ink-600 to-ink-900">
-                <div
-                  className="absolute inset-0 opacity-60"
-                  style={{ background: "radial-gradient(70% 50% at 50% 15%, rgba(201,162,75,0.16), transparent 60%)" }}
-                />
-                <div className="absolute inset-0 grid place-items-center">
-                  <span className="font-display text-[88px] leading-none text-bone/15 select-none">
-                    JM
-                  </span>
-                </div>
-                <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-ink-900 to-transparent" />
-                <span className="absolute top-4 left-4 font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-                  Photo professionnelle
-                </span>
-              </div>
+              <FounderPhoto src="/julien.jpg" alt="Julien Moretto" />
               <div className="p-6">
                 <h3 className="font-display text-2xl text-bone">Julien Moretto</h3>
                 <p className="mt-1 text-[13.5px] text-gold">Conseiller financier indépendant</p>

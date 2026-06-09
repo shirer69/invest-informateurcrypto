@@ -54,7 +54,7 @@ export default function TrackRecord() {
         <div className="flex items-center gap-2.5">
           <span className="h-2 w-2 rounded-full bg-gold shadow-[0_0_0_4px_rgba(201,162,75,0.18)]" />
           <span className="font-mono text-[10.5px] uppercase tracking-widest2 text-mist">
-            Courbe d'equity — compte propre
+            Courbe d'equity — compte propre de Julien
           </span>
         </div>
         <span className="font-mono text-[10.5px] text-mist/70">2023 — 2025</span>

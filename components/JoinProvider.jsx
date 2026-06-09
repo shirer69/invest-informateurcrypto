@@ -237,7 +237,7 @@ export default function JoinProvider({ children }) {
                     {vState !== "active" ? (
                       <form onSubmit={verifyUid} className="mt-5 rounded-2xl border gold-line bg-gold/[0.05] p-4">
                         <label className="font-mono text-[10.5px] uppercase tracking-widest2 text-gold/80">
-                          Déjà déposé ? Vérifiez votre accès
+                          Déjà déposé ? Obtenez votre accès
                         </label>
                         <div className="mt-2.5 flex gap-2">
                           <input

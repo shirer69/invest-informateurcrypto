@@ -33,10 +33,10 @@ export const metadata = {
     template: "%s · Pôle Invest",
   },
   description:
-    "Un desk d'investissement privé piloté par Julien M. Se positionner sur les grandes tendances du prochain cycle : crypto, IA, actions US, semi-conducteurs et narratives macro.",
+    "Un desk d'investissement privé piloté par Julien Moretto. Se positionner sur les grandes tendances du prochain cycle : crypto, IA, actions US, semi-conducteurs et narratives macro.",
   keywords: [
     "Pôle Invest",
-    "Julien M.",
+    "Julien Moretto",
     "investissement crypto",
     "actions US",
     "intelligence artificielle",
@@ -45,7 +45,7 @@ export const metadata = {
     "macro",
     "private investment club",
   ],
-  authors: [{ name: "Julien M." }],
+  authors: [{ name: "Julien Moretto" }],
   alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
@@ -54,7 +54,7 @@ export const metadata = {
     siteName: "Club des Informateurs — Pôle Invest",
     title: "Le prochain cycle se prépare avant qu'il ne commence.",
     description:
-      "Desk d'investissement privé piloté par Julien M. Crypto, IA, actions US, semi-conducteurs, narratives macro.",
+      "Desk d'investissement privé piloté par Julien Moretto. Crypto, IA, actions US, semi-conducteurs, narratives macro.",
   },
   twitter: {
     card: "summary_large_image",

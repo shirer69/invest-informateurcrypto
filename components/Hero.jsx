@@ -53,7 +53,7 @@ export default function Hero() {
             className="mt-7 max-w-prose2 text-[16.5px] leading-relaxed text-mist"
           >
             Un espace d'investissement privé piloté par{" "}
-            <span className="text-bone">Julien M.</span> pour se positionner sur les
+            <span className="text-bone">Julien Moretto</span> pour se positionner sur les
             grandes tendances : crypto, intelligence artificielle, actions US,
             semi-conducteurs et narratives macro du prochain cycle.
           </motion.p>

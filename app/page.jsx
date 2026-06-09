@@ -17,10 +17,10 @@ const jsonLd = {
   name: "Club des Informateurs — Pôle Invest",
   url: "https://invest.informateurcrypto.fr",
   description:
-    "Desk d'investissement privé piloté par Julien M. Crypto, IA, actions US, semi-conducteurs et narratives macro du prochain cycle.",
+    "Desk d'investissement privé piloté par Julien Moretto. Crypto, IA, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   founder: {
     "@type": "Person",
-    name: "Julien M.",
+    name: "Julien Moretto",
     jobTitle: "Conseiller financier indépendant",
     sameAs: ["https://www.linkedin.com/in/julien-moretto/"],
   },

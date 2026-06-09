@@ -34,7 +34,7 @@ export default function Footer() {
               {[
                 ["Méthode", "#approche"],
                 ["Membres", "#membres"],
-                ["Julien M.", "#julien"],
+                ["Julien Moretto", "#julien"],
                 ["Vidéos", "#videos"],
                 ["FAQ", "#faq"],
               ].map(([l, h]) => (
@@ -72,7 +72,7 @@ export default function Footer() {
               <li>
                 <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer"
                    className="text-mist hover:text-bone transition-colors">
-                  LinkedIn — Julien M.
+                  LinkedIn — Julien Moretto
                 </a>
               </li>
             </ul>
@@ -89,7 +89,7 @@ export default function Footer() {
             passées ne préjugent pas des performances futures. Le contenu partagé est
             fourni à titre éducatif et informatif et ne constitue pas un conseil en
             investissement personnalisé. Les performances mentionnées correspondent à
-            l'historique du portefeuille personnel de Julien M. (compte Quantfury). Toute
+            l'historique du portefeuille personnel de Julien Moretto (compte Quantfury). Toute
             décision d'investissement relève de votre seule responsabilité.
           </p>
         </div>

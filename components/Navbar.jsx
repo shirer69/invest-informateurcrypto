@@ -6,7 +6,7 @@ import { useJoin } from "./JoinProvider";
 
 const LINKS = [
   { label: "Membres", href: "#membres" },
-  { label: "Julien M.", href: "#julien" },
+  { label: "Julien Moretto", href: "#julien" },
   { label: "Vidéos", href: "#videos" },
   { label: "Méthode", href: "#approche" },
   { label: "FAQ", href: "#faq" },

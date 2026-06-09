@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien M." }) {
+export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien Moretto" }) {
   const [failed, setFailed] = useState(false);
 
   return (

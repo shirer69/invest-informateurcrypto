@@ -13,8 +13,8 @@ const STEPS = [
   },
   {
     n: "02",
-    t: "Envoyer votre UID Kraken",
-    d: "Transmettez votre UID Kraken sur notre Telegram pour validation de votre adhésion.",
+    t: "Envoyer votre UID Kraken (identifiant IIBAN)",
+    d: "Transmettez votre UID Kraken (identifiant IIBAN) sur notre Telegram pour validation de votre adhésion.",
   },
   {
     n: "03",

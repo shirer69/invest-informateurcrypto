@@ -14,13 +14,13 @@ const STEPS = [
   {
     n: "1",
     t: "Créer un compte Kraken",
-    d: "Inscrivez-vous via notre lien partenaire et effectuez un dépôt (5 $ minimum).",
+    d: "Inscrivez-vous via notre lien partenaire et effectuez votre dépôt pour activer l'accès.",
     cta: { label: "Ouvrir Kraken", href: KRAKEN_URL },
   },
   {
     n: "2",
-    t: "Envoyer votre UID Kraken",
-    d: "Transmettez votre UID Kraken (identifiant de compte) sur notre Telegram pour validation.",
+    t: "Envoyer votre UID Kraken (identifiant IIBAN)",
+    d: "Transmettez votre UID Kraken (identifiant IIBAN) sur notre Telegram pour validation.",
     cta: { label: "Contacter sur Telegram", href: TELEGRAM_URL },
   },
   {
@@ -154,12 +154,21 @@ export default function JoinProvider({ children }) {
                     transition={{ duration: 0.4, ease }}
                   >
                     <h3 className="font-display font-light text-[26px] leading-tight tracking-tightest text-bone">
-                      Trois étapes pour rejoindre
+                      Trois étapes pour rejoindre{" "}
+                      <span className="text-mist">(5 min)</span>
                     </h3>
                     <p className="mt-3 text-[13.5px] leading-relaxed text-mist">
                       Suivez ces étapes dans l'ordre. L'accès est activé après validation de
                       votre dépôt.
                     </p>
+
+                    <div className="mt-4 flex items-center gap-3 rounded-2xl border gold-line bg-gold/[0.06] px-4 py-3">
+                      <span className="font-display text-[34px] leading-none text-gold-grad">5 $</span>
+                      <span className="text-[13px] leading-snug text-bone">
+                        Dépôt minimum
+                        <span className="block text-[11.5px] text-mist">ticket d'entrée pour accéder au Pôle Invest</span>
+                      </span>
+                    </div>
 
                     <div className="mt-6 space-y-3">
                       {STEPS.map((s) => (

@@ -6,6 +6,7 @@ import { TRUST } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { useJoin } from "./JoinProvider";
 import FrenchFlag from "./FrenchFlag";
+import Countdown from "./Countdown";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -61,8 +62,17 @@ export default function Hero() {
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.26, ease }}
+            className="mt-8"
+          >
+            <Countdown />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.32, ease }}
-            className="mt-9 flex flex-wrap items-center gap-3.5"
+            className="mt-7 flex flex-wrap items-center gap-3.5"
           >
             <button
               onClick={openJoin}

@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0a0b0e;
+  --gold: #c9a24b;
+  --gold-soft: #e8ce8e;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+}
+
+body {
+  background-color: var(--bg);
+  color: #ece9e1;
+  font-feature-settings: "ss01", "cv01", "tnum";
+  overflow-x: hidden;
+}
+
+::selection {
+  background: rgba(201, 162, 75, 0.28);
+  color: #fff;
+}
+
+/* Thin custom scrollbar */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0a0b0e; }
+::-webkit-scrollbar-thumb { background: #20242c; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #2c313b; }
+
+@layer components {
+  /* Atmospheric grain overlay */
+  .grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  .hairline {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .gold-line {
+    border-color: rgba(201, 162, 75, 0.22);
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.025);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .text-gold-grad {
+    background: linear-gradient(100deg, #a07e2e 0%, #e8ce8e 45%, #c9a24b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.28em;
+    font-size: 11px;
+    color: #c9a24b;
+  }
+
+  .btn-gold {
+    position: relative;
+    background: linear-gradient(180deg, #e8ce8e, #c9a24b);
+    color: #15120a;
+    font-weight: 600;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset,
+      0 12px 40px -12px rgba(201, 162, 75, 0.55);
+  }
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
+      0 20px 50px -12px rgba(201, 162, 75, 0.7);
+  }
+
+  .btn-ghost {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #ece9e1;
+    transition: border-color 0.25s ease, background 0.25s ease;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(201, 162, 75, 0.55);
+    background: rgba(201, 162, 75, 0.06);
+  }
+}
+
+/* Radial atmosphere helpers */
+.aura {
+  background:
+    radial-gradient(60% 50% at 78% -5%, rgba(201, 162, 75, 0.10), transparent 60%),
+    radial-gradient(50% 40% at 8% 8%, rgba(120, 130, 150, 0.06), transparent 55%);
+}

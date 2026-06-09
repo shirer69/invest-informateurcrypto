@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { PERFORMANCE } from "@/lib/site";
+import { PERFORMANCE, TELEGRAM_URL } from "@/lib/site";
 
 // Courbe d'equity stylisée (croissance avec respirations réalistes), normalisée 0..1
 const SERIES = [
@@ -141,10 +141,25 @@ export default function TrackRecord() {
         ))}
       </div>
 
-      <p className="px-6 py-4 text-[11.5px] leading-relaxed text-mist/70 border-t hairline">
-        Historique de performance du portefeuille personnel de Julien. Les performances
-        passées ne préjugent pas des performances futures.
-      </p>
+      <div className="px-6 py-4 text-[11.5px] leading-relaxed text-mist/70 border-t hairline">
+        <p>
+          Historique de performance du portefeuille personnel de Julien (compte{" "}
+          <span className="text-mist">Quantfury</span>). Les performances passées ne
+          préjugent pas des performances futures.
+        </p>
+        <p className="mt-1.5">
+          Relevé PDF disponible sur demande uniquement —{" "}
+          <a
+            href={TELEGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-gold hover:text-gold-soft transition-colors underline underline-offset-2 decoration-gold/30"
+          >
+            en faire la demande
+          </a>
+          .
+        </p>
+      </div>
     </div>
   );
 }

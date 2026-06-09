@@ -2,28 +2,29 @@
 
 import { motion } from "framer-motion";
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
-import { KRAKEN_URL } from "@/lib/site";
 import { IconArrow } from "./Icons";
+import { useJoin } from "./JoinProvider";
 
 const STEPS = [
   {
     n: "01",
     t: "Créer un compte Kraken",
-    d: "Inscription via notre lien partenaire, sur une infrastructure d'exchange reconnue.",
+    d: "Inscription via notre lien partenaire et dépôt à partir de 5 $, sur une infrastructure d'exchange reconnue.",
   },
   {
     n: "02",
-    t: "Effectuer le dépôt minimum",
-    d: "Un ticket d'entrée volontairement accessible — à partir de 5 $.",
+    t: "Envoyer votre UID Kraken",
+    d: "Transmettez votre UID Kraken sur notre Telegram pour validation de votre adhésion.",
   },
   {
     n: "03",
     t: "Recevoir l'accès privé",
-    d: "Activation de votre accès au Pôle Invest et à la communauté membre.",
+    d: "Vous recevez votre lien Telegram vers le groupe privé du Pôle Invest.",
   },
 ];
 
 export default function HowToJoin() {
+  const { open: openJoin } = useJoin();
   return (
     <section className="relative py-24 md:py-32 border-t hairline">
       <div className="mx-auto max-w-[1180px] px-6">
@@ -69,15 +70,13 @@ export default function HowToJoin() {
                   dépôt de 5 $.
                 </p>
               </div>
-              <a
-                href={KRAKEN_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-gold group inline-flex items-center justify-center gap-2.5 rounded-full px-9 py-4 text-[16px] whitespace-nowrap"
+              <button
+                onClick={openJoin}
+                className="btn-gold group inline-flex items-center justify-center gap-2.5 rounded-full px-9 py-4 text-[16px] font-semibold whitespace-nowrap"
               >
-                Accéder au Pôle Invest
+                Demander mon accès
                 <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
-              </a>
+              </button>
             </div>
           </motion.div>
         </Reveal>

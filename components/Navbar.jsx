@@ -2,18 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { KRAKEN_URL } from "@/lib/site";
+import { useJoin } from "./JoinProvider";
 
 const LINKS = [
-  { label: "Méthode", href: "#approche" },
   { label: "Membres", href: "#membres" },
-  { label: "Julien Moretto", href: "#julien" },
+  { label: "Julien M.", href: "#julien" },
+  { label: "Vidéos", href: "#videos" },
+  { label: "Méthode", href: "#approche" },
   { label: "FAQ", href: "#faq" },
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const { open: openJoin } = useJoin();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -34,12 +36,12 @@ export default function Navbar() {
     >
       <nav className="mx-auto max-w-[1180px] px-6 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-3 group">
-          <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-lg leading-none">
-            I
+          <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-[13px] leading-none">
+            CI
           </span>
           <span className="leading-tight">
             <span className="block font-display text-[15px] tracking-tight text-bone">
-              L'Informateur
+              Club des Informateurs
             </span>
             <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
               Pôle Invest
@@ -60,14 +62,12 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href={KRAKEN_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
+          <button
+            onClick={openJoin}
+            className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
           >
-            Rejoindre
-          </a>
+            Demander mon accès
+          </button>
           <button
             onClick={() => setOpen((v) => !v)}
             className="md:hidden h-10 w-10 grid place-items-center rounded-lg border hairline text-bone"
@@ -95,14 +95,15 @@ export default function Navbar() {
                 {l.label}
               </a>
             ))}
-            <a
-              href={KRAKEN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-gold rounded-full px-5 py-3 text-center text-sm mt-1"
+            <button
+              onClick={() => {
+                setOpen(false);
+                openJoin();
+              }}
+              className="btn-gold rounded-full px-5 py-3 text-center text-sm mt-1 font-semibold"
             >
-              Rejoindre le Pôle Invest
-            </a>
+              Demander mon accès au Pôle Invest
+            </button>
           </div>
         </motion.div>
       )}

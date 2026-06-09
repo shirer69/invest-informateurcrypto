@@ -1,5 +1,6 @@
 import "./globals.css";
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import JoinProvider from "@/components/JoinProvider";
 
 const display = Fraunces({
   subsets: ["latin"],
@@ -28,14 +29,14 @@ const SITE_URL = "https://invest.informateurcrypto.fr";
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Pôle Invest — L'Informateur Crypto",
+    default: "Club des Informateurs — Pôle Invest",
     template: "%s · Pôle Invest",
   },
   description:
-    "Un desk d'investissement privé piloté par Julien Moretto. Se positionner sur les grandes tendances du prochain cycle : crypto, IA, actions US, semi-conducteurs et narratives macro.",
+    "Un desk d'investissement privé piloté par Julien M. Se positionner sur les grandes tendances du prochain cycle : crypto, IA, actions US, semi-conducteurs et narratives macro.",
   keywords: [
     "Pôle Invest",
-    "Julien Moretto",
+    "Julien M.",
     "investissement crypto",
     "actions US",
     "intelligence artificielle",
@@ -44,20 +45,20 @@ export const metadata = {
     "macro",
     "private investment club",
   ],
-  authors: [{ name: "Julien Moretto" }],
+  authors: [{ name: "Julien M." }],
   alternates: { canonical: SITE_URL },
   openGraph: {
     type: "website",
     locale: "fr_FR",
     url: SITE_URL,
-    siteName: "Pôle Invest — L'Informateur Crypto",
+    siteName: "Club des Informateurs — Pôle Invest",
     title: "Le prochain cycle se prépare avant qu'il ne commence.",
     description:
-      "Desk d'investissement privé piloté par Julien Moretto. Crypto, IA, actions US, semi-conducteurs, narratives macro.",
+      "Desk d'investissement privé piloté par Julien M. Crypto, IA, actions US, semi-conducteurs, narratives macro.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Pôle Invest — L'Informateur Crypto",
+    title: "Club des Informateurs — Pôle Invest",
     description:
       "Construire des positions asymétriques sur les tendances majeures avant qu'elles ne deviennent mainstream.",
   },
@@ -73,7 +74,9 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="fr" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
-      <body className="font-sans antialiased grain">{children}</body>
+      <body className="font-sans antialiased grain">
+        <JoinProvider>{children}</JoinProvider>
+      </body>
     </html>
   );
 }

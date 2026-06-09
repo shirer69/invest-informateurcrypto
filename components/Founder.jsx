@@ -1,20 +1,21 @@
 import { Reveal, Stagger, StaggerItem } from "./Reveal";
 import FounderPhoto from "./FounderPhoto";
-import { IconLinkedin, IconArrow } from "./Icons";
-import { LINKEDIN_URL, JULIEN_SITE_URL } from "@/lib/site";
+import FrenchFlag from "./FrenchFlag";
+import { IconLinkedin } from "./Icons";
+import { LINKEDIN_URL } from "@/lib/site";
 
 const CREDENTIALS = [
-  "Certification AMF 🇫🇷",
-  "CIF — Conseiller en Investissements Financiers 🇫🇷",
-  "Membre ANACOFI",
-  "ESCP Business School — Finance de marché",
+  { label: "Certification AMF", flag: true },
+  { label: "CIF — Conseiller en Investissements Financiers", flag: true },
+  { label: "Membre ANACOFI" },
+  { label: "ESCP Business School — Finance de marché" },
 ];
 
 const TIMELINE = [
   {
     period: "Aujourd'hui",
-    title: "Conseiller financier indépendant",
-    desc: "Pilotage du Pôle Invest et d'un compte propre avec track record sur +3 ans.",
+    title: "Conseiller financier indépendant — CIF",
+    desc: "Cabinet de gestion pilotant une vingtaine de portefeuilles clients, en plus du Pôle Invest et d'un compte propre avec track record sur +3 ans.",
   },
   {
     period: "+2 ans",
@@ -41,37 +42,31 @@ export default function Founder() {
         <Reveal>
           <div className="lg:sticky lg:top-28">
             <div className="relative rounded-2xl glass overflow-hidden">
-              <FounderPhoto src="/julien.jpg" alt="Julien Moretto" />
+              <FounderPhoto src="/julien.jpg" alt="Julien M." />
               <div className="p-6">
-                <h3 className="font-display text-2xl text-bone">Julien Moretto</h3>
+                <h3 className="font-display text-2xl text-bone">Julien M.</h3>
                 <p className="mt-1 text-[13.5px] text-gold">Conseiller financier indépendant</p>
 
                 <ul className="mt-5 space-y-2.5">
                   {CREDENTIALS.map((c) => (
-                    <li key={c} className="flex items-start gap-2.5 text-[13px] text-mist">
+                    <li key={c.label} className="flex items-start gap-2.5 text-[13px] text-mist">
                       <span className="mt-1.5 h-1 w-1 rounded-full bg-gold shrink-0" />
-                      {c}
+                      <span>
+                        {c.label}
+                        {c.flag && <FrenchFlag className="h-3 w-[18px] ml-1.5" />}
+                      </span>
                     </li>
                   ))}
                 </ul>
 
-                <div className="mt-6 flex flex-col gap-2.5">
+                <div className="mt-6">
                   <a
                     href={LINKEDIN_URL}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn-ghost inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-[13.5px]"
+                    className="btn-ghost inline-flex w-full items-center justify-center gap-2 rounded-full px-5 py-3 text-[13.5px]"
                   >
                     <IconLinkedin className="h-4 w-4" /> Voir le profil LinkedIn
-                  </a>
-                  <a
-                    href={JULIEN_SITE_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group inline-flex items-center justify-center gap-2 text-[13px] text-mist hover:text-bone transition-colors py-1"
-                  >
-                    julien.informateurcrypto.fr
-                    <IconArrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                   </a>
                 </div>
               </div>
@@ -87,9 +82,10 @@ export default function Founder() {
               Une expérience construite des deux côtés du marché
             </h2>
             <p className="mt-6 text-[16px] leading-relaxed text-mist max-w-prose2">
-              De la recherche crypto en exchange à la gestion de patrimoine, jusqu'au
+              De la recherche crypto chez Coinhouse à la gestion de patrimoine, jusqu'au
               trading financé : un parcours qui mêle rigueur institutionnelle et
-              compréhension fine des cycles d'actifs numériques.
+              compréhension fine des cycles d'actifs numériques. Aujourd'hui, Julien dirige
+              un cabinet de gestion suivant une vingtaine de portefeuilles clients.
             </p>
           </Reveal>
 

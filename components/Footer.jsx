@@ -1,4 +1,5 @@
-import { KRAKEN_URL, JULIEN_SITE_URL, LINKEDIN_URL } from "@/lib/site";
+import { TELEGRAM_URL, YOUTUBE_URL, LINKEDIN_URL } from "@/lib/site";
+import JoinButton from "./JoinButton";
 
 export default function Footer() {
   return (
@@ -7,12 +8,12 @@ export default function Footer() {
         <div className="grid md:grid-cols-[1.4fr_1fr_1fr] gap-12">
           <div>
             <div className="flex items-center gap-3">
-              <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-lg">
-                I
+              <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-[13px]">
+                CI
               </span>
               <span className="leading-tight">
                 <span className="block font-display text-[15px] text-bone">
-                  L'Informateur
+                  Club des Informateurs
                 </span>
                 <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
                   Pôle Invest
@@ -33,7 +34,8 @@ export default function Footer() {
               {[
                 ["Méthode", "#approche"],
                 ["Membres", "#membres"],
-                ["Julien Moretto", "#julien"],
+                ["Julien M.", "#julien"],
+                ["Vidéos", "#videos"],
                 ["FAQ", "#faq"],
               ].map(([l, h]) => (
                 <li key={h}>
@@ -51,21 +53,26 @@ export default function Footer() {
             </h4>
             <ul className="mt-5 space-y-3 text-[14px]">
               <li>
-                <a href={KRAKEN_URL} target="_blank" rel="noopener noreferrer"
+                <JoinButton className="text-mist hover:text-bone transition-colors">
+                  Demander mon accès
+                </JoinButton>
+              </li>
+              <li>
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer"
                    className="text-mist hover:text-bone transition-colors">
-                  Rejoindre via Kraken
+                  Telegram du club
+                </a>
+              </li>
+              <li>
+                <a href={YOUTUBE_URL} target="_blank" rel="noopener noreferrer"
+                   className="text-mist hover:text-bone transition-colors">
+                  Chaîne YouTube
                 </a>
               </li>
               <li>
                 <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer"
                    className="text-mist hover:text-bone transition-colors">
-                  LinkedIn — Julien Moretto
-                </a>
-              </li>
-              <li>
-                <a href={JULIEN_SITE_URL} target="_blank" rel="noopener noreferrer"
-                   className="text-mist hover:text-bone transition-colors">
-                  julien.informateurcrypto.fr
+                  LinkedIn — Julien M.
                 </a>
               </li>
             </ul>
@@ -82,13 +89,13 @@ export default function Footer() {
             passées ne préjugent pas des performances futures. Le contenu partagé est
             fourni à titre éducatif et informatif et ne constitue pas un conseil en
             investissement personnalisé. Les performances mentionnées correspondent à
-            l'historique du portefeuille personnel de Julien Moretto. Toute décision
-            d'investissement relève de votre seule responsabilité.
+            l'historique du portefeuille personnel de Julien M. (compte Quantfury). Toute
+            décision d'investissement relève de votre seule responsabilité.
           </p>
         </div>
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-mist/60">
-          <span>© {new Date().getFullYear()} L'Informateur — Pôle Invest. Tous droits réservés.</span>
+          <span>© 2026 Club des Informateurs — Pôle Invest. Tous droits réservés.</span>
           <span className="font-mono">invest.informateurcrypto.fr</span>
         </div>
       </div>

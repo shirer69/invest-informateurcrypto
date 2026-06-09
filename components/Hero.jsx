@@ -2,12 +2,15 @@
 
 import { motion } from "framer-motion";
 import TrackRecord from "./TrackRecord";
-import { KRAKEN_URL, TRUST } from "@/lib/site";
+import { TRUST } from "@/lib/site";
 import { IconArrow } from "./Icons";
+import { useJoin } from "./JoinProvider";
+import FrenchFlag from "./FrenchFlag";
 
 const ease = [0.22, 1, 0.36, 1];
 
 export default function Hero() {
+  const { open: openJoin } = useJoin();
   return (
     <section id="top" className="relative aura pt-36 md:pt-44 pb-20 md:pb-28">
       {/* fine vertical guide lines */}
@@ -50,7 +53,7 @@ export default function Hero() {
             className="mt-7 max-w-prose2 text-[16.5px] leading-relaxed text-mist"
           >
             Un espace d'investissement privé piloté par{" "}
-            <span className="text-bone">Julien Moretto</span> pour se positionner sur les
+            <span className="text-bone">Julien M.</span> pour se positionner sur les
             grandes tendances : crypto, intelligence artificielle, actions US,
             semi-conducteurs et narratives macro du prochain cycle.
           </motion.p>
@@ -61,18 +64,16 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.32, ease }}
             className="mt-9 flex flex-wrap items-center gap-3.5"
           >
-            <a
-              href={KRAKEN_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-gold group inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-[15px]"
+            <button
+              onClick={openJoin}
+              className="btn-gold group inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-[15.5px] font-semibold"
             >
-              Rejoindre le Pôle Invest
-              <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-            </a>
+              Demander mon accès au Pôle Invest
+              <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+            </button>
             <a
               href="#approche"
-              className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-3.5 text-[15px]"
+              className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
             >
               Découvrir la méthode
             </a>
@@ -83,12 +84,15 @@ export default function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 0.5 }}
-            className="mt-11 grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 border-t hairline pt-7"
+            className="mt-11 grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-4 border-t hairline pt-7"
           >
             {TRUST.map((t) => (
-              <li key={t} className="flex items-start gap-2.5">
+              <li key={t.label} className="flex items-start gap-2.5">
                 <span className="mt-1.5 h-1 w-1 rounded-full bg-gold shrink-0" />
-                <span className="text-[12.5px] leading-snug text-mist">{t}</span>
+                <span className="text-[12.5px] leading-snug text-mist">
+                  {t.label}
+                  {t.flag && <FrenchFlag className="h-3 w-[18px] ml-1.5" />}
+                </span>
               </li>
             ))}
           </motion.ul>

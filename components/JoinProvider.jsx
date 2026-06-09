@@ -25,8 +25,8 @@ const STEPS = [
   },
   {
     n: "3",
-    t: "Recevez votre accès privé",
-    d: "Vous recevez votre lien Telegram vers le groupe privé du Pôle Invest.",
+    t: "Vérifier votre statut & recevoir l'accès",
+    d: "Saisissez votre UID Kraken ci-dessous : si votre attribution est active, vous recevez instantanément votre lien Telegram privé.",
   },
 ];
 
@@ -35,6 +35,11 @@ export default function JoinProvider({ children }) {
   const [unlocked, setUnlocked] = useState(false);
   const [code, setCode] = useState("");
   const [error, setError] = useState(false);
+
+  // Vérification de l'UID Kraken
+  const [uid, setUid] = useState("");
+  const [vState, setVState] = useState("idle"); // idle | checking | active | notfound | invalid | error
+  const [inviteLink, setInviteLink] = useState("");
 
   const open = useCallback(() => {
     setOpen(true);
@@ -48,8 +53,38 @@ export default function JoinProvider({ children }) {
       setUnlocked(false);
       setCode("");
       setError(false);
+      setUid("");
+      setVState("idle");
+      setInviteLink("");
     }, 350);
   }, []);
+
+  const verifyUid = async (e) => {
+    e.preventDefault();
+    if (uid.trim().replace(/\s+/g, "").length < 4) {
+      setVState("invalid");
+      return;
+    }
+    setVState("checking");
+    try {
+      const res = await fetch("/api/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid }),
+      });
+      const data = await res.json();
+      if (data.status === "active") {
+        setInviteLink(data.link || "");
+        setVState("active");
+      } else if (data.status === "invalid") {
+        setVState("invalid");
+      } else {
+        setVState("notfound");
+      }
+    } catch {
+      setVState("error");
+    }
+  };
 
   const submitCode = (e) => {
     e.preventDefault();
@@ -198,15 +233,81 @@ export default function JoinProvider({ children }) {
                       ))}
                     </div>
 
-                    <a
-                      href={KRAKEN_URL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn-gold mt-6 w-full inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[15px]"
-                    >
-                      Commencer maintenant — créer mon compte Kraken
-                      <IconArrow className="h-4 w-4" />
-                    </a>
+                    {/* Vérification de l'UID */}
+                    {vState !== "active" ? (
+                      <form onSubmit={verifyUid} className="mt-5 rounded-2xl border gold-line bg-gold/[0.05] p-4">
+                        <label className="font-mono text-[10.5px] uppercase tracking-widest2 text-gold/80">
+                          Déjà déposé ? Vérifiez votre accès
+                        </label>
+                        <div className="mt-2.5 flex gap-2">
+                          <input
+                            value={uid}
+                            onChange={(e) => {
+                              setUid(e.target.value);
+                              if (vState !== "idle" && vState !== "checking") setVState("idle");
+                            }}
+                            placeholder="UID Kraken (identifiant IIBAN)"
+                            className="flex-1 min-w-0 rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 font-mono text-[13px] tracking-wide outline-none transition-colors"
+                          />
+                          <button
+                            type="submit"
+                            disabled={vState === "checking"}
+                            className="btn-gold shrink-0 rounded-xl px-5 py-3 text-[13.5px] font-semibold disabled:opacity-60"
+                          >
+                            {vState === "checking" ? "Vérification…" : "Vérifier"}
+                          </button>
+                        </div>
+                        {vState === "notfound" && (
+                          <p className="mt-2.5 text-[12.5px] text-amber-300/90">
+                            Attribution introuvable ou pas encore active. Si vous venez de
+                            déposer, patientez puis réessayez — ou contactez-nous sur{" "}
+                            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="underline decoration-gold/40 text-gold">Telegram</a>.
+                          </p>
+                        )}
+                        {vState === "invalid" && (
+                          <p className="mt-2.5 text-[12.5px] text-red-400/90">
+                            Saisissez un identifiant valide (au moins les 4 derniers caractères de votre IIBAN).
+                          </p>
+                        )}
+                        {vState === "error" && (
+                          <p className="mt-2.5 text-[12.5px] text-red-400/90">
+                            Erreur de vérification. Réessayez dans un instant.
+                          </p>
+                        )}
+
+                        <a
+                          href={KRAKEN_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group mt-3 inline-flex items-center gap-1.5 text-[12.5px] text-mist hover:text-bone transition-colors"
+                        >
+                          Pas encore de compte ? Créer mon compte Kraken
+                          <IconArrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
+                        </a>
+                      </form>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-5 rounded-2xl border gold-line bg-gold/[0.08] p-5 text-center"
+                      >
+                        <div className="text-[13px] text-gold font-mono uppercase tracking-widest2">
+                          Statut : actif ✓
+                        </div>
+                        <p className="mt-2 text-[14px] text-bone">
+                          Votre accès est validé. Rejoignez le groupe privé du Pôle Invest :
+                        </p>
+                        <a
+                          href={inviteLink || TELEGRAM_URL}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn-gold mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[15px] font-semibold"
+                        >
+                          Accéder au groupe privé
+                          <IconArrow className="h-4 w-4" />
+                        </a>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </div>

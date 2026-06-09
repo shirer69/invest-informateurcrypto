@@ -33,7 +33,7 @@ export const metadata = {
     template: "%s · Pôle Invest",
   },
   description:
-    "Un desk d'investissement privé piloté par Julien Moretto. Se positionner sur les grandes tendances du prochain cycle : crypto, IA, actions US, semi-conducteurs et narratives macro.",
+    "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   keywords: [
     "Pôle Invest",
     "Julien Moretto",
@@ -54,13 +54,13 @@ export const metadata = {
     siteName: "Club des Informateurs — Pôle Invest",
     title: "Le prochain cycle se prépare avant qu'il ne commence.",
     description:
-      "Desk d'investissement privé piloté par Julien Moretto. Crypto, IA, actions US, semi-conducteurs, narratives macro.",
+      "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Club des Informateurs — Pôle Invest",
     description:
-      "Construire des positions asymétriques sur les tendances majeures avant qu'elles ne deviennent mainstream.",
+      "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   },
   robots: { index: true, follow: true },
 };

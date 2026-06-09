@@ -4,7 +4,8 @@ import { IconLinkedin, IconArrow } from "./Icons";
 import { LINKEDIN_URL, JULIEN_SITE_URL } from "@/lib/site";
 
 const CREDENTIALS = [
-  "Certification AMF",
+  "Certification AMF 🇫🇷",
+  "CIF — Conseiller en Investissements Financiers 🇫🇷",
   "Membre ANACOFI",
   "ESCP Business School — Finance de marché",
 ];

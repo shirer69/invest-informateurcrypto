@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES } from "@/lib/site";
+import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { createUser } from "@/lib/clientStore";
 
@@ -67,7 +67,7 @@ export default function JoinProvider({ children }) {
     }
     setVState("checking");
     try {
-      const res = await fetch("/api/verify", {
+      const res = await fetch(`${API_BASE}/api/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid }),
@@ -103,13 +103,13 @@ export default function JoinProvider({ children }) {
     // Génère un lien d'invitation unique (avec demande d'adhésion), titré au nom du membre.
     let link = inviteLink;
     try {
-      const res = await fetch("/api/invite", {
+      const res = await fetch(`${API_BASE}/api/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ uid, name: mail }),
       });
       const data = await res.json();
-      if (data.ok && data.link) link = data.link;
+      if (data.status === "active" && data.link) link = data.link;
     } catch {}
 
     if (typeof window !== "undefined") {

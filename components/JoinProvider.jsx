@@ -86,7 +86,7 @@ export default function JoinProvider({ children }) {
     }
   };
 
-  const submitSignup = (e) => {
+  const submitSignup = async (e) => {
     e.preventDefault();
     const mail = email.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
@@ -99,8 +99,21 @@ export default function JoinProvider({ children }) {
     }
     setSignupErr("");
     createUser({ email: mail, password: pwd });
+
+    // Génère un lien d'invitation unique (avec demande d'adhésion), titré au nom du membre.
+    let link = inviteLink;
+    try {
+      const res = await fetch("/api/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, name: mail }),
+      });
+      const data = await res.json();
+      if (data.ok && data.link) link = data.link;
+    } catch {}
+
     if (typeof window !== "undefined") {
-      if (inviteLink) localStorage.setItem("pi_tg_link", inviteLink);
+      if (link) localStorage.setItem("pi_tg_link", link);
       window.location.href = "/dashboard";
     }
   };

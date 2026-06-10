@@ -179,7 +179,7 @@ export default function JoinProvider({ children }) {
             >
               <div
                 className="pointer-events-none absolute -top-20 -right-10 h-52 w-52 rounded-full blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(201,162,75,0.20), transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, rgba(34,211,238,0.20), transparent 70%)" }}
               />
 
               {/* header */}

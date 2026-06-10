@@ -7,41 +7,62 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        // Surfaces — near-black / graphite / navy (terminal institutionnel)
         ink: {
-          DEFAULT: "#0a0b0e",
-          900: "#0a0b0e",
-          800: "#0e1014",
-          700: "#13161c",
-          600: "#1a1e26",
+          DEFAULT: "#070A0F",
+          900: "#070A0F",
+          800: "#0C1118", // panneaux / data containers
+          700: "#121925",
+          600: "#1B2433", // bordures élevées
         },
-        bone: "#ECE9E1",
-        mist: "#9aa0ab",
+        bone: "#E7EBF2",   // texte primaire (blanc cassé froid)
+        mist: "#8A93A6",   // texte secondaire / muted
+        // Accent primaire — cyan électrique (clé d'action / highlights).
+        // Conserve la clé "gold" pour basculer toute l'UI sans toucher au markup.
         gold: {
-          DEFAULT: "#C9A24B",
-          soft: "#E8CE8E",
-          deep: "#A07E2E",
+          DEFAULT: "#22D3EE",
+          soft: "#7DE9F4",
+          deep: "#0E9DB5",
         },
+        accent: {
+          DEFAULT: "#22D3EE",
+          soft: "#7DE9F4",
+          deep: "#0E9DB5",
+        },
+        // Sémantique data / finance
+        pos: "#1FCB83",   // PnL positif / gains
+        neg: "#F6465D",   // drawdown / pertes
+        flag: "#E8A33D",  // alertes / risque (amber)
+        info: "#5B9DFF",  // bleu secondaire
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
+        display: ["var(--font-display)", "ui-sans-serif", "system-ui", "sans-serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       letterSpacing: {
-        tightest: "-0.04em",
-        widest2: "0.28em",
+        tightest: "-0.03em",
+        widest2: "0.22em",
       },
       maxWidth: {
         prose2: "62ch",
+      },
+      borderRadius: {
+        // léger resserrement : data containers, pas décoratif
       },
       keyframes: {
         shimmer: {
           "0%": { backgroundPosition: "200% 0" },
           "100%": { backgroundPosition: "-200% 0" },
         },
+        pulseDot: {
+          "0%,100%": { opacity: 1 },
+          "50%": { opacity: 0.4 },
+        },
       },
       animation: {
         shimmer: "shimmer 6s linear infinite",
+        pulseDot: "pulseDot 2s ease-in-out infinite",
       },
     },
   },

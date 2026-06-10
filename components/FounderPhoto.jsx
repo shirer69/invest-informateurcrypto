@@ -9,7 +9,7 @@ export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien Morett
     <div className="relative aspect-[4/5] bg-gradient-to-b from-ink-600 to-ink-900 overflow-hidden">
       <div
         className="absolute inset-0 opacity-60"
-        style={{ background: "radial-gradient(70% 50% at 50% 15%, rgba(201,162,75,0.16), transparent 60%)" }}
+        style={{ background: "radial-gradient(70% 50% at 50% 15%, rgba(34,211,238,0.16), transparent 60%)" }}
       />
       {/* Repli monogramme (visible si la photo manque) */}
       <div className="absolute inset-0 grid place-items-center">

@@ -48,11 +48,11 @@ export default function TrackRecord() {
     <div className="relative rounded-2xl glass overflow-hidden">
       {/* halo or */}
       <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full blur-3xl"
-           style={{ background: "radial-gradient(circle, rgba(201,162,75,0.18), transparent 70%)" }} />
+           style={{ background: "radial-gradient(circle, rgba(34,211,238,0.18), transparent 70%)" }} />
 
       <div className="flex items-center justify-between px-6 pt-5">
         <div className="flex items-center gap-2.5">
-          <span className="h-2 w-2 rounded-full bg-gold shadow-[0_0_0_4px_rgba(201,162,75,0.18)]" />
+          <span className="h-2 w-2 rounded-full bg-gold shadow-[0_0_0_4px_rgba(34,211,238,0.18)]" />
           <span className="font-mono text-[10.5px] uppercase tracking-widest2 text-mist">
             Courbe d'equity — compte propre de Julien
           </span>
@@ -65,13 +65,13 @@ export default function TrackRecord() {
              aria-label="Courbe de performance du portefeuille">
           <defs>
             <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#c9a24b" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#c9a24b" stopOpacity="0" />
+              <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.26" />
+              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="strokeGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#a07e2e" />
-              <stop offset="55%" stopColor="#e8ce8e" />
-              <stop offset="100%" stopColor="#c9a24b" />
+              <stop offset="0%" stopColor="#0e9db5" />
+              <stop offset="55%" stopColor="#7de9f4" />
+              <stop offset="100%" stopColor="#22d3ee" />
             </linearGradient>
           </defs>
 
@@ -99,7 +99,7 @@ export default function TrackRecord() {
             transition={{ duration: 2.1, ease: [0.22, 1, 0.36, 1] }}
           />
           <motion.circle
-            cx={last[0]} cy={last[1]} r="4.5" fill="#e8ce8e"
+            cx={last[0]} cy={last[1]} r="4.5" fill="#7de9f4"
             initial={{ scale: 0, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}

@@ -3,9 +3,13 @@
 @tailwind utilities;
 
 :root {
-  --bg: #0a0b0e;
-  --gold: #c9a24b;
-  --gold-soft: #e8ce8e;
+  --bg: #070A0F;
+  --accent: #22d3ee;
+  --accent-soft: #7de9f4;
+  --pos: #1fcb83;
+  --neg: #f6465d;
+  --line: rgba(255, 255, 255, 0.07);
+  --line-accent: rgba(34, 211, 238, 0.22);
 }
 
 * {
@@ -20,51 +24,55 @@ html {
 
 body {
   background-color: var(--bg);
-  color: #ece9e1;
-  font-feature-settings: "ss01", "cv01", "tnum";
+  /* Grille de fond ultra-subtile (précision terminal) */
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: center top;
+  color: #e7ebf2;
+  font-feature-settings: "tnum", "ss01", "cv01";
   overflow-x: hidden;
 }
 
 ::selection {
-  background: rgba(201, 162, 75, 0.28);
+  background: rgba(34, 211, 238, 0.26);
   color: #fff;
 }
 
-/* Thin custom scrollbar */
+/* Scrollbar fine, froide */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: #0a0b0e; }
-::-webkit-scrollbar-thumb { background: #20242c; border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: #2c313b; }
+::-webkit-scrollbar-track { background: #070a0f; }
+::-webkit-scrollbar-thumb { background: #1b2433; border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: #283449; }
 
 @layer components {
-  /* Atmospheric grain overlay */
+  /* Grain très léger (quasi imperceptible — institutionnel) */
   .grain::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.015;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
-  .hairline {
-    border-color: rgba(255, 255, 255, 0.08);
-  }
+  /* Lignes de séparation fines */
+  .hairline { border-color: rgba(255, 255, 255, 0.07); }
+  .gold-line { border-color: rgba(34, 211, 238, 0.22); }
 
-  .gold-line {
-    border-color: rgba(201, 162, 75, 0.22);
-  }
-
+  /* Surface "data container" — élévation discrète, bord fin, peu de blur */
   .glass {
-    background: rgba(255, 255, 255, 0.025);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.018);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
   }
 
+  /* Dégradé d'accent (KPIs, valeurs) */
   .text-gold-grad {
-    background: linear-gradient(100deg, #a07e2e 0%, #e8ce8e 45%, #c9a24b 100%);
+    background: linear-gradient(90deg, #7de9f4 0%, #22d3ee 55%, #0e9db5 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -73,40 +81,46 @@ body {
   .eyebrow {
     font-family: var(--font-mono);
     text-transform: uppercase;
-    letter-spacing: 0.28em;
+    letter-spacing: 0.22em;
     font-size: 11px;
-    color: #c9a24b;
+    color: #22d3ee;
   }
 
+  /* Bouton primaire — net, haute lisibilité, glow contenu */
   .btn-gold {
     position: relative;
-    background: linear-gradient(180deg, #e8ce8e, #c9a24b);
-    color: #15120a;
+    background: linear-gradient(180deg, #38dcef, #15bcd2);
+    color: #04181d;
     font-weight: 600;
-    transition: transform 0.25s ease, box-shadow 0.25s ease;
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.4) inset,
-      0 12px 40px -12px rgba(201, 162, 75, 0.55);
+    letter-spacing: 0.005em;
+    border: 1px solid rgba(34, 211, 238, 0.55);
+    transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12),
+      0 8px 24px -14px rgba(34, 211, 238, 0.7);
   }
   .btn-gold:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5) inset,
-      0 20px 50px -12px rgba(201, 162, 75, 0.7);
+    transform: translateY(-1px);
+    background: linear-gradient(180deg, #4ee3f4, #1ec7dc);
+    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25),
+      0 12px 30px -12px rgba(34, 211, 238, 0.85);
   }
 
+  /* Bouton secondaire — bord fin, fantôme */
   .btn-ghost {
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    color: #ece9e1;
-    transition: border-color 0.25s ease, background 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #e7ebf2;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
   }
   .btn-ghost:hover {
-    border-color: rgba(201, 162, 75, 0.55);
-    background: rgba(201, 162, 75, 0.06);
+    border-color: rgba(34, 211, 238, 0.5);
+    background: rgba(34, 211, 238, 0.06);
+    color: #fff;
   }
 }
 
-/* Radial atmosphere helpers */
+/* Atmosphère — halos d'accent très contenus (low glow institutionnel) */
 .aura {
   background:
-    radial-gradient(60% 50% at 78% -5%, rgba(201, 162, 75, 0.10), transparent 60%),
-    radial-gradient(50% 40% at 8% 8%, rgba(120, 130, 150, 0.06), transparent 55%);
+    radial-gradient(55% 45% at 82% -8%, rgba(34, 211, 238, 0.07), transparent 60%),
+    radial-gradient(45% 38% at 4% 6%, rgba(91, 157, 255, 0.05), transparent 55%);
 }

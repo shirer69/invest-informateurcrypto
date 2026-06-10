@@ -1,11 +1,10 @@
 import "./globals.css";
-import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Sora, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import JoinProvider from "@/components/JoinProvider";
 
-const display = Fraunces({
+const display = Sora({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
   variable: "--font-display",
   display: "swap",
 });

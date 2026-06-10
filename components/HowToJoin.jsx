@@ -57,7 +57,7 @@ export default function HowToJoin() {
               className="pointer-events-none absolute inset-0 opacity-90"
               style={{
                 background:
-                  "radial-gradient(80% 120% at 80% -20%, rgba(201,162,75,0.18), transparent 55%), radial-gradient(60% 100% at 0% 120%, rgba(201,162,75,0.08), transparent 60%)",
+                  "radial-gradient(80% 120% at 80% -20%, rgba(34,211,238,0.18), transparent 55%), radial-gradient(60% 100% at 0% 120%, rgba(34,211,238,0.08), transparent 60%)",
               }}
             />
             <div className="relative px-8 md:px-14 py-12 md:py-16 flex flex-col md:flex-row md:items-center md:justify-between gap-8">

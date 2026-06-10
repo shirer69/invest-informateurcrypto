@@ -63,7 +63,7 @@ export default function Approach() {
             <div className="relative h-full rounded-2xl border gold-line bg-gradient-to-b from-ink-700/70 to-ink-900 p-8 overflow-hidden">
               <div
                 className="pointer-events-none absolute -top-16 -right-10 h-48 w-48 rounded-full blur-3xl"
-                style={{ background: "radial-gradient(circle, rgba(201,162,75,0.18), transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, rgba(34,211,238,0.18), transparent 70%)" }}
               />
               <div className="relative flex items-center justify-between">
                 <h3 className="font-display text-[20px] text-bone">Pôle Invest</h3>

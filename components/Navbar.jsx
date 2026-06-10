@@ -67,7 +67,7 @@ export default function Navbar() {
             onClick={() => setLoginOpen(true)}
             className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
           >
-            Connexion
+            Connexion dashboard
           </button>
           <button
             onClick={openJoin}
@@ -106,7 +106,7 @@ export default function Navbar() {
               onClick={() => { setOpen(false); setLoginOpen(true); }}
               className="btn-ghost rounded-full px-5 py-3 text-center text-sm mt-1"
             >
-              Connexion
+              Connexion dashboard
             </button>
             <button
               onClick={() => {

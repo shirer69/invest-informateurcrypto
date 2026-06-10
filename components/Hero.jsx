@@ -96,7 +96,7 @@ export default function Hero() {
                 <input
                   value={heroCode}
                   onChange={(e) => setHeroCode(e.target.value)}
-                  placeholder="CODE PARRAIN"
+                  placeholder="CODE D'INVITATION"
                   className="bg-transparent px-5 py-4 w-[180px] sm:w-[200px] font-mono uppercase tracking-[0.18em] text-bone placeholder:text-mist/40 text-[14px] outline-none"
                 />
                 <button

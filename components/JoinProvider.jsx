@@ -203,10 +203,10 @@ export default function JoinProvider({ children }) {
                     animate={{ opacity: 1 }}
                   >
                     <h3 className="font-display font-light text-[26px] leading-tight tracking-tightest text-bone">
-                      Entrez votre code parrain
+                      Entrez votre code d'invitation
                     </h3>
                     <p className="mt-3 text-[14px] leading-relaxed text-mist">
-                      L'accès au Pôle Invest se fait sur parrainage. Saisissez votre code
+                      L'accès au Pôle Invest se fait sur invitation. Saisissez votre code
                       pour découvrir les étapes d'adhésion.
                     </p>
                     <form onSubmit={submitCode} className="mt-6">
@@ -217,14 +217,14 @@ export default function JoinProvider({ children }) {
                           setCode(e.target.value);
                           setError(false);
                         }}
-                        placeholder="CODE PARRAIN"
+                        placeholder="CODE D'INVITATION"
                         className={`w-full rounded-xl bg-ink-900 border px-4 py-3.5 text-bone placeholder:text-mist/40 font-mono tracking-[0.18em] uppercase outline-none transition-colors ${
                           error ? "border-red-500/60" : "border-white/10 focus:border-gold/50"
                         }`}
                       />
                       {error && (
                         <p className="mt-2.5 text-[12.5px] text-red-400/90">
-                          Code parrain invalide. Vérifiez auprès de votre parrain.
+                          Code d'invitation invalide. Vérifiez auprès de votre parrain.
                         </p>
                       )}
                       <button
@@ -253,8 +253,8 @@ export default function JoinProvider({ children }) {
                     </p>
 
                     <div className="mt-4 flex items-center gap-3 rounded-2xl border gold-line bg-gold/[0.06] px-4 py-3">
-                      <span className="font-display text-[34px] leading-none text-gold-grad">5 $</span>
-                      <span className="text-[13px] leading-snug text-bone">
+                      <span className="font-display text-[34px] leading-none text-gold-grad whitespace-nowrap shrink-0">5&nbsp;$</span>
+                      <span className="text-[13px] leading-snug text-bone min-w-0">
                         Dépôt minimum
                         <span className="block text-[11.5px] text-mist">ticket d'entrée pour accéder au Pôle Invest</span>
                       </span>

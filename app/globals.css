@@ -76,6 +76,10 @@ body {
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+    /* Évite que l'encre des glyphes italiques soit rognée en bord de ligne */
+    padding-inline: 0.07em;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
   }
 
   .eyebrow {

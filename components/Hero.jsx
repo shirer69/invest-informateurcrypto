@@ -46,7 +46,7 @@ export default function Hero() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.08, ease }}
-            className="mt-7 font-display font-light tracking-tight sm:tracking-tightest text-[clamp(28px,8vw,40px)] leading-[1.07] sm:text-[54px] md:text-[62px] text-bone break-words hyphens-none"
+            className="mt-7 pl-[0.04em] font-display font-light text-[clamp(28px,8vw,40px)] leading-[1.12] sm:text-[54px] md:text-[62px] text-bone break-words hyphens-none"
           >
             Le prochain cycle se prépare{" "}
             <span className="italic text-gold-grad pr-[0.06em]">avant qu'il ne commence.</span>

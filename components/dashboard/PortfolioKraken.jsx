@@ -67,8 +67,8 @@ export default function PortfolioKraken() {
     setLoading(true);
     const [s, f, fp, mp] = await Promise.all([
       fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/account").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/positions").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
     ]);
     setSpot(s); setFut(f); setFutPos(fp);

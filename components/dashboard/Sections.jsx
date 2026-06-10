@@ -44,7 +44,7 @@ export function Overview({ tgLink }) {
         </div>
         <div className="relative rounded-2xl border gold-line overflow-hidden p-6 flex flex-col justify-between min-h-[220px]">
           <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
-               style={{ background: "radial-gradient(circle, rgba(34,211,238,0.20), transparent 70%)" }} />
+               style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }} />
           <div className="relative">
             <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Groupe privé</div>
             <h3 className="mt-2 font-display text-[20px] text-bone">VIP Pôle Invest</h3>
@@ -226,7 +226,7 @@ export function CopyTrading() {
       <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading</h3>
       <div className="relative rounded-2xl border gold-line bg-ink-800/40 p-8 overflow-hidden">
         <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
-             style={{ background: "radial-gradient(circle, rgba(34,211,238,0.14), transparent 70%)" }} />
+             style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }} />
         <div className="relative max-w-xl">
           <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest2 text-gold/80 border gold-line rounded-full px-3 py-1">
             🔒 Bientôt · opt-in

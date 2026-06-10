@@ -64,7 +64,7 @@ export default function Membership() {
             >
               <div
                 className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-                style={{ background: "radial-gradient(circle, rgba(34,211,238,0.16), transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, rgba(46,230,168,0.16), transparent 70%)" }}
               />
               <span className="grid place-items-center h-12 w-12 rounded-xl border gold-line text-gold">
                 <Icon className="h-6 w-6" />

@@ -15,7 +15,7 @@ export function renderOgImage() {
           padding: "64px 70px",
           backgroundColor: "#0a0b0e",
           backgroundImage:
-            "radial-gradient(circle at 84% -6%, rgba(34,211,238,0.24), transparent 55%), radial-gradient(circle at -4% 112%, rgba(34,211,238,0.10), transparent 55%)",
+            "radial-gradient(circle at 84% -6%, rgba(46,230,168,0.24), transparent 55%), radial-gradient(circle at -4% 112%, rgba(46,230,168,0.10), transparent 55%)",
           color: "#ECE9E1",
           fontFamily: "serif",
         }}
@@ -31,8 +31,8 @@ export function renderOgImage() {
                 width: "52px",
                 height: "52px",
                 borderRadius: "13px",
-                border: "1px solid rgba(34,211,238,0.5)",
-                color: "#7DE9F4",
+                border: "1px solid rgba(46,230,168,0.5)",
+                color: "#79F3C9",
                 fontSize: "20px",
                 fontWeight: 700,
               }}
@@ -45,7 +45,7 @@ export function renderOgImage() {
                 style={{
                   fontSize: "12px",
                   letterSpacing: "4px",
-                  color: "#22D3EE",
+                  color: "#2EE6A8",
                   fontFamily: "monospace",
                 }}
               >
@@ -90,7 +90,7 @@ export function renderOgImage() {
               fontStyle: "italic",
               lineHeight: 1.05,
               letterSpacing: "-1.5px",
-              color: "#7DE9F4",
+              color: "#79F3C9",
             }}
           >
             avant qu'il ne commence.
@@ -121,10 +121,10 @@ export function renderOgImage() {
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  border: "1px solid rgba(34,211,238,0.3)",
+                  border: "1px solid rgba(46,230,168,0.3)",
                   borderRadius: "14px",
                   padding: "12px 22px",
-                  backgroundColor: "rgba(34,211,238,0.05)",
+                  backgroundColor: "rgba(46,230,168,0.05)",
                 }}
               >
                 <div
@@ -137,7 +137,7 @@ export function renderOgImage() {
                 >
                   {y}
                 </div>
-                <div style={{ fontSize: "30px", fontWeight: 700, color: "#7DE9F4" }}>{v}</div>
+                <div style={{ fontSize: "30px", fontWeight: 700, color: "#79F3C9" }}>{v}</div>
               </div>
             ))}
           </div>

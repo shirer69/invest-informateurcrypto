@@ -4,12 +4,12 @@
 
 :root {
   --bg: #070A0F;
-  --accent: #22d3ee;
-  --accent-soft: #7de9f4;
+  --accent: #2ee6a8;
+  --accent-soft: #79f3c9;
   --pos: #1fcb83;
   --neg: #f6465d;
   --line: rgba(255, 255, 255, 0.07);
-  --line-accent: rgba(34, 211, 238, 0.22);
+  --line-accent: rgba(46, 230, 168, 0.22);
 }
 
 * {
@@ -36,7 +36,7 @@ body {
 }
 
 ::selection {
-  background: rgba(34, 211, 238, 0.26);
+  background: rgba(46, 230, 168, 0.26);
   color: #fff;
 }
 
@@ -60,7 +60,7 @@ body {
 
   /* Lignes de séparation fines */
   .hairline { border-color: rgba(255, 255, 255, 0.07); }
-  .gold-line { border-color: rgba(34, 211, 238, 0.22); }
+  .gold-line { border-color: rgba(46, 230, 168, 0.22); }
 
   /* Surface "data container" — élévation discrète, bord fin, peu de blur */
   .glass {
@@ -72,7 +72,7 @@ body {
 
   /* Dégradé d'accent (KPIs, valeurs) */
   .text-gold-grad {
-    background: linear-gradient(90deg, #7de9f4 0%, #22d3ee 55%, #0e9db5 100%);
+    background: linear-gradient(90deg, #79f3c9 0%, #2ee6a8 55%, #11a87b 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -83,26 +83,26 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.22em;
     font-size: 11px;
-    color: #22d3ee;
+    color: #2ee6a8;
   }
 
   /* Bouton primaire — net, haute lisibilité, glow contenu */
   .btn-gold {
     position: relative;
-    background: linear-gradient(180deg, #38dcef, #15bcd2);
+    background: linear-gradient(180deg, #3df0bf, #13c08e);
     color: #04181d;
     font-weight: 600;
     letter-spacing: 0.005em;
-    border: 1px solid rgba(34, 211, 238, 0.55);
+    border: 1px solid rgba(46, 230, 168, 0.55);
     transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
-    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.12),
-      0 8px 24px -14px rgba(34, 211, 238, 0.7);
+    box-shadow: 0 0 0 1px rgba(46, 230, 168, 0.12),
+      0 8px 24px -14px rgba(46, 230, 168, 0.7);
   }
   .btn-gold:hover {
     transform: translateY(-1px);
-    background: linear-gradient(180deg, #4ee3f4, #1ec7dc);
-    box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.25),
-      0 12px 30px -12px rgba(34, 211, 238, 0.85);
+    background: linear-gradient(180deg, #5cf3c9, #1ad19c);
+    box-shadow: 0 0 0 1px rgba(46, 230, 168, 0.25),
+      0 12px 30px -12px rgba(46, 230, 168, 0.85);
   }
 
   /* Bouton secondaire — bord fin, fantôme */
@@ -112,8 +112,8 @@ body {
     transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
   }
   .btn-ghost:hover {
-    border-color: rgba(34, 211, 238, 0.5);
-    background: rgba(34, 211, 238, 0.06);
+    border-color: rgba(46, 230, 168, 0.5);
+    background: rgba(46, 230, 168, 0.06);
     color: #fff;
   }
 }
@@ -121,6 +121,6 @@ body {
 /* Atmosphère — halos d'accent très contenus (low glow institutionnel) */
 .aura {
   background:
-    radial-gradient(55% 45% at 82% -8%, rgba(34, 211, 238, 0.07), transparent 60%),
+    radial-gradient(55% 45% at 82% -8%, rgba(46, 230, 168, 0.07), transparent 60%),
     radial-gradient(45% 38% at 4% 6%, rgba(91, 157, 255, 0.05), transparent 55%);
 }

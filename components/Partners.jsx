@@ -102,7 +102,7 @@ export default function Partners() {
           <div className="mt-5 rounded-3xl border gold-line bg-gradient-to-b from-ink-700/60 to-ink-900 p-8 md:p-11 overflow-hidden relative">
             <div
               className="pointer-events-none absolute -bottom-20 right-0 h-56 w-56 rounded-full blur-3xl"
-              style={{ background: "radial-gradient(circle, rgba(34,211,238,0.14), transparent 70%)" }}
+              style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }}
             />
             <div className="relative grid lg:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
               <div>

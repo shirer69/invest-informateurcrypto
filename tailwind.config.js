@@ -20,14 +20,14 @@ module.exports = {
         // Accent primaire — cyan électrique (clé d'action / highlights).
         // Conserve la clé "gold" pour basculer toute l'UI sans toucher au markup.
         gold: {
-          DEFAULT: "#22D3EE",
-          soft: "#7DE9F4",
-          deep: "#0E9DB5",
+          DEFAULT: "#2EE6A8",
+          soft: "#79F3C9",
+          deep: "#11A87B",
         },
         accent: {
-          DEFAULT: "#22D3EE",
-          soft: "#7DE9F4",
-          deep: "#0E9DB5",
+          DEFAULT: "#2EE6A8",
+          soft: "#79F3C9",
+          deep: "#11A87B",
         },
         // Sémantique data / finance
         pos: "#1FCB83",   // PnL positif / gains

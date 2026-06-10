@@ -18,7 +18,7 @@ export default function Hero() {
   const { open: openJoin, openWithCode } = useJoin();
   const [heroCode, setHeroCode] = useState("");
   return (
-    <section id="top" className="relative aura pt-36 md:pt-44 pb-20 md:pb-28">
+    <section id="top" className="relative aura pt-24 sm:pt-32 md:pt-44 pb-16 sm:pb-20 md:pb-28">
       {/* fine vertical guide lines */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.5]">
         <div className="mx-auto max-w-[1180px] h-full px-6 grid grid-cols-12">

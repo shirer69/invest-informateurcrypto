@@ -7,14 +7,19 @@ export default function Chat({ me }) {
   const [msgs, setMsgs] = useState([]);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
-  const endRef = useRef(null);
-  const lastTs = useRef(0);
+  const listRef = useRef(null);
+  const firstLoad = useRef(true);
   const authed = typeof window !== "undefined" && !!getToken();
 
   const refresh = useCallback(async () => {
     const list = await chatList(0);
-    setMsgs(list);
-    if (list.length) lastTs.current = list[list.length - 1].ts;
+    // n'actualise l'état que si le contenu a vraiment changé (évite re-render inutile)
+    setMsgs((prev) => {
+      const a = prev[prev.length - 1];
+      const b = list[list.length - 1];
+      if (prev.length === list.length && a?.ts === b?.ts) return prev;
+      return list;
+    });
   }, []);
 
   useEffect(() => {
@@ -23,8 +28,16 @@ export default function Chat({ me }) {
     return () => clearInterval(id);
   }, [refresh]);
 
+  // Auto-défilement DANS la zone de messages uniquement (jamais la page entière),
+  // et seulement si l'utilisateur est déjà près du bas.
   useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
+    const el = listRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
+    if (firstLoad.current || nearBottom) {
+      el.scrollTop = el.scrollHeight;
+      if (msgs.length) firstLoad.current = false;
+    }
   }, [msgs]);
 
   async function send(e) {
@@ -50,7 +63,7 @@ export default function Chat({ me }) {
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60"># général</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {msgs.length === 0 && (
           <p className="text-[13px] text-mist/60">Aucun message pour le moment. Lancez la discussion 👋</p>
         )}
@@ -67,7 +80,6 @@ export default function Chat({ me }) {
             </div>
           );
         })}
-        <div ref={endRef} />
       </div>
 
       {authed ? (

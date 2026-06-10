@@ -73,22 +73,31 @@ export default function Dashboard() {
       <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6 lg:py-8 grid lg:grid-cols-[210px_1fr] gap-5 lg:gap-8">
         {/* sidebar */}
         <aside className="lg:sticky lg:top-24 self-start min-w-0">
-          <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 sm:-mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {NAV.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => setTab(n.id)}
-                className={`flex items-center gap-2.5 rounded-xl px-3.5 lg:px-4 py-2.5 text-[13.5px] lg:text-[14px] whitespace-nowrap transition-colors ${
-                  tab === n.id
-                    ? "bg-gold/[0.10] text-bone border gold-line"
-                    : "text-mist hover:text-bone border border-transparent"
-                }`}
-              >
-                <span className={`text-[15px] ${tab === n.id ? "text-gold" : "text-mist/60"}`}>{n.icon}</span>
-                {n.label}
-              </button>
-            ))}
-          </nav>
+          <div className="lg:hidden mb-1.5 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-widest2 text-gold/70">
+            <span>Menu</span>
+            <span className="text-mist/50">— faites défiler</span>
+            <span className="animate-pulse">→</span>
+          </div>
+          <div className="relative">
+            <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 sm:-mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {NAV.map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => setTab(n.id)}
+                  className={`flex items-center gap-2.5 rounded-xl px-3.5 lg:px-4 py-2.5 text-[13.5px] lg:text-[14px] whitespace-nowrap transition-colors ${
+                    tab === n.id
+                      ? "bg-gold/[0.10] text-bone border gold-line"
+                      : "text-mist hover:text-bone border border-transparent"
+                  }`}
+                >
+                  <span className={`text-[15px] ${tab === n.id ? "text-gold" : "text-mist/60"}`}>{n.icon}</span>
+                  {n.label}
+                </button>
+              ))}
+            </nav>
+            {/* dégradé de bord pour indiquer le défilement horizontal (mobile) */}
+            <div className="lg:hidden pointer-events-none absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-ink-900 via-ink-900/70 to-transparent" />
+          </div>
         </aside>
 
         {/* content */}

@@ -1,7 +1,15 @@
 import { Reveal } from "./Reveal";
 import KrakenLogo from "./KrakenLogo";
+import HyperliquidLogo from "./HyperliquidLogo";
+import OkxLogo from "./OkxLogo";
 import { KRAKEN_SITE } from "@/lib/site";
 import { IconArrow, IconCheck } from "./Icons";
+
+const PARTNERS = [
+  { Logo: KrakenLogo, href: "https://www.kraken.com", note: "Exécution & conservation" },
+  { Logo: HyperliquidLogo, href: "https://hyperliquid.xyz", note: "Perps on-chain" },
+  { Logo: OkxLogo, href: "https://www.okx.com", note: "Liquidité & dérivés" },
+];
 
 const POINTS = [
   {
@@ -23,10 +31,23 @@ export default function Partners() {
     <section className="relative py-24 md:py-32 border-t hairline">
       <div className="mx-auto max-w-[1180px] px-6">
         <Reveal className="max-w-2xl">
-          <span className="eyebrow">Partenaire d'exécution</span>
+          <span className="eyebrow">Partenaires d'exécution</span>
           <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
             Une infrastructure à la hauteur de l'ambition
           </h2>
+        </Reveal>
+
+        {/* Rangée partenaires */}
+        <Reveal delay={0.05}>
+          <div className="mt-10 grid sm:grid-cols-3 gap-4">
+            {PARTNERS.map(({ Logo, href, note }, i) => (
+              <a key={i} href={href} target="_blank" rel="noopener noreferrer"
+                 className="group rounded-2xl border hairline bg-ink-800/40 px-6 py-7 flex flex-col items-center justify-center gap-3 hover:border-gold/30 transition-colors">
+                <Logo className="opacity-90 group-hover:opacity-100 transition-opacity" />
+                <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">{note}</span>
+              </a>
+            ))}
+          </div>
         </Reveal>
 
         <Reveal delay={0.1}>

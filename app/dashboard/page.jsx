@@ -49,16 +49,16 @@ export default function Dashboard() {
 
       {/* top bar */}
       <header className="sticky top-0 z-40 glass border-b hairline">
-        <div className="mx-auto max-w-[1280px] px-5 h-16 flex items-center justify-between">
-          <a href="/" className="flex items-center gap-3">
-            <LogoMark className="h-9 w-9" />
-            <span className="leading-tight">
-              <span className="block font-display text-[15px] text-bone">🕵️‍♂️ Trading OS · Pôle Invest</span>
+        <div className="mx-auto max-w-[1280px] px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
+          <a href="/" className="flex items-center gap-2.5 min-w-0">
+            <LogoMark className="h-9 w-9 shrink-0" />
+            <span className="leading-tight min-w-0">
+              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">🕵️‍♂️ Trading OS · Pôle Invest</span>
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>
             </span>
           </a>
-          <div className="flex items-center gap-4">
-            <span className="text-[13px] text-mist hidden sm:inline">Bonjour, <span className="text-bone">{name}</span></span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-[13px] text-mist hidden md:inline">Bonjour, <span className="text-bone">{name}</span></span>
             {user ? (
               <button onClick={() => { logout(); window.location.href = "/"; }}
                       className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">Se déconnecter</button>
@@ -70,15 +70,15 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1280px] px-5 py-8 grid lg:grid-cols-[210px_1fr] gap-8">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6 lg:py-8 grid lg:grid-cols-[210px_1fr] gap-5 lg:gap-8">
         {/* sidebar */}
-        <aside className="lg:sticky lg:top-24 self-start">
-          <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0">
+        <aside className="lg:sticky lg:top-24 self-start min-w-0">
+          <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 sm:-mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {NAV.map((n) => (
               <button
                 key={n.id}
                 onClick={() => setTab(n.id)}
-                className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-[14px] whitespace-nowrap transition-colors ${
+                className={`flex items-center gap-2.5 rounded-xl px-3.5 lg:px-4 py-2.5 text-[13.5px] lg:text-[14px] whitespace-nowrap transition-colors ${
                   tab === n.id
                     ? "bg-gold/[0.10] text-bone border gold-line"
                     : "text-mist hover:text-bone border border-transparent"

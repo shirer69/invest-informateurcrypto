@@ -89,8 +89,8 @@ export function Positions() {
         </span>
         <DemoTag />
       </div>
-      <div className="rounded-2xl border hairline bg-ink-800/50 overflow-hidden">
-        <table className="w-full text-[13.5px]">
+      <div className="rounded-2xl border hairline bg-ink-800/50 overflow-x-auto">
+        <table className="w-full min-w-[420px] text-[13.5px]">
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
               <th className="px-5 py-3">Actif</th>

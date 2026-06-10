@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Chat from "@/components/dashboard/Chat";
+import OrderTicket from "@/components/dashboard/OrderTicket";
+import SandboxKraken from "@/components/dashboard/SandboxKraken";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout } from "@/lib/clientStore";
@@ -12,6 +14,8 @@ const NAV = [
   { id: "intelligence", label: "Intelligence", icon: "✶" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
+  { id: "order", label: "Préparer un ordre", icon: "⊕" },
+  { id: "sandbox", label: "Sandbox Kraken", icon: "⚡" },
   { id: "copy", label: "Copy-trading", icon: "⇄" },
 ];
 
@@ -87,6 +91,8 @@ export default function Dashboard() {
               <Chat me={user?.name} />
             </div>
           )}
+          {tab === "order" && <OrderTicket />}
+          {tab === "sandbox" && <SandboxKraken />}
           {tab === "copy" && <CopyTrading />}
         </main>
       </div>

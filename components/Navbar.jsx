@@ -45,7 +45,7 @@ export default function Navbar() {
               🕵️‍♂️ Club des Informateurs
             </span>
             <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
-              Pôle Invest
+              Julien M. — Pôle Invest
             </span>
           </span>
         </a>

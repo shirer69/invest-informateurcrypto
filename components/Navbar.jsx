@@ -39,7 +39,7 @@ export default function Navbar() {
     >
       <nav className="mx-auto max-w-[1180px] px-6 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-3 group">
-          <LogoMark className="h-12 w-12" />
+          <LogoMark className="hidden sm:block h-12 w-12" />
           <span className="leading-tight">
             <span className="block font-display text-[15px] tracking-tight text-bone">
               Club des Informateurs

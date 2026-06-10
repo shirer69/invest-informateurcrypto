@@ -120,7 +120,7 @@ export default function TrackRecord() {
         </svg>
       </div>
 
-      {/* stats annuelles */}
+      {/* stats annuelles + répartition au survol */}
       <div className="grid grid-cols-3 border-t hairline">
         {PERFORMANCE.map((p, i) => (
           <motion.div
@@ -129,14 +129,44 @@ export default function TrackRecord() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.3 + i * 0.12 }}
-            className={`px-3 sm:px-5 py-5 ${i < 2 ? "border-r hairline" : ""}`}
+            className={`group relative px-3 sm:px-5 py-5 cursor-default ${i < 2 ? "border-r hairline" : ""}`}
           >
-            <div className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-widest2 text-mist">
-              {p.year}
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-widest2 text-mist">
+                {p.year}
+              </span>
+              {p.breakdown && (
+                <span className="font-mono text-[9px] text-gold/60 opacity-0 group-hover:opacity-100 transition-opacity">
+                  ⓘ
+                </span>
+              )}
             </div>
             <div className="mt-1 font-display text-[19px] sm:text-2xl md:text-[28px] text-gold-grad whitespace-nowrap tabular-nums">
               {p.value}
             </div>
+
+            {p.breakdown && (
+              <div className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 rounded-xl border gold-line bg-ink-900/95 backdrop-blur-sm p-3.5 shadow-2xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/70 mb-2.5">
+                  Répartition des profits {p.year}
+                </div>
+                <div className="space-y-2">
+                  {p.breakdown.map((b) => (
+                    <div key={b.label}>
+                      <div className="flex items-center justify-between text-[11.5px]">
+                        <span className="text-bone">{b.label}</span>
+                        <span className="font-mono text-gold tabular-nums">{b.pct}%</span>
+                      </div>
+                      <div className="mt-1 h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                        <div className="h-full rounded-full bg-gradient-to-r from-gold-deep to-gold-soft"
+                             style={{ width: `${b.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <span className="absolute left-1/2 -translate-x-1/2 top-full h-2 w-2 -mt-1 rotate-45 bg-ink-900 border-r border-b gold-line" />
+              </div>
+            )}
           </motion.div>
         ))}
       </div>

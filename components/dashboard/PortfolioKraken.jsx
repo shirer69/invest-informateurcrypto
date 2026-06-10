@@ -86,16 +86,26 @@ export default function PortfolioKraken() {
   useEffect(() => { load(); }, [load]);
 
   const holdings = spot?.ok ? spot.holdings : [];
-  const crypto = holdings.filter((h) => h.kind === "crypto");
-  const stocks = holdings.filter((h) => h.kind === "stock");
-  const cash = holdings.filter((h) => h.kind === "cash");
   const t = spot?.totals || {};
+
+  // Part de chaque ligne au sein de sa catégorie (calculée sur les vraies valeurs)
+  const withShare = (rows) => {
+    const tot = rows.reduce((s, r) => s + (r.value || 0), 0);
+    return rows.map((r) => ({ ...r, _share: tot > 0 ? ((r.value || 0) / tot) * 100 : 0 }));
+  };
+  const crypto = withShare(holdings.filter((h) => h.kind === "crypto"));
+  const stocks = withShare(holdings.filter((h) => h.kind === "stock"));
+  const cash = holdings.filter((h) => h.kind === "cash");
 
   const futValue =
     fut?.data?.accounts?.flex?.portfolioValue ??
     fut?.data?.accounts?.flex?.collateralValue ?? 0;
   const futPositions = futPos?.data?.openPositions || [];
   const marginTotal = marginPos.reduce((s, p) => s + p.value, 0);
+  const marginRows = marginPos.map((p) => ({
+    ...p,
+    _share: marginTotal > 0 ? (p.value / marginTotal) * 100 : 0,
+  }));
 
   // Valeurs par catégorie (composition)
   const comp = {
@@ -159,8 +169,8 @@ export default function PortfolioKraken() {
         <Section title="Spot crypto" dot={CAT.crypto.color}>
           <Table rows={crypto} cols={[
             { k: "symbol", h: "Actif" },
-            { k: "amount", h: "Quantité", right: true, render: (r) => fmtAmt(r.amount) },
-            { k: "price", h: "Prix", right: true, hide: "hidden sm:table-cell", render: (r) => (r.price ? fmtUsd(r.price) : "—") },
+            { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+            { k: "amount", h: "Quantité", right: true, hide: "hidden sm:table-cell", render: (r) => fmtAmt(r.amount) },
             { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
           ]} />
         </Section>
@@ -168,17 +178,18 @@ export default function PortfolioKraken() {
         <Section title="Actions / ETF tokenisés" dot={CAT.stock.color}>
           <Table rows={stocks} cols={[
             { k: "symbol", h: "Titre" },
-            { k: "amount", h: "Quantité", right: true, render: (r) => fmtAmt(r.amount) },
+            { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+            { k: "amount", h: "Quantité", right: true, hide: "hidden sm:table-cell", render: (r) => fmtAmt(r.amount) },
             { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
           ]} />
         </Section>
 
         <Section title="Positions sur marge" dot={CAT.margin.color}>
-          <Table rows={marginPos} cols={[
+          <Table rows={marginRows} cols={[
             { k: "pair", h: "Paire" },
             { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
-            { k: "vol", h: "Volume", right: true, hide: "hidden sm:table-cell" },
-            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+            { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+            { k: "value", h: "Valeur", right: true, hide: "hidden sm:table-cell", render: (r) => fmtUsd(r.value) },
             { k: "net", h: "P&L", right: true, cls: (r) => (r.net >= 0 ? "text-emerald-400" : "text-rose-400"), render: (r) => `${r.net >= 0 ? "+" : ""}${fmtUsd(r.net)}` },
           ]} />
         </Section>

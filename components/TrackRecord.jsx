@@ -129,12 +129,12 @@ export default function TrackRecord() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7, delay: 0.3 + i * 0.12 }}
-            className={`px-5 py-5 ${i < 2 ? "border-r hairline" : ""}`}
+            className={`px-3 sm:px-5 py-5 ${i < 2 ? "border-r hairline" : ""}`}
           >
-            <div className="font-mono text-[10.5px] uppercase tracking-widest2 text-mist">
+            <div className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-widest2 text-mist">
               {p.year}
             </div>
-            <div className="mt-1 font-display text-2xl md:text-[28px] text-gold-grad">
+            <div className="mt-1 font-display text-[19px] sm:text-2xl md:text-[28px] text-gold-grad whitespace-nowrap tabular-nums">
               {p.value}
             </div>
           </motion.div>

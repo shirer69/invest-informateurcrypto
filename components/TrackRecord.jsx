@@ -45,10 +45,12 @@ export default function TrackRecord() {
   const area = `${d} L ${last[0].toFixed(2)} ${H - PAD_BOT} L ${PAD_X} ${H - PAD_BOT} Z`;
 
   return (
-    <div className="relative rounded-2xl glass overflow-hidden">
-      {/* halo or */}
-      <div className="pointer-events-none absolute -top-24 right-0 h-64 w-64 rounded-full blur-3xl"
-           style={{ background: "radial-gradient(circle, rgba(46,230,168,0.18), transparent 70%)" }} />
+    <div className="relative rounded-2xl glass">
+      {/* halo — clippé au cadre (l'infobulle, elle, peut déborder) */}
+      <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
+        <div className="absolute -top-24 right-0 h-64 w-64 rounded-full blur-3xl"
+             style={{ background: "radial-gradient(circle, rgba(46,230,168,0.18), transparent 70%)" }} />
+      </div>
 
       <div className="flex items-center justify-between px-6 pt-5">
         <div className="flex items-center gap-2.5">
@@ -146,7 +148,11 @@ export default function TrackRecord() {
             </div>
 
             {p.breakdown && (
-              <div className="pointer-events-none absolute z-30 left-1/2 -translate-x-1/2 bottom-full mb-2 w-52 rounded-xl border gold-line bg-ink-900/95 backdrop-blur-sm p-3.5 shadow-2xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200">
+              <div
+                className={`pointer-events-none absolute z-40 bottom-full mb-2 w-[13.5rem] max-w-[78vw] rounded-xl border gold-line bg-ink-900/95 backdrop-blur-sm p-3.5 shadow-2xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ${
+                  i === 0 ? "left-0" : i === 2 ? "right-0" : "left-1/2 -translate-x-1/2"
+                }`}
+              >
                 <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/70 mb-2.5">
                   Répartition des profits {p.year}
                 </div>
@@ -164,7 +170,9 @@ export default function TrackRecord() {
                     </div>
                   ))}
                 </div>
-                <span className="absolute left-1/2 -translate-x-1/2 top-full h-2 w-2 -mt-1 rotate-45 bg-ink-900 border-r border-b gold-line" />
+                <span className={`absolute top-full h-2 w-2 -mt-1 rotate-45 bg-ink-900 border-r border-b gold-line ${
+                  i === 0 ? "left-6" : i === 2 ? "right-6" : "left-1/2 -translate-x-1/2"
+                }`} />
               </div>
             )}
           </motion.div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useJoin } from "./JoinProvider";
+import LogoMark from "./LogoMark";
 import LoginModal from "./dashboard/LoginModal";
 
 const LINKS = [
@@ -38,12 +39,10 @@ export default function Navbar() {
     >
       <nav className="mx-auto max-w-[1180px] px-6 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-3 group">
-          <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-[13px] leading-none">
-            CI
-          </span>
+          <LogoMark className="h-9 w-9" />
           <span className="leading-tight">
             <span className="block font-display text-[15px] tracking-tight text-bone">
-              Club des Informateurs
+              🕵️‍♂️ Club des Informateurs
             </span>
             <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
               Pôle Invest

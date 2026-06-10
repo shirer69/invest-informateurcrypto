@@ -6,7 +6,7 @@ import { LINKEDIN_URL } from "@/lib/site";
 
 const CREDENTIALS = [
   { label: "Certification AMF", flag: true },
-  { label: "CIF — Conseiller en Investissements Financiers", flag: true },
+  { label: "4 ans analyste crypto chez Coinhouse" },
   { label: "Membre ANACOFI" },
   { label: "ESCP Business School — Finance de marché" },
 ];

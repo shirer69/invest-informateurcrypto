@@ -8,6 +8,7 @@ import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
+import LogoMark from "@/components/LogoMark";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout } from "@/lib/clientStore";
@@ -50,9 +51,9 @@ export default function Dashboard() {
       <header className="sticky top-0 z-40 glass border-b hairline">
         <div className="mx-auto max-w-[1280px] px-5 h-16 flex items-center justify-between">
           <a href="/" className="flex items-center gap-3">
-            <span className="grid place-items-center h-9 w-9 rounded-[10px] border gold-line text-gold font-display text-[13px]">CI</span>
+            <LogoMark className="h-9 w-9" />
             <span className="leading-tight">
-              <span className="block font-display text-[15px] text-bone">Trading OS · Pôle Invest</span>
+              <span className="block font-display text-[15px] text-bone">🕵️‍♂️ Trading OS · Pôle Invest</span>
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>
             </span>
           </a>

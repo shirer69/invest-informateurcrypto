@@ -2,6 +2,9 @@
 
 import TrackRecord from "@/components/TrackRecord";
 import { IconArrow } from "@/components/Icons";
+import Chat from "@/components/dashboard/Chat";
+import VipFeed from "@/components/dashboard/VipFeed";
+import { getUser } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
 const DemoTag = () => (
@@ -58,6 +61,15 @@ export function Overview({ tgLink }) {
           </a>
         </div>
       </div>
+      {/* Posts VIP en direct + discussion membres */}
+      <div className="mt-8 grid lg:grid-cols-[1.25fr_1fr] gap-5 items-start">
+        <VipFeed />
+        <div>
+          <h3 className="font-display text-[17px] text-bone mb-3">Discussion membres</h3>
+          <Chat me={getUser()?.name} />
+        </div>
+      </div>
+
       <Disclaimer>
         Données de démonstration. Contenu éducatif — ne constitue pas un conseil en
         investissement. Risque de perte en capital.

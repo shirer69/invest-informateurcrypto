@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { PERFORMANCE, TELEGRAM_URL } from "@/lib/site";
 
@@ -43,6 +44,7 @@ function buildPath(series) {
 export default function TrackRecord() {
   const { d, last } = buildPath(SERIES);
   const area = `${d} L ${last[0].toFixed(2)} ${H - PAD_BOT} L ${PAD_X} ${H - PAD_BOT} Z`;
+  const [open, setOpen] = useState(null); // index de l'année ouverte
 
   return (
     <div className="relative rounded-2xl glass">
@@ -122,61 +124,82 @@ export default function TrackRecord() {
         </svg>
       </div>
 
-      {/* stats annuelles + répartition au survol */}
-      <div className="grid grid-cols-3 border-t hairline">
-        {PERFORMANCE.map((p, i) => (
-          <motion.div
-            key={p.year}
-            initial={{ opacity: 0, y: 14 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.3 + i * 0.12 }}
-            className={`group relative px-3 sm:px-5 py-5 cursor-default ${i < 2 ? "border-r hairline" : ""}`}
-          >
-            <div className="flex items-center gap-1.5">
-              <span className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-widest2 text-mist">
-                {p.year}
-              </span>
+      {/* indice d'interactivité */}
+      <div className="flex items-center justify-center gap-1.5 border-t hairline pt-3 pb-0.5 text-gold/80">
+        <span className="font-mono text-[9.5px] uppercase tracking-widest2 animate-pulse">
+          ⓘ Survolez ou touchez une année → répartition des profits
+        </span>
+      </div>
+
+      {/* stats annuelles + répartition (survol OU clic/tap) */}
+      <div className="grid grid-cols-3">
+        {PERFORMANCE.map((p, i) => {
+          const isOpen = open === i;
+          return (
+            <motion.button
+              type="button"
+              key={p.year}
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.3 + i * 0.12 }}
+              onClick={() => setOpen(isOpen ? null : i)}
+              onMouseEnter={() => setOpen(i)}
+              onMouseLeave={() => setOpen(null)}
+              className={`group relative text-left px-3 sm:px-5 py-5 cursor-pointer outline-none transition-colors ${
+                i < 2 ? "border-r hairline" : ""
+              } ${isOpen ? "bg-gold/[0.06]" : "hover:bg-white/[0.02]"}`}
+            >
+              <div className="flex items-center gap-1.5">
+                <span className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-widest2 text-mist">
+                  {p.year}
+                </span>
+                {p.breakdown && (
+                  <span className={`font-mono text-[9px] transition-colors ${isOpen ? "text-gold" : "text-gold/50"}`}>
+                    ⓘ
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 font-display text-[19px] sm:text-2xl md:text-[28px] text-gold-grad whitespace-nowrap tabular-nums">
+                {p.value}
+              </div>
               {p.breakdown && (
-                <span className="font-mono text-[9px] text-gold/60 opacity-0 group-hover:opacity-100 transition-opacity">
-                  ⓘ
+                <span className="mt-1 block font-mono text-[8.5px] uppercase tracking-widest2 text-mist/45">
+                  Répartition →
                 </span>
               )}
-            </div>
-            <div className="mt-1 font-display text-[19px] sm:text-2xl md:text-[28px] text-gold-grad whitespace-nowrap tabular-nums">
-              {p.value}
-            </div>
 
-            {p.breakdown && (
-              <div
-                className={`pointer-events-none absolute z-40 bottom-full mb-2 w-[13.5rem] max-w-[78vw] rounded-xl border gold-line bg-ink-900/95 backdrop-blur-sm p-3.5 shadow-2xl opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 ${
-                  i === 0 ? "left-0" : i === 2 ? "right-0" : "left-1/2 -translate-x-1/2"
-                }`}
-              >
-                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/70 mb-2.5">
-                  Répartition des profits {p.year}
-                </div>
-                <div className="space-y-2">
-                  {p.breakdown.map((b) => (
-                    <div key={b.label}>
-                      <div className="flex items-center justify-between text-[11.5px]">
-                        <span className="text-bone">{b.label}</span>
-                        <span className="font-mono text-gold tabular-nums">{b.pct}%</span>
+              {p.breakdown && (
+                <div
+                  className={`pointer-events-none absolute z-40 bottom-full mb-2 w-[13.5rem] max-w-[78vw] rounded-xl border gold-line bg-ink-900/95 backdrop-blur-sm p-3.5 shadow-2xl transition-all duration-200 ${
+                    isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+                  } ${i === 0 ? "left-0" : i === 2 ? "right-0" : "left-1/2 -translate-x-1/2"}`}
+                >
+                  <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/70 mb-2.5">
+                    Répartition des profits {p.year}
+                  </div>
+                  <div className="space-y-2">
+                    {p.breakdown.map((b) => (
+                      <div key={b.label}>
+                        <div className="flex items-center justify-between text-[11.5px]">
+                          <span className="text-bone">{b.label}</span>
+                          <span className="font-mono text-gold tabular-nums">{b.pct}%</span>
+                        </div>
+                        <div className="mt-1 h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                          <div className="h-full rounded-full bg-gradient-to-r from-gold-deep to-gold-soft"
+                               style={{ width: `${b.pct}%` }} />
+                        </div>
                       </div>
-                      <div className="mt-1 h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
-                        <div className="h-full rounded-full bg-gradient-to-r from-gold-deep to-gold-soft"
-                             style={{ width: `${b.pct}%` }} />
-                      </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
+                  <span className={`absolute top-full h-2 w-2 -mt-1 rotate-45 bg-ink-900 border-r border-b gold-line ${
+                    i === 0 ? "left-6" : i === 2 ? "right-6" : "left-1/2 -translate-x-1/2"
+                  }`} />
                 </div>
-                <span className={`absolute top-full h-2 w-2 -mt-1 rotate-45 bg-ink-900 border-r border-b gold-line ${
-                  i === 0 ? "left-6" : i === 2 ? "right-6" : "left-1/2 -translate-x-1/2"
-                }`} />
-              </div>
-            )}
-          </motion.div>
-        ))}
+              )}
+            </motion.button>
+          );
+        })}
       </div>
 
       <div className="px-6 py-4 text-[11.5px] leading-relaxed text-mist/70 border-t hairline">

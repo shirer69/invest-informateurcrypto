@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Script from "next/script";
 import Chat from "@/components/dashboard/Chat";
 import OrderTicket from "@/components/dashboard/OrderTicket";
 import SandboxKraken from "@/components/dashboard/SandboxKraken";
@@ -11,7 +12,7 @@ import LoginModal from "@/components/dashboard/LoginModal";
 import LogoMark from "@/components/LogoMark";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 
 const NAV = [
   { id: "overview", label: "Vue d'ensemble", icon: "▦" },
@@ -39,6 +40,28 @@ export default function Dashboard() {
       const l = localStorage.getItem("pi_tg_link");
       if (l) setTgLink(l);
     } catch {}
+  }, []);
+
+  // Mini App Telegram : init SDK + connexion automatique via initData
+  useEffect(() => {
+    let tries = 0;
+    const id = setInterval(() => {
+      tries += 1;
+      const tg = typeof window !== "undefined" && window.Telegram && window.Telegram.WebApp;
+      if (tg) {
+        clearInterval(id);
+        try { tg.ready(); tg.expand(); } catch {}
+        document.documentElement.classList.add("in-telegram");
+        if (!getToken() && tg.initData) {
+          apiTelegramAuth(tg.initData).then((r) => {
+            if (r.ok) setUser(r.user);
+          });
+        }
+      } else if (tries > 40) {
+        clearInterval(id);
+      }
+    }, 100);
+    return () => clearInterval(id);
   }, []);
 
   const name = user?.name || "Invité";

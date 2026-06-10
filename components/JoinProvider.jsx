@@ -76,6 +76,8 @@ export default function JoinProvider({ children }) {
       if (data.status === "active") {
         setInviteLink(data.link || "");
         setVState("active");
+      } else if (data.status === "pending") {
+        setVState("pending");
       } else if (data.status === "invalid") {
         setVState("invalid");
       } else {
@@ -307,6 +309,28 @@ export default function JoinProvider({ children }) {
                             déposer, patientez puis réessayez — ou contactez-nous sur{" "}
                             <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="underline decoration-gold/40 text-gold">Telegram</a>.
                           </p>
+                        )}
+                        {vState === "pending" && (
+                          <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
+                            <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
+                              Statut : en attente (pending)
+                            </div>
+                            <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
+                              Votre compte est bien rattaché mais l'attribution n'est pas encore
+                              <b> active</b>. Pour l'activer : ouvrez puis refermez une petite
+                              position en <b>perpétuels (futures)</b> sur Kraken, puis cliquez
+                              de nouveau sur <b>Vérifier</b> pour obtenir votre accès.
+                            </p>
+                            <a
+                              href={KRAKEN_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-gold hover:text-gold-soft transition-colors"
+                            >
+                              Ouvrir Kraken (futures)
+                              <IconArrow className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
                         )}
                         {vState === "invalid" && (
                           <p className="mt-2.5 text-[12.5px] text-red-400/90">

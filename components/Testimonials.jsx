@@ -6,7 +6,7 @@ import { TESTIMONIALS } from "@/lib/testimonials";
 
 const ease = [0.22, 1, 0.36, 1];
 
-function Quote({ name, text, i }) {
+function Quote({ name, text, link, i }) {
   const initials = name
     .replace(/[^A-Za-zÀ-ÿ ]/g, "")
     .split(" ")
@@ -31,6 +31,17 @@ function Quote({ name, text, i }) {
           {initials}
         </span>
         <span className="text-[13px] text-mist">{name}</span>
+        {link && (
+          <a
+            href={link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto inline-flex items-center gap-1 text-[11.5px] text-gold/80 hover:text-gold transition-colors"
+            title="Voir le message sur Telegram"
+          >
+            Voir sur Telegram ↗
+          </a>
+        )}
       </figcaption>
     </motion.figure>
   );

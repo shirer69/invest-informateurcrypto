@@ -86,7 +86,7 @@ export default function Hero() {
             className="mt-7"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
-              Accès sur code parrain
+              Accès sur invitation
             </span>
             <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
               <form

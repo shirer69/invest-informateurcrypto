@@ -68,6 +68,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen aura">
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       {/* top bar */}

@@ -7,6 +7,9 @@ import { IconArrow } from "./Icons";
 import { useJoin } from "./JoinProvider";
 import FrenchFlag from "./FrenchFlag";
 import Countdown from "./Countdown";
+import KrakenLogo from "./KrakenLogo";
+import HyperliquidLogo from "./HyperliquidLogo";
+import OkxLogo from "./OkxLogo";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -112,6 +115,21 @@ export default function Hero() {
               </li>
             ))}
           </motion.ul>
+
+          {/* partenaires */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.6 }}
+            className="mt-8 flex flex-wrap items-center gap-x-7 gap-y-3"
+          >
+            <span className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50">
+              Partenaires
+            </span>
+            <KrakenLogo wordmark mark className="opacity-70 hover:opacity-100 transition-opacity scale-90" />
+            <HyperliquidLogo className="opacity-70 hover:opacity-100 transition-opacity scale-90" />
+            <OkxLogo className="opacity-70 hover:opacity-100 transition-opacity scale-90" />
+          </motion.div>
         </div>
 
         <motion.div

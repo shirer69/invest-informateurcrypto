@@ -4,6 +4,7 @@ import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODE } from "@/lib/site";
 import { IconArrow } from "./Icons";
+import { createUser } from "@/lib/clientStore";
 
 const JoinCtx = createContext({ open: () => {} });
 export const useJoin = () => useContext(JoinCtx);
@@ -40,6 +41,11 @@ export default function JoinProvider({ children }) {
   const [uid, setUid] = useState("");
   const [vState, setVState] = useState("idle"); // idle | checking | active | notfound | invalid | error
   const [inviteLink, setInviteLink] = useState("");
+
+  // Inscription (email + mot de passe) avant accès au dashboard
+  const [email, setEmail] = useState("");
+  const [pwd, setPwd] = useState("");
+  const [signupErr, setSignupErr] = useState("");
 
   const open = useCallback(() => {
     setOpen(true);
@@ -83,6 +89,25 @@ export default function JoinProvider({ children }) {
       }
     } catch {
       setVState("error");
+    }
+  };
+
+  const submitSignup = (e) => {
+    e.preventDefault();
+    const mail = email.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
+      setSignupErr("Adresse e-mail invalide.");
+      return;
+    }
+    if (pwd.length < 6) {
+      setSignupErr("Mot de passe : 6 caractères minimum.");
+      return;
+    }
+    setSignupErr("");
+    createUser({ email: mail, password: pwd });
+    if (typeof window !== "undefined") {
+      if (inviteLink) localStorage.setItem("pi_tg_link", inviteLink);
+      window.location.href = "/dashboard";
     }
   };
 
@@ -286,27 +311,51 @@ export default function JoinProvider({ children }) {
                         </a>
                       </form>
                     ) : (
-                      <motion.div
+                      <motion.form
+                        onSubmit={submitSignup}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mt-5 rounded-2xl border gold-line bg-gold/[0.08] p-5 text-center"
+                        className="mt-5 rounded-2xl border gold-line bg-gold/[0.06] p-5"
                       >
-                        <div className="text-[13px] text-gold font-mono uppercase tracking-widest2">
+                        <div className="flex items-center gap-2 text-[12px] text-gold font-mono uppercase tracking-widest2">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
                           Statut : actif ✓
                         </div>
-                        <p className="mt-2 text-[14px] text-bone">
-                          Votre accès est validé. Rejoignez le groupe privé du Pôle Invest :
+                        <p className="mt-2.5 text-[14px] text-bone">
+                          Dernière étape : créez votre compte pour accéder à votre{" "}
+                          <span className="text-gold">tableau de bord</span> (track record,
+                          posts VIP, lien du groupe privé).
                         </p>
-                        <a
-                          href={inviteLink || TELEGRAM_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <input
+                          type="email"
+                          value={email}
+                          onChange={(e) => { setEmail(e.target.value); setSignupErr(""); }}
+                          placeholder="Adresse e-mail"
+                          autoComplete="email"
+                          className="mt-4 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                        />
+                        <input
+                          type="password"
+                          value={pwd}
+                          onChange={(e) => { setPwd(e.target.value); setSignupErr(""); }}
+                          placeholder="Mot de passe (6 caractères min.)"
+                          autoComplete="new-password"
+                          className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                        />
+                        {signupErr && (
+                          <p className="mt-2 text-[12.5px] text-red-400/90">{signupErr}</p>
+                        )}
+                        <button
+                          type="submit"
                           className="btn-gold mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[15px] font-semibold"
                         >
-                          Accéder au groupe privé
+                          Créer mon compte & accéder au tableau de bord
                           <IconArrow className="h-4 w-4" />
-                        </a>
-                      </motion.div>
+                        </button>
+                        <p className="mt-3 text-[11px] leading-relaxed text-mist/60">
+                          Démo de test — vos identifiants restent sur cet appareil.
+                        </p>
+                      </motion.form>
                     )}
                   </motion.div>
                 )}

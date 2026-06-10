@@ -178,7 +178,7 @@ export default function TrackRecord() {
           préjugent pas des performances futures.
         </p>
         <p className="mt-1.5">
-          Relevé PDF disponible sur demande uniquement —{" "}
+          Relevé de compte PDF disponible sur demande uniquement —{" "}
           <a
             href={TELEGRAM_URL}
             target="_blank"

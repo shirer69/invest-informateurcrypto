@@ -11,11 +11,11 @@ const CAT = {
   cash: { label: "Cash / stables", color: "#8A93A6" },
 };
 
-const fmtUsd = (n) =>
-  n === null || n === undefined || isNaN(n)
-    ? "—"
-    : Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " $";
-const fmtAmt = (n) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 8 });
+// Confidentialité : on n'affiche jamais les montants ($ / quantités) — masqués.
+// Seuls les pourcentages (répartition) sont visibles.
+const MASK = "****";
+const fmtUsd = () => MASK;
+const fmtAmt = () => MASK;
 const pct = (v, t) => (t > 0 ? (v / t) * 100 : 0);
 
 function Table({ rows, cols }) {

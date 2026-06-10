@@ -20,14 +20,8 @@ const STEPS = [
   },
   {
     n: "2",
-    t: "Envoyer votre UID Kraken (identifiant IIBAN)",
-    d: "Transmettez votre UID Kraken (identifiant IIBAN) sur notre Telegram pour validation.",
-    cta: { label: "Contacter sur Telegram", href: TELEGRAM_URL },
-  },
-  {
-    n: "3",
-    t: "Vérifier votre statut & recevoir l'accès",
-    d: "Saisissez votre UID Kraken ci-dessous : si votre attribution est active, vous recevez instantanément votre lien Telegram privé.",
+    t: "Vérifier votre UID Kraken (IIBAN)",
+    d: "Saisissez votre UID Kraken (identifiant IIBAN) ci-dessous. Si votre attribution est active, vous recevez instantanément votre accès.",
   },
 ];
 
@@ -262,7 +256,7 @@ export default function JoinProvider({ children }) {
                     {vState !== "active" ? (
                       <form onSubmit={verifyUid} className="mt-5 rounded-2xl border gold-line bg-gold/[0.05] p-4">
                         <label className="font-mono text-[10.5px] uppercase tracking-widest2 text-gold/80">
-                          Déjà déposé ? Obtenez votre accès
+                          Votre UID Kraken (identifiant IIBAN)
                         </label>
                         <div className="mt-2.5 flex gap-2">
                           <input

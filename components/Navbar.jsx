@@ -39,10 +39,10 @@ export default function Navbar() {
     >
       <nav className="mx-auto max-w-[1180px] px-6 flex items-center justify-between">
         <a href="#top" className="flex items-center gap-3 group">
-          <LogoMark className="h-9 w-9" />
+          <LogoMark className="h-12 w-12" />
           <span className="leading-tight">
             <span className="block font-display text-[15px] tracking-tight text-bone">
-              🕵️‍♂️ Club des Informateurs
+              Club des Informateurs
             </span>
             <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
               Julien M. — Pôle Invest

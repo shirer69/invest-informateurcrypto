@@ -128,7 +128,7 @@ export default function JoinProvider({ children }) {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 z-[100] grid place-items-center p-4"
+            className="fixed inset-0 z-[100] flex items-start sm:items-center justify-center p-3 sm:p-4 overflow-y-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -145,7 +145,7 @@ export default function JoinProvider({ children }) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.98 }}
               transition={{ duration: 0.45, ease }}
-              className="relative w-full max-w-lg rounded-3xl border gold-line bg-ink-800/95 shadow-2xl overflow-hidden"
+              className="relative w-full max-w-lg my-auto rounded-3xl border gold-line bg-ink-800/95 shadow-2xl overflow-y-auto max-h-[94dvh]"
             >
               <div
                 className="pointer-events-none absolute -top-20 -right-10 h-52 w-52 rounded-full blur-3xl"

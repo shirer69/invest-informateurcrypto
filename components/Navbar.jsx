@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useJoin } from "./JoinProvider";
+import LoginModal from "./dashboard/LoginModal";
 
 const LINKS = [
   { label: "Membres", href: "#membres" },
@@ -15,6 +16,7 @@ const LINKS = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   const { open: openJoin } = useJoin();
 
   useEffect(() => {
@@ -63,6 +65,12 @@ export default function Navbar() {
 
         <div className="flex items-center gap-3">
           <button
+            onClick={() => setLoginOpen(true)}
+            className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
+          >
+            Connexion
+          </button>
+          <button
             onClick={openJoin}
             className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
           >
@@ -96,17 +104,25 @@ export default function Navbar() {
               </a>
             ))}
             <button
+              onClick={() => { setOpen(false); setLoginOpen(true); }}
+              className="btn-ghost rounded-full px-5 py-3 text-center text-sm mt-1"
+            >
+              Connexion
+            </button>
+            <button
               onClick={() => {
                 setOpen(false);
                 openJoin();
               }}
-              className="btn-gold rounded-full px-5 py-3 text-center text-sm mt-1 font-semibold"
+              className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold"
             >
               Demander mon accès au Pôle Invest
             </button>
           </div>
         </motion.div>
       )}
+
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
     </motion.header>
   );
 }

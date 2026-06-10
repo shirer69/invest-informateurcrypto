@@ -395,9 +395,6 @@ export default function JoinProvider({ children }) {
                           Créer mon compte & accéder au tableau de bord
                           <IconArrow className="h-4 w-4" />
                         </button>
-                        <p className="mt-3 text-[11px] leading-relaxed text-mist/60">
-                          Démo de test — vos identifiants restent sur cet appareil.
-                        </p>
                       </motion.form>
                     )}
                   </motion.div>

@@ -4,12 +4,14 @@ import { useEffect, useState } from "react";
 import Chat from "@/components/dashboard/Chat";
 import OrderTicket from "@/components/dashboard/OrderTicket";
 import SandboxKraken from "@/components/dashboard/SandboxKraken";
+import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout } from "@/lib/clientStore";
 
 const NAV = [
   { id: "overview", label: "Vue d'ensemble", icon: "▦" },
+  { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
   { id: "positions", label: "Positions", icon: "≣" },
   { id: "intelligence", label: "Intelligence", icon: "✶" },
   { id: "analytics", label: "Analytics", icon: "◴" },
@@ -82,6 +84,7 @@ export default function Dashboard() {
         {/* content */}
         <main className="min-w-0">
           {tab === "overview" && <Overview tgLink={tgLink} />}
+          {tab === "portfolio" && <PortfolioKraken />}
           {tab === "positions" && <Positions />}
           {tab === "intelligence" && <Intelligence />}
           {tab === "analytics" && <Analytics />}

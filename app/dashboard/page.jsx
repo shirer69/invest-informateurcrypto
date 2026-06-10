@@ -6,6 +6,8 @@ import OrderTicket from "@/components/dashboard/OrderTicket";
 import SandboxKraken from "@/components/dashboard/SandboxKraken";
 import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
+import VipFeed from "@/components/dashboard/VipFeed";
+import LoginModal from "@/components/dashboard/LoginModal";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout } from "@/lib/clientStore";
@@ -13,6 +15,7 @@ import { getUser, logout } from "@/lib/clientStore";
 const NAV = [
   { id: "overview", label: "Vue d'ensemble", icon: "▦" },
   { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
+  { id: "vip", label: "Posts VIP", icon: "◆" },
   { id: "positions", label: "Positions", icon: "≣" },
   { id: "academy", label: "Academy", icon: "✸" },
   { id: "intelligence", label: "Intelligence", icon: "✶" },
@@ -27,6 +30,7 @@ export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("overview");
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
+  const [loginOpen, setLoginOpen] = useState(false);
 
   useEffect(() => {
     setUser(getUser());
@@ -40,6 +44,8 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen aura">
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+
       {/* top bar */}
       <header className="sticky top-0 z-40 glass border-b hairline">
         <div className="mx-auto max-w-[1280px] px-5 h-16 flex items-center justify-between">
@@ -56,7 +62,8 @@ export default function Dashboard() {
               <button onClick={() => { logout(); window.location.href = "/"; }}
                       className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">Se déconnecter</button>
             ) : (
-              <a href="/" className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">Accueil</a>
+              <button onClick={() => setLoginOpen(true)}
+                      className="btn-gold rounded-full px-4 py-2 text-[12.5px] font-semibold">Se connecter</button>
             )}
           </div>
         </div>
@@ -87,6 +94,7 @@ export default function Dashboard() {
         <main className="min-w-0">
           {tab === "overview" && <Overview tgLink={tgLink} />}
           {tab === "portfolio" && <PortfolioKraken />}
+          {tab === "vip" && <VipFeed />}
           {tab === "academy" && <Academy />}
           {tab === "positions" && <Positions />}
           {tab === "intelligence" && <Intelligence />}

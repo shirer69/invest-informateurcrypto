@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODE } from "@/lib/site";
+import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { createUser } from "@/lib/clientStore";
 
@@ -107,7 +107,7 @@ export default function JoinProvider({ children }) {
 
   const submitCode = (e) => {
     e.preventDefault();
-    if (code.trim().toUpperCase() === REFERRAL_CODE) {
+    if (REFERRAL_CODES.includes(code.trim().toUpperCase())) {
       setUnlocked(true);
       setError(false);
     } else {

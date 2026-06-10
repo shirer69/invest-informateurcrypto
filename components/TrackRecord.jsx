@@ -125,9 +125,9 @@ export default function TrackRecord() {
       </div>
 
       {/* indice d'interactivité */}
-      <div className="flex items-center justify-center gap-1.5 border-t hairline pt-3 pb-0.5 text-gold/80">
-        <span className="font-mono text-[9.5px] uppercase tracking-widest2 animate-pulse">
-          ⓘ Survolez ou touchez une année → répartition des profits
+      <div className="border-t hairline px-4 pt-3 pb-0.5 text-center">
+        <span className="font-mono text-[9px] sm:text-[9.5px] uppercase tracking-[0.12em] sm:tracking-widest2 text-gold/80 leading-snug">
+          ⓘ Survolez ou touchez une année pour la répartition des profits
         </span>
       </div>
 

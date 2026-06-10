@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
-import { createUser } from "@/lib/clientStore";
+import { apiSignup, apiLogin } from "@/lib/clientStore";
 
 const JoinCtx = createContext({ open: () => {} });
 export const useJoin = () => useContext(JoinCtx);
@@ -98,7 +98,19 @@ export default function JoinProvider({ children }) {
       return;
     }
     setSignupErr("");
-    createUser({ email: mail, password: pwd });
+
+    // Création de compte serveur (ou connexion si déjà existant).
+    let r = await apiSignup({ email: mail, password: pwd });
+    if (!r.ok && r.error === "email_exists") {
+      r = await apiLogin({ email: mail, password: pwd });
+      if (!r.ok) {
+        setSignupErr("Ce compte existe déjà. Mot de passe incorrect.");
+        return;
+      }
+    } else if (!r.ok) {
+      setSignupErr("Création du compte impossible. Réessayez.");
+      return;
+    }
 
     // Génère un lien d'invitation unique (avec demande d'adhésion), titré au nom du membre.
     let link = inviteLink;

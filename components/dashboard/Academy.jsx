@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import QuizCard from "./QuizCard";
 import { LEVELS, BADGES, CASE_STUDIES } from "@/lib/academy";
-import { getProgress, saveProgress } from "@/lib/clientStore";
+import { progressGet, progressSave } from "@/lib/clientStore";
 
 const TONE = {
   emerald: { ring: "ring-emerald-500/30", text: "text-emerald-400", bar: "bg-emerald-500", dot: "bg-emerald-500" },
@@ -40,17 +40,19 @@ export default function Academy() {
   const [openCase, setOpenCase] = useState(null);
 
   useEffect(() => {
-    const p = getProgress();
-    p.done = p.done || {};
-    // streak quotidien
-    const t = todayStr();
-    if (p.lastDay !== t) {
-      const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-      p.streak = p.lastDay === yest ? (p.streak || 0) + 1 : 1;
-      p.lastDay = t;
-      saveProgress(p);
-    }
-    setProgress({ ...p });
+    (async () => {
+      const p = (await progressGet()) || {};
+      p.done = p.done || {};
+      // streak quotidien
+      const t = todayStr();
+      if (p.lastDay !== t) {
+        const yest = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+        p.streak = p.lastDay === yest ? (p.streak || 0) + 1 : 1;
+        p.lastDay = t;
+        await progressSave(p);
+      }
+      setProgress({ ...p });
+    })();
   }, []);
 
   const stats = useMemo(() => {
@@ -77,8 +79,8 @@ export default function Academy() {
   }, [progress]);
 
   function completeQuiz(moduleId, { score, total }) {
-    const p = getProgress();
-    p.done = p.done || {};
+    const p = { ...(progress || {}) };
+    p.done = { ...(p.done || {}) };
     const prev = p.done[moduleId];
     // on garde le meilleur score
     if (!prev || score > prev.score) p.done[moduleId] = { score, total };
@@ -88,8 +90,8 @@ export default function Academy() {
       ...(p.history || []),
     ].slice(0, 30);
     p.badges = computeBadges(p);
-    saveProgress(p);
-    setProgress({ ...p });
+    progressSave(p);
+    setProgress(p);
     setMode("lesson");
     setActive(null);
   }

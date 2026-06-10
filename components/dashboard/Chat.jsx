@@ -1,87 +1,92 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-
-const KEY = "pi_chat";
-
-const SEED = [
-  { user: "Julien M.", text: "Bienvenue dans l'espace membres 👋 Restez disciplinés cette semaine.", t: 0, admin: true },
-  { user: "Maklesguy", text: "Le money management est vraiment ce qui change tout.", t: 0 },
-  { user: "SebAi", text: "Hâte du brief de ce soir 🔥", t: 0 },
-];
+import { useEffect, useRef, useState, useCallback } from "react";
+import { chatList, chatSend, getToken } from "@/lib/clientStore";
 
 export default function Chat({ me }) {
   const [msgs, setMsgs] = useState([]);
   const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
   const endRef = useRef(null);
+  const lastTs = useRef(0);
+  const authed = typeof window !== "undefined" && !!getToken();
+
+  const refresh = useCallback(async () => {
+    const list = await chatList(0);
+    setMsgs(list);
+    if (list.length) lastTs.current = list[list.length - 1].ts;
+  }, []);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(KEY) || "null");
-      setMsgs(saved && saved.length ? saved : SEED);
-    } catch {
-      setMsgs(SEED);
-    }
-  }, []);
+    refresh();
+    const id = setInterval(refresh, 4000); // polling chat partagé
+    return () => clearInterval(id);
+  }, [refresh]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs]);
 
-  function send(e) {
+  async function send(e) {
     e.preventDefault();
     const v = text.trim();
     if (!v) return;
-    const next = [...msgs, { user: me || "Invité", text: v, t: 1 }];
-    setMsgs(next);
-    try {
-      localStorage.setItem(KEY, JSON.stringify(next.slice(-200)));
-    } catch {}
-    setText("");
+    setSending(true);
+    const r = await chatSend(v);
+    setSending(false);
+    if (r.ok) {
+      setText("");
+      refresh();
+    }
   }
 
   return (
-    <div className="flex flex-col h-[420px] rounded-2xl border hairline bg-ink-800/50 overflow-hidden">
+    <div className="flex flex-col h-[440px] rounded-2xl border hairline bg-ink-800/50 overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 border-b hairline">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-emerald-400" />
           <span className="font-display text-[15px] text-bone">Discussion membres</span>
         </div>
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
-          # général
-        </span>
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60"># général</span>
       </div>
 
       <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
-        {msgs.map((m, i) => (
-          <div key={i} className="flex flex-col">
-            <div className="flex items-baseline gap-2">
-              <span className={`text-[12.5px] font-semibold ${m.admin ? "text-gold" : "text-bone"}`}>
-                {m.user}
-              </span>
-              {m.admin && (
-                <span className="font-mono text-[8.5px] uppercase tracking-widest2 text-gold/70 border gold-line rounded px-1">
-                  admin
+        {msgs.length === 0 && (
+          <p className="text-[13px] text-mist/60">Aucun message pour le moment. Lancez la discussion 👋</p>
+        )}
+        {msgs.map((m, i) => {
+          const mine = me && m.name === me;
+          return (
+            <div key={i} className="flex flex-col">
+              <div className="flex items-baseline gap-2">
+                <span className={`text-[12.5px] font-semibold ${mine ? "text-gold" : "text-bone"}`}>
+                  {m.name}
                 </span>
-              )}
+              </div>
+              <p className="text-[13.5px] leading-snug text-mist mt-0.5">{m.text}</p>
             </div>
-            <p className="text-[13.5px] leading-snug text-mist mt-0.5">{m.text}</p>
-          </div>
-        ))}
+          );
+        })}
         <div ref={endRef} />
       </div>
 
-      <form onSubmit={send} className="flex gap-2 p-3 border-t hairline">
-        <input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Votre message…"
-          className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 text-[13.5px] outline-none transition-colors"
-        />
-        <button className="btn-gold rounded-lg px-4 py-2.5 text-[13px] font-semibold">
-          Envoyer
-        </button>
-      </form>
+      {authed ? (
+        <form onSubmit={send} className="flex gap-2 p-3 border-t hairline">
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Votre message…"
+            className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 text-[13.5px] outline-none transition-colors"
+          />
+          <button disabled={sending} className="btn-gold rounded-lg px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60">
+            {sending ? "…" : "Envoyer"}
+          </button>
+        </form>
+      ) : (
+        <div className="p-3 border-t hairline text-center text-[12.5px] text-mist/70">
+          Connectez-vous (via l'adhésion) pour participer à la discussion.
+        </div>
+      )}
     </div>
   );
 }

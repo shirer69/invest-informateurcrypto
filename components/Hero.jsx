@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
 import TrackRecord from "./TrackRecord";
 import { TRUST } from "@/lib/site";
@@ -14,7 +15,8 @@ import OkxLogo from "./OkxLogo";
 const ease = [0.22, 1, 0.36, 1];
 
 export default function Hero() {
-  const { open: openJoin } = useJoin();
+  const { open: openJoin, openWithCode } = useJoin();
+  const [heroCode, setHeroCode] = useState("");
   return (
     <section id="top" className="relative aura pt-36 md:pt-44 pb-20 md:pb-28">
       {/* fine vertical guide lines */}
@@ -81,21 +83,43 @@ export default function Hero() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.32, ease }}
-            className="mt-7 flex flex-wrap items-center gap-3.5"
+            className="mt-7"
           >
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
+              Accès sur code parrain
+            </span>
+            <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
+              <form
+                onSubmit={(e) => { e.preventDefault(); openWithCode(heroCode); }}
+                className="flex items-stretch rounded-full border gold-line bg-ink-900/60 overflow-hidden focus-within:border-gold/60 transition-colors"
+              >
+                <input
+                  value={heroCode}
+                  onChange={(e) => setHeroCode(e.target.value)}
+                  placeholder="CODE PARRAIN"
+                  className="bg-transparent px-5 py-4 w-[180px] sm:w-[200px] font-mono uppercase tracking-[0.18em] text-bone placeholder:text-mist/40 text-[14px] outline-none"
+                />
+                <button
+                  type="submit"
+                  className="btn-gold group inline-flex items-center gap-2 px-6 text-[15px] font-semibold"
+                >
+                  Accéder
+                  <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+              </form>
+              <a
+                href="#approche"
+                className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
+              >
+                Découvrir la méthode
+              </a>
+            </div>
             <button
               onClick={openJoin}
-              className="btn-gold group inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-[15.5px] font-semibold"
+              className="mt-3 text-[12.5px] text-mist hover:text-bone transition-colors underline decoration-white/20 underline-offset-2"
             >
-              Demander mon accès au Pôle Invest
-              <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+              Pas de code ? Demander mon accès
             </button>
-            <a
-              href="#approche"
-              className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
-            >
-              Découvrir la méthode
-            </a>
           </motion.div>
 
           {/* trust strip */}

@@ -6,7 +6,7 @@ import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { apiSignup, apiLogin } from "@/lib/clientStore";
 
-const JoinCtx = createContext({ open: () => {} });
+const JoinCtx = createContext({ open: () => {}, openWithCode: () => {} });
 export const useJoin = () => useContext(JoinCtx);
 
 const ease = [0.22, 1, 0.36, 1];
@@ -44,6 +44,15 @@ export default function JoinProvider({ children }) {
   const open = useCallback(() => {
     setOpen(true);
     setError(false);
+  }, []);
+
+  // Ouvre le modal en passant directement par le code parrain (saisi dans le hero).
+  const openWithCode = useCallback((c) => {
+    const ok = REFERRAL_CODES.includes((c || "").trim().toUpperCase());
+    setCode(c || "");
+    setUnlocked(ok);
+    setError(!ok && !!(c || "").trim());
+    setOpen(true);
   }, []);
 
   const close = useCallback(() => {
@@ -143,7 +152,7 @@ export default function JoinProvider({ children }) {
   };
 
   return (
-    <JoinCtx.Provider value={{ open }}>
+    <JoinCtx.Provider value={{ open, openWithCode }}>
       {children}
 
       <AnimatePresence>

@@ -7,7 +7,6 @@ import { TRUST } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { useJoin } from "./JoinProvider";
 import FrenchFlag from "./FrenchFlag";
-import Countdown from "./Countdown";
 import KrakenLogo from "./KrakenLogo";
 import HyperliquidLogo from "./HyperliquidLogo";
 import OkxLogo from "./OkxLogo";
@@ -69,15 +68,6 @@ export default function Hero() {
             grandes tendances : crypto, intelligence artificielle, actions US,
             semi-conducteurs et narratives macro du prochain cycle.
           </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.26, ease }}
-            className="mt-8"
-          >
-            <Countdown />
-          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 18 }}

@@ -6,6 +6,7 @@ import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
+import { Locked } from "@/components/dashboard/UnlockProvider";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
@@ -94,6 +95,7 @@ export function Positions() {
         </span>
         <DemoTag />
       </div>
+      <Locked>
       <div className="rounded-2xl border hairline bg-ink-800/50 overflow-x-auto">
         <table className="w-full min-w-[420px] text-[13.5px]">
           <thead>
@@ -129,6 +131,7 @@ export function Positions() {
           </tbody>
         </table>
       </div>
+      </Locked>
       <Disclaimer>
         Affichage à titre illustratif — aucune connexion à un compte réel et aucune
         exécution d'ordre n'est effectuée depuis cette interface.

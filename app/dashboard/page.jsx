@@ -128,17 +128,15 @@ export default function Dashboard() {
 
         {/* content */}
         <main className="min-w-0">
-          {tab === "portfolio" && (
-            <Locked><PortfolioKraken /></Locked>
-          )}
+          {/* Portefeuille : chaque tableau est verrouillé individuellement (verrou interne) */}
+          {tab === "portfolio" && <PortfolioKraken />}
           {tab === "vip" && (
             <Locked><VipFeed /></Locked>
           )}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}
-          {tab === "positions" && (
-            <Locked><Positions /></Locked>
-          )}
+          {/* Positions : tableau verrouillé en interne */}
+          {tab === "positions" && <Positions />}
           {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}

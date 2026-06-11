@@ -51,13 +51,13 @@ export function Locked({ children, label = "Déverrouiller", className = "" }) {
   if (!locked) return children;
   return (
     <div className={`relative ${className}`}>
-      <div className="pointer-events-none select-none blur-[6px] opacity-40" aria-hidden>
+      <div className="pointer-events-none select-none blur-[2.5px] opacity-70" aria-hidden>
         {children}
       </div>
       <div className="absolute inset-0 z-10 grid place-items-center p-4">
         <button
           onClick={openUnlock}
-          className="btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold shadow-2xl"
+          className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold shadow-2xl"
         >
           <span aria-hidden>🔒</span> {label}
           <IconArrow className="h-4 w-4" />

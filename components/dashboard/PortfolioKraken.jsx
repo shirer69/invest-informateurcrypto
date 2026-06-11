@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { copyMaster } from "@/lib/clientStore";
+import { Locked } from "./UnlockProvider";
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -61,7 +62,7 @@ function Section({ title, dot, children }) {
         {dot && <span className="h-2 w-2 rounded-full" style={{ background: dot }} />}
         <span className="font-display text-[15px] text-bone">{title}</span>
       </div>
-      <div className="overflow-x-auto">{children}</div>
+      <Locked><div className="overflow-x-auto">{children}</div></Locked>
     </div>
   );
 }
@@ -202,6 +203,7 @@ export default function PortfolioKraken() {
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
             Valeur totale (estimée) · composition du portefeuille
           </div>
+          <Locked>
           <div className="mt-2 font-display text-[40px] md:text-[46px] leading-none text-bone">
             {loading ? "…" : fmtUsd(total)}
           </div>
@@ -228,6 +230,7 @@ export default function PortfolioKraken() {
               </div>
             ))}
           </div>
+          </Locked>
         </div>
       </div>
 

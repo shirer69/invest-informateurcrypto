@@ -9,6 +9,7 @@ import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
 import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
+import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
 import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
@@ -23,6 +24,7 @@ const NAV = [
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
   { id: "analytics", label: "Analytics", icon: "📈" },
+  { id: "videos", label: "Vidéos", icon: "🎬" },
   { id: "community", label: "Chat", icon: "💬" },
   { id: "copy", label: "Copy-trading", icon: "🔁", badge: "Soon" },
   { id: "billing", label: "Facturation", icon: "💳" },
@@ -210,6 +212,8 @@ export default function Dashboard() {
           {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}
+          {/* Vidéos : accès libre même dashboard verrouillé */}
+          {tab === "videos" && <VideosFeed />}
           {/* Chat : ouvert à tous (même dashboard verrouillé) */}
           {tab === "community" && (
             <div>

@@ -7,6 +7,7 @@ import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
+import LockGate from "@/components/dashboard/LockGate";
 import LogoMark from "@/components/LogoMark";
 import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -126,10 +127,18 @@ export default function Dashboard() {
 
         {/* content */}
         <main className="min-w-0">
-          {tab === "portfolio" && <PortfolioKraken />}
+          {tab === "portfolio" && (
+            <LockGate title="Vos actifs Kraken en direct">
+              <PortfolioKraken />
+            </LockGate>
+          )}
           {tab === "vip" && <VipFeed />}
           {tab === "academy" && <Academy />}
-          {tab === "positions" && <Positions />}
+          {tab === "positions" && (
+            <LockGate title="Positions Futures en direct">
+              <Positions />
+            </LockGate>
+          )}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (

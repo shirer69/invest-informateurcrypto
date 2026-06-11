@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { poleTradingAudios, audioStreamUrl, getToken } from "@/lib/clientStore";
+import { Locked } from "./UnlockProvider";
 
 function relTime(iso) {
   if (!iso) return "";
@@ -66,6 +67,7 @@ export default function AudioFeed() {
           {err ? "Audios momentanément indisponibles." : "Aucun audio récent."}
         </div>
       ) : (
+        <Locked label="Déverrouiller les audios">
         <div className="space-y-4">
           {audios.map((a, i) => (
             <article key={a.id} className="rounded-2xl border hairline bg-ink-800/50 p-5">
@@ -103,6 +105,7 @@ export default function AudioFeed() {
             </article>
           ))}
         </div>
+        </Locked>
       )}
 
       <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">

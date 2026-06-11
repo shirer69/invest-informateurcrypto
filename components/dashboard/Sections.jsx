@@ -220,13 +220,19 @@ export function Analytics() {
 
   const totalAll = rows.reduce((s, r) => s + r.total, 0);
   const max = Math.max(1, ...rows.map((r) => Math.abs(r.total)));
+  // Affichage uniquement en % (jamais de montant) : part relative à l'activité totale.
+  const denomAbs = rows.reduce(
+    (s, r) => s + Math.abs(r.spot) + Math.abs(r.margin) + Math.abs(r.perps), 0
+  );
+  const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
+  const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
 
   return (
     <div>
       <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats Kraken <DemoTag /></h3>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-5">
-        <CopyKpi label="PnL cumulé" value={`${totalAll >= 0 ? "+" : ""}${fmtUsd(totalAll)}`}
+        <CopyKpi label="PnL cumulé (part nette)" value={pctStr(totalAll)}
           cls={`font-display text-[20px] ${signClass(totalAll)}`} />
         <CopyKpi label="Mois suivis" value={rows.length} />
         <CopyKpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
@@ -247,10 +253,10 @@ export function Analytics() {
               return (
                 <div key={r.month} className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
                   <span className={`mb-1 font-mono text-[9px] ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {up ? "+" : ""}{Math.round(r.total)}
+                    {`${up ? "+" : ""}${pct(r.total).toFixed(0)}%`}
                   </span>
                   <div className={`w-full rounded-t ${up ? "bg-emerald-500/70" : "bg-rose-500/70"}`}
-                       style={{ height: `${Math.max(h, 4)}%` }} title={`${r.month} : ${fmtUsd(r.total)}`} />
+                       style={{ height: `${Math.max(h, 4)}%` }} title={`${moLabel(r.month)} : ${pctStr(r.total)}`} />
                   <span className="mt-1.5 font-mono text-[9px] text-mist/60">{moLabel(r.month)}</span>
                 </div>
               );
@@ -278,10 +284,10 @@ export function Analytics() {
                 {rows.slice().reverse().map((r) => (
                   <tr key={r.month} className="border-t hairline">
                     <td className="py-2.5 text-bone">{moLabel(r.month)}</td>
-                    <td className={`text-right ${signClass(r.spot)}`}>{signStr(r.spot)}</td>
-                    <td className={`text-right ${signClass(r.margin)}`}>{signStr(r.margin)}</td>
-                    <td className={`text-right ${signClass(r.perps)}`}>{signStr(r.perps)}</td>
-                    <td className={`text-right font-semibold ${signClass(r.total)}`}>{signStr(r.total)}</td>
+                    <td className={`text-right ${signClass(r.spot)}`}>{pctStr(r.spot)}</td>
+                    <td className={`text-right ${signClass(r.margin)}`}>{pctStr(r.margin)}</td>
+                    <td className={`text-right ${signClass(r.perps)}`}>{pctStr(r.perps)}</td>
+                    <td className={`text-right font-semibold ${signClass(r.total)}`}>{pctStr(r.total)}</td>
                   </tr>
                 ))}
               </tbody>

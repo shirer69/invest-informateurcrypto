@@ -7,7 +7,7 @@ import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
-import LockGate from "@/components/dashboard/LockGate";
+import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import LogoMark from "@/components/LogoMark";
 import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -63,6 +63,7 @@ export default function Dashboard() {
   const name = user?.name || "Invité";
 
   return (
+    <UnlockProvider>
     <div className="min-h-screen aura">
       <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
@@ -128,42 +129,29 @@ export default function Dashboard() {
         {/* content */}
         <main className="min-w-0">
           {tab === "portfolio" && (
-            <LockGate title="Vos actifs Kraken en direct">
-              <PortfolioKraken />
-            </LockGate>
+            <Locked><PortfolioKraken /></Locked>
           )}
           {tab === "vip" && (
-            <LockGate title="Alertes & signaux en direct">
-              <VipFeed />
-            </LockGate>
+            <Locked><VipFeed /></Locked>
           )}
-          {tab === "academy" && (
-            <LockGate title="Academy">
-              <Academy />
-            </LockGate>
-          )}
+          {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
+          {tab === "academy" && <Academy />}
           {tab === "positions" && (
-            <LockGate title="Positions Futures en direct">
-              <Positions />
-            </LockGate>
+            <Locked><Positions /></Locked>
           )}
-          {tab === "monitoring" && (
-            <LockGate title="Monitoring">
-              <Monitoring onGoCopy={() => setTab("copy")} />
-            </LockGate>
-          )}
+          {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
+          {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (
-            <LockGate title="Communauté">
-              <div>
-                <h3 className="font-display text-[18px] text-bone mb-4">Communauté</h3>
-                <Chat me={user?.name} />
-              </div>
-            </LockGate>
+            <div>
+              <h3 className="font-display text-[18px] text-bone mb-4">Communauté</h3>
+              <Locked><Chat me={user?.name} /></Locked>
+            </div>
           )}
           {tab === "copy" && <CopyTrading />}
         </main>
       </div>
     </div>
+    </UnlockProvider>
   );
 }

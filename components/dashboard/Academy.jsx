@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import QuizCard from "./QuizCard";
 import { LEVELS, BADGES, CASE_STUDIES } from "@/lib/academy";
 import { progressGet, progressSave } from "@/lib/clientStore";
+import { Locked } from "./UnlockProvider";
 
 const TONE = {
   emerald: { ring: "ring-emerald-500/30", text: "text-emerald-400", bar: "bg-emerald-500", dot: "bg-emerald-500" },
@@ -191,7 +192,8 @@ export default function Academy() {
         </div>
       </div>
 
-      {/* Parcours */}
+      {/* Parcours (modules verrouillés) */}
+      <Locked className="mt-6 block" label="Déverrouiller les modules">
       <div className="mt-6 space-y-5">
         {LEVELS.map((l) => {
           const tone = TONE[l.tone];
@@ -235,13 +237,15 @@ export default function Academy() {
           );
         })}
       </div>
+      </Locked>
 
-      {/* Live Market Breakdowns */}
+      {/* Live Market Breakdowns (verrouillés) */}
       <div className="mt-8">
         <h3 className="font-display text-[18px] text-bone mb-1">Live Market Breakdowns</h3>
         <p className="text-[13px] text-mist mb-4">
           Cas pédagogiques inspirés de situations de marché réelles — entièrement reformulés.
         </p>
+        <Locked label="Déverrouiller les cas pratiques">
         <div className="space-y-3">
           {CASE_STUDIES.map((c) => {
             const open = openCase === c.id;
@@ -284,6 +288,7 @@ export default function Academy() {
             );
           })}
         </div>
+        </Locked>
       </div>
 
       <p className="mt-6 text-[11.5px] leading-relaxed text-mist/60">

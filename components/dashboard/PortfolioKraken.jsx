@@ -122,7 +122,9 @@ export default function PortfolioKraken() {
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell = (r) => (r._pnl == null ? "—" : `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`);
 
-  const spotPnl = (h) => (h.cost != null && h.value != null ? pnlPctOf(h.value - h.cost) : null);
+  // P&L spot = rendement de la ligne : (valeur actuelle − prix de revient) / prix de revient
+  const spotPnl = (h) =>
+    h.cost != null && h.cost > 0 && h.value != null ? ((h.value - h.cost) / h.cost) * 100 : null;
   const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
   const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
@@ -204,10 +206,11 @@ export default function PortfolioKraken() {
       {/* Note : tout est relatif au portefeuille total */}
       <div className="rounded-xl border gold-line bg-gold/[0.04] px-4 py-2.5 mb-4">
         <p className="text-[11.5px] leading-relaxed text-mist">
-          <span className="text-gold">ⓘ</span> La <span className="text-bone">Part</span> et le{" "}
-          <span className="text-bone">P&L</span> de chaque ligne sont exprimés en{" "}
-          <span className="text-bone">% de la valeur totale du portefeuille</span> (spot + actions +
-          marge + perps + cash). Les montants restent confidentiels.
+          <span className="text-gold">ⓘ</span> La <span className="text-bone">Part</span> est exprimée
+          en <span className="text-bone">% de la valeur totale du portefeuille</span>. Le{" "}
+          <span className="text-bone">P&L</span> spot est le{" "}
+          <span className="text-bone">rendement de la ligne</span> : (valeur − prix de revient) ÷ prix
+          de revient. Les montants restent confidentiels.
         </p>
       </div>
 

@@ -572,6 +572,9 @@ export function CopyTrading() {
   const [busy, setBusy] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [draft, setDraft] = useState(null); // réglages en cours d'édition
+  const [unlocked, setUnlocked] = useState(false);
+  const [pw, setPw] = useState("");
+  const [pwErr, setPwErr] = useState(false);
   const timer = useRef(null);
 
   async function refresh() {
@@ -582,11 +585,42 @@ export function CopyTrading() {
 
   useEffect(() => {
     setUser(getUser());
+    try { if (sessionStorage.getItem("copy_unlocked") === "1") setUnlocked(true); } catch {}
     refresh();
     timer.current = setInterval(refresh, 4000);
     return () => clearInterval(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  function tryUnlock() {
+    if (pw === "patouchka") {
+      setUnlocked(true); setPwErr(false);
+      try { sessionStorage.setItem("copy_unlocked", "1"); } catch {}
+    } else {
+      setPwErr(true);
+    }
+  }
+
+  if (!unlocked) {
+    return (
+      <div>
+        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading <DemoTag /></h3>
+        <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 max-w-md">
+          <div className="text-[28px]">🔒</div>
+          <h4 className="mt-3 font-display text-[18px] text-bone">Accès protégé</h4>
+          <p className="mt-2 text-[13px] text-mist">Saisis le mot de passe pour accéder au copy-trading.</p>
+          <input type="password" value={pw} autoFocus
+            onChange={(e) => { setPw(e.target.value); setPwErr(false); }}
+            onKeyDown={(e) => { if (e.key === "Enter") tryUnlock(); }}
+            placeholder="Mot de passe"
+            className="mt-4 w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+          {pwErr && <p className="mt-2 text-[12.5px] text-rose-400">Mot de passe incorrect.</p>}
+          <button onClick={tryUnlock}
+            className="btn-gold mt-4 rounded-full px-6 py-3 text-[14px] font-semibold">Déverrouiller</button>
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (

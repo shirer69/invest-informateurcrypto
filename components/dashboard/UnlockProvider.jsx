@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay } from "@/lib/clientStore";
+import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiAccessCode } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL } from "@/lib/site";
 
@@ -76,8 +76,20 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
   const [payMsg, setPayMsg] = useState("");
   const [bal, setBal] = useState(wallet);
   const [done, setDone] = useState(null); // { invite } après déblocage réussi
+  const [code, setCode] = useState("");
+  const [codeMsg, setCodeMsg] = useState("");
 
   useEffect(() => { setBal(wallet); }, [wallet]);
+
+  async function redeemCode(e) {
+    e.preventDefault();
+    setCodeMsg("");
+    const r = await apiAccessCode(code.trim());
+    if (r.ok) { onUnlocked(); setDone({ invite: r.tg_invite }); return; }
+    const M = { code_used: "Ce code a déjà été utilisé.", code_invalid: "Code invalide.",
+                code_required: "Saisissez votre code." };
+    setCodeMsg(M[r.error] || "Code invalide.");
+  }
 
   async function verify(e) {
     e.preventDefault();
@@ -261,6 +273,22 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
             {paying ? "Traitement…" : <>Payer {Number(price).toFixed(0)} $ depuis mon wallet <IconArrow className="h-4 w-4" /></>}
           </button>
           {payMsg && <p className="mt-2 text-[12px] leading-relaxed text-amber-300/90">{payMsg}</p>}
+        </div>
+
+        {/* Option 3 : code d'accès offert */}
+        <div className="mt-3 rounded-xl border hairline bg-white/[0.02] p-4">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Option 3 · J'ai un code d'accès</span>
+          <form onSubmit={redeemCode} className="mt-2.5 flex gap-2">
+            <input
+              value={code}
+              onChange={(e) => { setCode(e.target.value.toUpperCase()); setCodeMsg(""); }}
+              placeholder="Code (6 caractères)"
+              maxLength={12}
+              className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 font-mono tracking-[0.18em] uppercase text-[13px] outline-none"
+            />
+            <button className="btn-gold rounded-lg px-4 text-[13px] font-semibold">Valider</button>
+          </form>
+          {codeMsg && <p className="mt-2 text-[12.5px] text-rose-400/90">{codeMsg}</p>}
         </div>
 
         <p className="mt-4 text-[11px] leading-relaxed text-mist/50">

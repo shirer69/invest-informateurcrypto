@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { copyMaster } from "@/lib/clientStore";
 import { Locked } from "./UnlockProvider";
 import RealFuturesPositions from "./RealFuturesPositions";
+import LiveTag from "./LiveTag";
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -16,6 +17,8 @@ const CAT = {
 
 // Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
 const DISPLAY_MULT = 100;
+// Le suivi de performance n'a pas encore démarré → on affiche 0,00 % en attendant la date de départ.
+const TRACKING_STARTED = false;
 const fmtUsd = (x) =>
   x == null || isNaN(x)
     ? "—"
@@ -155,11 +158,14 @@ export default function PortfolioKraken() {
     return a && p ? `${a} · ${p}` : a || p;
   };
 
-  // P&L ABSOLU par actif (depuis le prix d'achat), puis exprimé en % de la valeur TOTALE du compte.
+  // P&L ABSOLU par actif (progression depuis le 1er juin), en % de la valeur TOTALE du compte.
+  // Tant que le suivi n'a pas démarré (TRACKING_STARTED=false) → 0.
   const spotAbs = (h) =>
     h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
-  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: a, _share: shareOf(h.value), _pnl: a == null ? null : pnlPctOf(a) }; });
-  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: a, _share: shareOf(h.value), _pnl: a == null ? null : pnlPctOf(a) }; });
+  const absOf = (a) => (TRACKING_STARTED ? a : 0);
+  const pnlOf = (a) => (TRACKING_STARTED ? (a == null ? null : pnlPctOf(a)) : 0);
+  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
+  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
 
   const marginRows = marginPos.map((p) => ({
@@ -168,9 +174,9 @@ export default function PortfolioKraken() {
     cur: p.vol > 0 ? p.value / p.vol : null, // prix actuel ≈ valeur courante / volume
     lev: p.margin > 0 ? p.cost / p.margin : null,
     tp: null, sl: null,
-    _abs: p.net,
+    _abs: absOf(p.net),
     _share: shareOf(p.value),
-    _pnl: pnlPctOf(p.net),
+    _pnl: pnlOf(p.net),
   }));
 
   // Section perps = positions du compte Futures RÉEL (master A), via /api/kraken/futures/positions
@@ -188,22 +194,21 @@ export default function PortfolioKraken() {
       cur: mark,
       lev: parseFloat(p.maxFixedLeverage) || null,
       tp: null, sl: null,
-      _abs: abs,
+      _abs: absOf(abs),
       _share: shareOf(notional),
-      _pnl: abs == null ? null : pnlPctOf(abs),
+      _pnl: pnlOf(abs),
     };
   });
 
-  // P&L GLOBAL du compte (depuis le 1er juin 2026), en % de la valeur totale.
+  // P&L GLOBAL du compte, en % de la valeur totale. 0,00 % tant que le suivi n'a pas démarré.
   const sumAbs = (arr) => arr.reduce((s, r) => s + (r._abs || 0), 0);
-  const accountAbs = sumAbs(crypto) + sumAbs(stocks) + sumAbs(marginRows) + sumAbs(perps);
-  const accountPnlPct = total > 0 ? (accountAbs / total) * 100 : null;
+  const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) + sumAbs(marginRows) + sumAbs(perps) : 0;
+  const accountPnlPct = TRACKING_STARTED ? (total > 0 ? (accountAbs / total) * 100 : null) : 0;
 
   const header = (
     <div className="flex items-center gap-2 mb-4">
       <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
-      <span className="font-mono text-[9px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border"
-            style={{ color: "#7C5CFC", borderColor: "rgba(124,92,252,0.4)" }}>lecture seule</span>
+      <LiveTag />
       <button onClick={load} disabled={loading}
         className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
         {loading ? <Spinner size={13} /> : "↻"} {loading ? "chargement…" : "rafraîchir"}
@@ -235,7 +240,7 @@ export default function PortfolioKraken() {
              style={{ background: "radial-gradient(circle, rgba(124,92,252,0.22), transparent 70%)" }} />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&L du compte · depuis le 1<sup>er</sup> juin 2026
+            P&L du compte {TRACKING_STARTED ? "· depuis le départ" : "· en attente du départ"}
           </div>
           <Locked>
           <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${
@@ -286,9 +291,8 @@ export default function PortfolioKraken() {
           <span className="text-bone">P&L</span> sont exprimés en{" "}
           <span className="text-bone">% de la valeur totale du compte</span> (spot, actions US/ETF,
           marge, perps). Le P&L spot/actions mesure la <span className="text-bone">progression
-          depuis le cours du 1<sup>er</sup> juin 2026</span> : quantité × (cours actuel − cours au
-          1<sup>er</sup> juin), rapporté à la valeur totale du compte. Les montants en $ sont affichés
-          à l'échelle du compte (× 100) ; les pourcentages sont inchangés.
+          depuis le cours de départ</span> : quantité × (cours actuel − cours de départ), rapporté à
+          la valeur totale du compte.
         </p>
       </div>
 

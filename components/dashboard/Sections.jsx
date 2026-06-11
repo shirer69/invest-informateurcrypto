@@ -8,6 +8,7 @@ import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
+import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
@@ -184,7 +185,7 @@ export function Analytics() {
   if (rows === null) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Analytics <DemoTag /></h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Analytics <LiveTag /></h3>
         <div className="grid place-items-center gap-3 py-24 text-mist">
           <Spinner className="text-gold" /> <p className="text-[13px]">Calcul du PnL mensuel…</p>
         </div>
@@ -214,7 +215,7 @@ export function Analytics() {
 
   return (
     <div>
-      <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats Kraken <DemoTag /></h3>
+      <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats master A <LiveTag /></h3>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-5">
         <CopyKpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`}
@@ -511,8 +512,30 @@ function Billing({ b }) {
 /* ---------------- Monitoring : positions du compte Futures réel (master A) ---------------- */
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
+  const [acct, setAcct] = useState(null); // {ok, data} compte futures
+  const [fills, setFills] = useState(null); // historique des positions (fills)
 
-  useEffect(() => { setUser(getUser()); }, []);
+  useEffect(() => {
+    setUser(getUser());
+    const tick = async () => {
+      const [a, f] = await Promise.all([
+        fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
+        fetch("/api/kraken/futures/fills").then((r) => r.json()).catch(() => null),
+      ]);
+      setAcct(a); setFills(f);
+    };
+    tick();
+    const id = setInterval(tick, 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Gains du wallet Futures (échelle ×100). Compte inactif → null.
+  const flex = acct?.data?.accounts?.flex || {};
+  const walletValue = flex.portfolioValue ?? flex.balanceValue ?? null;
+  const walletPnl = flex.pnl ?? flex.unrealizedFunding ?? null;
+  const acctInactive = acct && acct.ok === false && /inactive/i.test(acct.error || "");
+  const fillRows = (fills?.trades || []).slice(0, 25);
+  const dUsd = (x) => (x == null ? "—" : "$" + Number(x * 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
   if (!user) {
     return (
@@ -529,20 +552,31 @@ export function Monitoring({ onGoCopy }) {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-display text-[18px] text-bone">Monitoring</h3>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5">
-          compte réel · lecture seule
-        </span>
+        <LiveTag />
       </div>
 
+      {/* Gains du wallet Futures (master A) */}
       <div className="relative rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5 overflow-hidden">
         <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
              style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }} />
         <div className="relative">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Wallet Futures (Julien)</span>
-          <p className="mt-2 text-[12.5px] text-mist">
-            Active le <b>copy auto</b> pour répliquer automatiquement les positions Futures de Julien
-            sur ton propre compte, proportionnellement à ton capital.
-          </p>
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Gains du wallet Futures (Julien)</span>
+          {acctInactive ? (
+            <p className="mt-2 text-[13px] text-amber-100/90">Compte Futures non encore activé — les gains s'afficheront dès l'activation.</p>
+          ) : (
+            <div className="mt-2 flex flex-wrap items-end gap-x-8 gap-y-2">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Valeur du wallet</div>
+                <div className="font-display text-[26px] text-bone">{dUsd(walletValue)}</div>
+              </div>
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">PnL latent</div>
+                <div className={`font-display text-[22px] ${walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                  {walletPnl == null ? "—" : `${walletPnl >= 0 ? "+" : ""}${dUsd(walletPnl)}`}
+                </div>
+              </div>
+            </div>
+          )}
           <button onClick={() => onGoCopy && onGoCopy()}
             className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold">
             ⇄ Activer le copy auto
@@ -558,6 +592,48 @@ export function Monitoring({ onGoCopy }) {
         <div className="mt-3">
           <RealFuturesPositions />
         </div>
+      </div>
+
+      {/* Historique des positions (fills Futures) */}
+      <div className="mt-5 rounded-2xl border hairline bg-ink-800/50 p-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+          Historique des positions Futures
+        </span>
+        {fills === null ? (
+          <div className="mt-3 text-[13px] text-mist/60">Chargement…</div>
+        ) : fillRows.length === 0 ? (
+          <div className="mt-3 text-[13px] text-mist/60">
+            {acctInactive ? "Compte Futures non activé — aucun historique pour l'instant." : "Aucune opération Futures pour l'instant."}
+          </div>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[520px] text-[13px] font-mono">
+              <thead>
+                <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                  <th className="py-2 pr-4">Date</th>
+                  <th className="py-2 pr-4">Marché</th>
+                  <th className="py-2 pr-4">Sens</th>
+                  <th className="py-2 pr-4 text-right">Prix</th>
+                  <th className="py-2 text-right">Volume</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fillRows.map((t, i) => {
+                  const buy = (t.side || "").startsWith("b");
+                  return (
+                    <tr key={i} className="border-b hairline last:border-0">
+                      <td className="py-2 pr-4 text-mist text-[12px]">{t.ts ? new Date(t.ts * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
+                      <td className="py-2 pr-4 text-bone">{t.market}</td>
+                      <td className={`py-2 pr-4 ${buy ? "text-emerald-400" : "text-rose-400"}`}>{buy ? "Achat" : "Vente"}</td>
+                      <td className="py-2 pr-4 text-right text-mist">{t.price ?? "—"}</td>
+                      <td className="py-2 text-right text-mist">{t.vol ?? "—"}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {/* Audios Pôle Trading */}

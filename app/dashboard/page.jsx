@@ -11,16 +11,17 @@ import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
 import Account from "@/components/dashboard/Account";
 import LogoMark from "@/components/LogoMark";
-import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
+import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
+import Logs from "@/components/dashboard/Logs";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth, apiAccessCode } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
-  { id: "vip", label: "Alertes", icon: "◆" },
-  { id: "positions", label: "Futures", icon: "≣" },
-  { id: "academy", label: "Academy", icon: "✸" },
+  { id: "vip", label: "🔔 Signaux", icon: "◆" },
   { id: "monitoring", label: "Monitoring", icon: "📡" },
+  { id: "logs", label: "Logs", icon: "≣" },
+  { id: "academy", label: "Academy", icon: "✸" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
   { id: "copy", label: "Copy-trading", icon: "⇄", badge: "Soon" },
@@ -32,7 +33,7 @@ const NAV = [
 const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
 
 // Onglets principaux de la barre du bas (mobile) — les autres sont sous « Plus ».
-const PRIMARY_TABS = ["portfolio", "vip", "positions", "academy"];
+const PRIMARY_TABS = ["portfolio", "vip", "monitoring", "logs"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -40,6 +41,7 @@ export default function Dashboard() {
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
   const [loginOpen, setLoginOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
+  const [codeMsg, setCodeMsg] = useState(null); // {ok, text} — redemption auto via ?code
 
   useEffect(() => {
     setUser(getUser());
@@ -47,6 +49,36 @@ export default function Dashboard() {
       const l = localStorage.getItem("pi_tg_link");
       if (l) setTgLink(l);
     } catch {}
+  }, []);
+
+  // Code reçu par Telegram : bouton "SAISIR MON CODE" → /dashboard?code=XXXX → redemption auto.
+  useEffect(() => {
+    let code = null;
+    try { code = new URLSearchParams(window.location.search).get("code"); } catch {}
+    if (!code) return;
+    let tries = 0;
+    const id = setInterval(async () => {
+      tries += 1;
+      if (getToken()) {
+        clearInterval(id);
+        const r = await apiAccessCode(code.trim());
+        if (r.ok) {
+          setUser(getUser());
+          setTab("billing");
+          setCodeMsg({ ok: true, text: "Code validé — accès 3 mois activé ✓" });
+        } else {
+          const M = { code_used: "Ce code a déjà été utilisé.", code_invalid: "Code invalide." };
+          setCodeMsg({ ok: false, text: M[r.error] || "Code invalide." });
+        }
+        try {
+          const u = new URL(window.location.href); u.searchParams.delete("code");
+          window.history.replaceState({}, "", u);
+        } catch {}
+      } else if (tries > 60) {
+        clearInterval(id);
+      }
+    }, 200);
+    return () => clearInterval(id);
   }, []);
 
   // Mini App Telegram : init SDK + connexion automatique via initData
@@ -143,8 +175,8 @@ export default function Dashboard() {
           )}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}
-          {/* Positions : tableau verrouillé en interne */}
-          {tab === "positions" && <Positions />}
+          {/* Logs : historique de tous les trades (verrou interne) */}
+          {tab === "logs" && <Logs />}
           {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}

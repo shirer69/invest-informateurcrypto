@@ -172,12 +172,58 @@ function Overview({ ov }) {
   );
 }
 
+function SendCodesPanel({ adminKey, reachable }) {
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null);
+  const [confirm, setConfirm] = useState(false);
+
+  async function send() {
+    setBusy(true); setMsg(null); setConfirm(false);
+    const d = await adminPost("/api/admin/send-access-codes", adminKey, {});
+    setBusy(false);
+    if (d && d.ok) {
+      setMsg({ ok: true, text: `${d.sent}/${d.eligible} code(s) envoyé(s)${d.failed ? ` · ${d.failed} échec(s)` : ""}.` });
+    } else {
+      setMsg({ ok: false, text: d?.error || "Envoi impossible." });
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5">
+      <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">
+        Codes d'accès 3 mois offert (mini-app)
+      </div>
+      <p className="text-[12.5px] leading-relaxed text-mist mb-3">
+        Génère un <b>code unique aléatoire</b> (usage unique, 3 mois) et l'envoie via le bot Telegram
+        à <b>chaque utilisateur mini-app qui n'en a jamais reçu</b>. Aucun double envoi.
+      </p>
+      {!confirm ? (
+        <button onClick={() => setConfirm(true)} disabled={busy}
+          className="btn-gold rounded-full px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
+          Envoyer les codes
+        </button>
+      ) : (
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="text-[13px] text-bone">Confirmer l'envoi aux utilisateurs mini-app ?</span>
+          <button onClick={send} disabled={busy}
+            className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60">
+            {busy ? "Envoi…" : "Oui, envoyer"}
+          </button>
+          <button onClick={() => setConfirm(false)} className="btn-ghost rounded-full px-5 py-2.5 text-[13px]">Annuler</button>
+        </div>
+      )}
+      {msg && <span className={`mt-3 block text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.text}</span>}
+    </div>
+  );
+}
+
 function Members({ members, adminKey }) {
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
   const reachable = members.filter((m) => m.tg_id).length;
   return (
     <div>
       <BroadcastPanel adminKey={adminKey} reachable={reachable} total={members.length} />
+      <SendCodesPanel adminKey={adminKey} reachable={reachable} />
       <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
         <table className="w-full min-w-[860px] text-[13.5px]">
           <thead>

@@ -108,10 +108,18 @@ export default function PortfolioKraken() {
     }));
     setMarginPos(list);
     setLoading(false);
-    setFirstDone(true);
+    // « Chargé » uniquement si le portefeuille spot est réellement remonté.
+    if (s && s.ok) setFirstDone(true);
   }, []);
 
   useEffect(() => { load(); }, [load]);
+
+  // Tant que les données ne sont pas remontées (1er chargement), on réessaie.
+  useEffect(() => {
+    if (firstDone) return;
+    const id = setInterval(() => { if (!firstDone) load(); }, 3500);
+    return () => clearInterval(id);
+  }, [firstDone, load]);
 
   const holdings = spot?.ok ? spot.holdings : [];
   const t = spot?.totals || {};

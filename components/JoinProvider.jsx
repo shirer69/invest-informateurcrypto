@@ -187,8 +187,13 @@ export default function JoinProvider({ children }) {
         try { localStorage.setItem("pi_pending_code", c); } catch {}
         setUnlocked(true); setError(false); return;
       }
+      // Réponse claire de l'API « ce code n'existe pas » (champ `code` présent) → refus.
+      if (chk && chk.code && chk.valid === false) { setError(true); return; }
     } catch {}
-    setError(true);
+    // Pas de réponse exploitable (réseau / webview Telegram) : on accepte le code et on
+    // le mémorise — sa validité réelle sera tranchée à la redemption (après inscription).
+    try { localStorage.setItem("pi_pending_code", c); } catch {}
+    setUnlocked(true); setError(false);
   };
 
   return (

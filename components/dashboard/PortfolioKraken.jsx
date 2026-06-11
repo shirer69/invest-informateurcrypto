@@ -35,29 +35,38 @@ function Spinner({ size = 16, className = "" }) {
   );
 }
 
-function Table({ rows, cols }) {
+function Table({ rows, cols, mobileMax }) {
   if (!rows.length) return <p className="px-5 py-4 text-[13px] text-mist">Aucun actif.</p>;
+  const hiddenOnMobile = mobileMax ? Math.max(0, rows.length - mobileMax) : 0;
   return (
-    <table className="w-full text-[13.5px]">
-      <thead>
-        <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-          {cols.map((c) => (
-            <th key={c.k} className={`px-5 py-3 ${c.right ? "text-right" : ""} ${c.hide || ""}`}>{c.h}</th>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((r, i) => (
-          <tr key={i} className="border-b hairline last:border-0">
+    <>
+      <table className="w-full text-[13.5px]">
+        <thead>
+          <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
             {cols.map((c) => (
-              <td key={c.k} className={`px-5 py-3 ${c.right ? "text-right font-mono" : ""} ${c.cls ? c.cls(r) : "text-bone"} ${c.hide || ""}`}>
-                {c.render ? c.render(r) : r[c.k]}
-              </td>
+              <th key={c.k} className={`px-5 py-3 ${c.right ? "text-right" : ""} ${c.hide || ""}`}>{c.h}</th>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i}
+              className={`border-b hairline last:border-0 ${mobileMax && i >= mobileMax ? "hidden sm:table-row" : ""}`}>
+              {cols.map((c) => (
+                <td key={c.k} className={`px-5 py-3 ${c.right ? "text-right font-mono" : ""} ${c.cls ? c.cls(r) : "text-bone"} ${c.hide || ""}`}>
+                  {c.render ? c.render(r) : r[c.k]}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {hiddenOnMobile > 0 && (
+        <p className="sm:hidden px-5 py-2.5 text-[11.5px] text-mist/60 border-t hairline">
+          + {hiddenOnMobile} autre{hiddenOnMobile > 1 ? "s" : ""} actif{hiddenOnMobile > 1 ? "s" : ""} — élargir l'écran pour tout voir.
+        </p>
+      )}
+    </>
   );
 }
 
@@ -305,7 +314,7 @@ export default function PortfolioKraken() {
       {/* Tables par catégorie */}
       <div className="space-y-5">
         <Section title="Spot crypto" dot={CAT.crypto.color}>
-          <Table rows={crypto} cols={[
+          <Table rows={crypto} mobileMax={3} cols={[
             { k: "symbol", h: "Actif" },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
             { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },

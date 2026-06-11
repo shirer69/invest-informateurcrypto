@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 import Script from "next/script";
 import Chat from "@/components/dashboard/Chat";
-import OrderTicket from "@/components/dashboard/OrderTicket";
-import SandboxKraken from "@/components/dashboard/SandboxKraken";
 import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
@@ -24,9 +22,7 @@ const NAV = [
   { id: "audios", label: "Audios Pôle Trading", icon: "♪" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
-  { id: "order", label: "Préparer un ordre", icon: "⊕" },
-  { id: "sandbox", label: "Sandbox Kraken", icon: "⚡" },
-  { id: "copy", label: "Copy-trading", icon: "⇄" },
+  { id: "copy", label: "Copy-trading (Futures)", icon: "⇄" },
 ];
 
 export default function Dashboard() {
@@ -140,8 +136,6 @@ export default function Dashboard() {
               <Chat me={user?.name} />
             </div>
           )}
-          {tab === "order" && <OrderTicket />}
-          {tab === "sandbox" && <SandboxKraken />}
           {tab === "copy" && <CopyTrading />}
         </main>
       </div>

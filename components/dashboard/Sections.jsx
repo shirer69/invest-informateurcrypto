@@ -283,12 +283,80 @@ function CopyKpi({ label, value, cls }) {
   );
 }
 
+function Spinner({ className = "" }) {
+  return (
+    <svg className={`animate-spin ${className}`} width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* Bloc d'information sur la stratégie de copy (objectifs, règles, money management) */
+function CopyInfo() {
+  return (
+    <div className="mt-6 grid lg:grid-cols-2 gap-4">
+      <div className="rounded-2xl border gold-line bg-ink-800/40 p-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Objectifs</span>
+        <div className="mt-3 grid sm:grid-cols-2 gap-3">
+          <div className="rounded-xl border hairline bg-ink-900/40 p-4">
+            <div className="text-[12px] text-mist/70">Performance cible</div>
+            <div className="mt-1 font-display text-[19px] text-emerald-400">5 % à 20 %</div>
+            <div className="text-[12px] text-mist">de profit mensuel</div>
+          </div>
+          <div className="rounded-xl border hairline bg-ink-900/40 p-4">
+            <div className="text-[12px] text-mist/70">Protection capital</div>
+            <div className="mt-1 font-display text-[19px] text-bone">Drawdown max 11 %</div>
+            <div className="text-[12px] text-mist">limite de perte gérée</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Règles de sortie</span>
+        <div className="mt-3 space-y-3">
+          <div>
+            <div className="text-[13px] text-bone font-medium">Scalping / Intraday</div>
+            <p className="text-[12.5px] leading-relaxed text-mist">
+              Stop-loss serrés systématiques. Les TP offrent des ratios largement supérieurs aux
+              pertes. Jamais de pertes laissées courir.
+            </p>
+          </div>
+          <div>
+            <div className="text-[13px] text-bone font-medium">Semi-Swing</div>
+            <p className="text-[12.5px] leading-relaxed text-mist">
+              Trades tenus 24/48 h. Plus de marge pour le stop-loss et cibles larges, avec levier réduit.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-5 lg:col-span-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Money management</span>
+        <div className="mt-3 grid sm:grid-cols-3 gap-3">
+          {[
+            ["5 % du capital", "engagé par trade"],
+            ["Toujours un stop-loss", "sur chaque position"],
+            ["1 à 3 TP", "par position"],
+          ].map(([a, b]) => (
+            <div key={a} className="rounded-xl border hairline bg-ink-900/40 p-4">
+              <div className="font-display text-[16px] text-bone">{a}</div>
+              <div className="text-[12px] text-mist">{b}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CopyTrading() {
   const [user, setUser] = useState(null);
   const [s, setS] = useState(null);
   const [keyForm, setKeyForm] = useState({ api_key: "", api_secret: "" });
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [stopping, setStopping] = useState(false);
   const [draft, setDraft] = useState(null); // réglages en cours d'édition
   const timer = useRef(null);
 
@@ -336,7 +404,9 @@ export function CopyTrading() {
   }
   async function doStop() {
     if (!confirm("Arrêter la copie ferme immédiatement toutes tes positions copiées. Continuer ?")) return;
-    setBusy(true); const r = await copyStop(); setBusy(false);
+    setStopping(true); setMsg("");
+    const r = await copyStop();
+    setStopping(false);
     setMsg(r.ok ? "Copie arrêtée, positions fermées." : "Erreur : " + r.error);
     refresh();
   }
@@ -403,12 +473,17 @@ export function CopyTrading() {
                 ▶ Démarrer la copie
               </button>
             ) : (
-              <button disabled={busy} onClick={doStop}
-                className="rounded-full px-6 py-3 text-[14px] font-semibold bg-rose-500/90 text-white disabled:opacity-50">
-                ■ Arrêter (ferme les positions)
+              <button disabled={stopping} onClick={doStop}
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold bg-rose-500/90 text-white disabled:opacity-70">
+                {stopping ? (<><Spinner /> Arrêt en cours…</>) : "■ Arrêter (ferme les positions)"}
               </button>
             )}
-            {msg && <span className="text-[12.5px] text-mist">{msg}</span>}
+            {stopping && (
+              <span className="inline-flex items-center gap-2 text-[12.5px] text-mist/80">
+                Fermeture des positions et annulation des ordres…
+              </span>
+            )}
+            {!stopping && msg && <span className="text-[12.5px] text-mist">{msg}</span>}
           </div>
 
           {status === "waiting_flat" && (
@@ -418,14 +493,27 @@ export function CopyTrading() {
             </div>
           )}
 
-          {/* KPIs */}
+          {/* KPIs — performance issue UNIQUEMENT des trades copiés */}
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <CopyKpi label="Valeur du portefeuille" value={fmtUsd(s.equity)} />
-            <CopyKpi label="Performance totale"
+            <CopyKpi label="Performance totale (copy)"
               value={`${signStr(s.pnl_total)} (${s.pnl_total_pct >= 0 ? "+" : ""}${s.pnl_total_pct}%)`}
               cls={`font-display text-[20px] ${signClass(s.pnl_total)}`} />
-            <CopyKpi label="Gains réalisés" value={signStr(s.pnl_realized)} cls={`font-display text-[20px] ${signClass(s.pnl_realized)}`} />
-            <CopyKpi label="Gains latents" value={signStr(s.pnl_unrealized)} cls={`font-display text-[20px] ${signClass(s.pnl_unrealized)}`} />
+            <CopyKpi label="Gains réalisés (copy)" value={signStr(s.pnl_realized)} cls={`font-display text-[20px] ${signClass(s.pnl_realized)}`} />
+            <CopyKpi label="Gains latents (copy)" value={signStr(s.pnl_unrealized)} cls={`font-display text-[20px] ${signClass(s.pnl_unrealized)}`} />
+          </div>
+          <p className="-mt-2 text-[11.5px] text-mist/50">
+            La performance affichée provient <b>uniquement</b> des positions déclenchées par le copy
+            (le trader maître) — elle exclut tes éventuels trades manuels et la revalorisation du collatéral.
+          </p>
+
+          {/* métriques */}
+          <div className="grid sm:grid-cols-3 gap-4">
+            <CopyKpi label="Sharpe" value={s.metrics?.sharpe != null ? s.metrics.sharpe : "—"} />
+            <CopyKpi label="CAGR" value={s.metrics?.cagr != null ? `${s.metrics.cagr >= 0 ? "+" : ""}${s.metrics.cagr}%` : "—"}
+              cls={`font-display text-[20px] ${s.metrics?.cagr != null ? signClass(s.metrics.cagr) : "text-bone"}`} />
+            <CopyKpi label="Max Drawdown" value={`-${s.metrics?.max_drawdown ?? 0}%`}
+              cls="font-display text-[20px] text-rose-400" />
           </div>
 
           {/* courbe equity */}
@@ -473,6 +561,47 @@ export function CopyTrading() {
             )}
           </div>
 
+          {/* historique des trades copiés */}
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Historique des trades (copy)</span>
+            {(!s.trades || !s.trades.length) ? (
+              <div className="mt-3 text-[13px] text-mist/60">Aucun trade copié pour le moment.</div>
+            ) : (
+              <div className="mt-3 overflow-x-auto max-h-[340px] overflow-y-auto">
+                <table className="w-full text-[13px] font-mono">
+                  <thead className="sticky top-0 bg-ink-800">
+                    <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
+                      <th className="text-left font-medium py-2">Date</th>
+                      <th className="text-left font-medium">Action</th>
+                      <th className="text-left font-medium">Marché</th>
+                      <th className="text-left font-medium">Sens</th>
+                      <th className="text-right font-medium">Taille</th>
+                      <th className="text-right font-medium">Prix</th>
+                      <th className="text-right font-medium">Réalisé</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {s.trades.map((t, i) => (
+                      <tr key={i} className="border-t hairline">
+                        <td className="py-2.5 text-mist/80 whitespace-nowrap">
+                          {new Date(t.ts * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                        </td>
+                        <td className="text-mist">{t.kind}</td>
+                        <td className="text-bone">{t.symbol}</td>
+                        <td className={t.side === "buy" ? "text-emerald-400" : "text-rose-400"}>{t.side === "buy" ? "Achat" : "Vente"}</td>
+                        <td className="text-right text-mist">{t.size}</td>
+                        <td className="text-right text-mist">{fmtUsd(t.price)}</td>
+                        <td className={`text-right ${t.realized ? signClass(t.realized) : "text-mist/40"}`}>
+                          {t.realized ? signStr(t.realized) : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
           {/* réglages risque */}
           {draft && (
             <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
@@ -505,6 +634,8 @@ export function CopyTrading() {
           )}
         </div>
       )}
+
+      <CopyInfo />
 
       <Disclaimer>
         Environnement de démonstration (sandbox) — aucun argent réel. Tout investissement comporte

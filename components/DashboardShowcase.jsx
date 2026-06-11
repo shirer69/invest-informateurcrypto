@@ -13,6 +13,8 @@ const I = {
   perp: "M3 12h4l3 7 4-14 3 7h4",
   stock: "M3 17l5-5 4 3 8-8M21 7v5M21 7h-5",
   copy: "M9 9h10v10H9zM5 15H4V5h10v1",
+  futures: "M4 14l4-4 3 3 5-6 4 4M4 19h16",
+  academy: "M3 8l9-4 9 4-9 4zM7 10.5V15c0 1 2.2 2 5 2s5-1 5-2v-4.5",
   video: "M4 5h16v14H4zM10 9l5 3-5 3z",
   chat: "M4 5h16v10H8l-4 4z",
   vip: "M4 8l4 4 4-8 4 8 4-4-1 9H5z",
@@ -31,9 +33,11 @@ const FEATURES = [
   { d: I.grid, t: "Suivi de portefeuille", s: "Equity, PnL et drawdown consolidés en temps réel." },
   { d: I.spot, t: "Spot", s: "Positions et soldes spot, toutes vos lignes au même endroit." },
   { d: I.margin, t: "Marge", s: "Exposition, collatéral et niveau de risque suivis en continu." },
+  { d: I.futures, t: "Futures", s: "Contrats à terme : échéances, exposition et couverture suivies." },
   { d: I.perp, t: "Perps", s: "Contrats perpétuels, funding et levier sous contrôle." },
   { d: I.stock, t: "Actions US & indices", s: "Leaders US, S&P 500, Nasdaq — vue marché intégrée." },
   { d: I.copy, t: "Copy trading auto", s: "Réplication des positions du desk, avec plafonds de risque." },
+  { d: I.academy, t: "Academy", s: "Modules de formation : cycles, gestion du risque, exécution." },
   { d: I.video, t: "Vidéos", s: "Analyses hebdomadaires et formats longs, directement dans l'app." },
   { d: I.chat, t: "Chat communautaire", s: "Échanges entre membres, modéré, en temps réel." },
   { d: I.vip, t: "Analyses & posts VIP", s: "Le flux d'intelligence du desk, structuré et contextualisé." },
@@ -94,9 +98,9 @@ export default function DashboardShowcase() {
               {/* sidebar */}
               <div className="hidden lg:flex flex-col gap-1 p-3 border-r hairline bg-ink-900/60">
                 {[
-                  ["Portefeuille", I.grid, true], ["Spot", I.spot], ["Marge", I.margin],
+                  ["Portfolio Spot", I.spot, true], ["Marge", I.margin], ["Futures", I.futures],
                   ["Perps", I.perp], ["Actions US", I.stock], ["Copy trading", I.copy],
-                  ["Vidéos", I.video], ["Chat", I.chat], ["VIP", I.vip],
+                  ["Academy", I.academy], ["Vidéos", I.video], ["Chat", I.chat], ["VIP", I.vip],
                 ].map(([label, d, active]) => (
                   <div key={label}
                     className={`flex items-center gap-2.5 rounded-lg px-3 py-2 text-[12.5px] ${

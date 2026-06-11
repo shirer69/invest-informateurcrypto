@@ -139,7 +139,7 @@ export default function Admin() {
         </nav>
 
         {tab === "overview" && <Overview ov={ov} />}
-        {tab === "members" && <Members members={members} />}
+        {tab === "members" && <Members members={members} adminKey={key} />}
         {tab === "deposits" && <Deposits iiban={iiban} ov={ov} />}
         {tab === "copy" && <CopyAuto adminKey={key} />}
       </div>
@@ -172,52 +172,124 @@ function Overview({ ov }) {
   );
 }
 
-function Members({ members }) {
+function Members({ members, adminKey }) {
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
+  const reachable = members.filter((m) => m.tg_id).length;
   return (
-    <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
-      <table className="w-full min-w-[760px] text-[13.5px]">
-        <thead>
-          <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-            <th className="px-5 py-3">Membre</th>
-            <th className="px-5 py-3">UID</th>
-            <th className="px-5 py-3">Source</th>
-            <th className="px-5 py-3">Inscription</th>
-            <th className="px-5 py-3">Dépôt</th>
-            <th className="px-5 py-3 text-right">Messages</th>
-            <th className="px-5 py-3">Academy</th>
-            <th className="px-5 py-3">Dernière activité</th>
-          </tr>
-        </thead>
-        <tbody>
-          {members.map((m) => (
-            <tr key={m.email} className="border-b hairline last:border-0">
-              <td className="px-5 py-3">
-                <div className="text-bone">{m.name || "—"}</div>
-                <div className="font-mono text-[11px] text-mist/60">{m.email}</div>
-              </td>
-              <td className="px-5 py-3 font-mono text-[12px]">
-                {m.uid ? <span className="text-gold">{m.uid}</span> : <span className="text-mist/40">—</span>}
-                {m.tg_id && <div className="text-[10px] text-mist/50">tg:{m.tg_id}</div>}
-              </td>
-              <td className="px-5 py-3">
-                <span className={`font-mono text-[10px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border ${m.source === "telegram" ? "text-info border-info/30" : "text-gold border-gold/30"}`}>
-                  {m.source}
-                </span>
-              </td>
-              <td className="px-5 py-3 font-mono text-mist">{fmtDate(m.created_at)}</td>
-              <td className="px-5 py-3">
-                {m.deposit === "active" ? <span className="text-pos">✓ actif</span>
-                  : m.deposit === "pending" ? <span className="text-flag">en attente</span>
-                  : <span className="text-mist/50">—</span>}
-              </td>
-              <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
-              <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
-              <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
+    <div>
+      <BroadcastPanel adminKey={adminKey} reachable={reachable} total={members.length} />
+      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+        <table className="w-full min-w-[860px] text-[13.5px]">
+          <thead>
+            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+              <th className="px-5 py-3">Membre</th>
+              <th className="px-5 py-3">Email</th>
+              <th className="px-5 py-3">UID</th>
+              <th className="px-5 py-3">Source</th>
+              <th className="px-5 py-3">Inscription</th>
+              <th className="px-5 py-3">Dépôt</th>
+              <th className="px-5 py-3 text-right">Messages</th>
+              <th className="px-5 py-3">Academy</th>
+              <th className="px-5 py-3">Dernière activité</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {members.map((m) => (
+              <tr key={m.email} className="border-b hairline last:border-0">
+                <td className="px-5 py-3">
+                  <div className="text-bone">{m.name || "—"}</div>
+                  {m.tg_id && <div className="font-mono text-[10px] text-mist/50">tg:{m.tg_id}</div>}
+                </td>
+                <td className="px-5 py-3 font-mono text-[12px] text-mist">{m.email}</td>
+                <td className="px-5 py-3 font-mono text-[12px]">
+                  {m.uid ? <span className="text-gold">{m.uid}</span> : <span className="text-mist/40">—</span>}
+                </td>
+                <td className="px-5 py-3">
+                  <span className={`font-mono text-[10px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border ${m.source === "telegram" ? "text-info border-info/30" : "text-gold border-gold/30"}`}>
+                    {m.source}
+                  </span>
+                </td>
+                <td className="px-5 py-3 font-mono text-mist">{fmtDate(m.created_at)}</td>
+                <td className="px-5 py-3">
+                  {m.deposit === "active" ? <span className="text-pos">✓ actif</span>
+                    : m.deposit === "pending" ? <span className="text-flag">en attente</span>
+                    : <span className="text-mist/50">—</span>}
+                </td>
+                <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
+                <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
+                <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+const AUDIENCES = [
+  { id: "all", label: "Tous" },
+  { id: "members", label: "Membres (compte + UID)" },
+  { id: "users", label: "Utilisateurs (mini-app)" },
+  { id: "copy", label: "Membres avec copy actif" },
+];
+
+function BroadcastPanel({ adminKey, reachable, total }) {
+  const [audience, setAudience] = useState("all");
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [res, setRes] = useState(null);
+
+  async function send() {
+    if (!text.trim()) return;
+    if (!confirm(`Envoyer ce message via le bot à l'audience « ${AUDIENCES.find((a) => a.id === audience)?.label} » ?`)) return;
+    setBusy(true);
+    setRes(null);
+    const r = await adminPost("/api/admin/broadcast", adminKey, { text: text.trim(), audience });
+    setBusy(false);
+    setRes(r);
+    if (r && r.ok) setText("");
+  }
+
+  return (
+    <div className="rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <h3 className="font-display text-[17px] text-bone">Envoyer un message via le bot</h3>
+        <span className="font-mono text-[10.5px] text-mist/60">
+          {reachable} joignable(s) / {total} membre(s)
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {AUDIENCES.map((a) => (
+          <button key={a.id} onClick={() => setAudience(a.id)}
+            className={`rounded-lg px-3 py-1.5 text-[12.5px] transition-colors border ${
+              audience === a.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"
+            }`}>
+            {a.label}
+          </button>
+        ))}
+      </div>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={3}
+        placeholder="Votre message… (HTML autorisé : <b>, <i>, <a href>)"
+        className="mt-3 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-[14px] text-bone placeholder:text-mist/40 outline-none resize-y"
+      />
+      <div className="mt-3 flex items-center gap-3 flex-wrap">
+        <button onClick={send} disabled={busy || !text.trim()}
+          className="btn-gold rounded-full px-6 py-2.5 text-[14px] font-semibold disabled:opacity-50">
+          {busy ? "Envoi…" : "Envoyer"}
+        </button>
+        {res && (
+          res.ok
+            ? <span className="text-[12.5px] text-pos">✓ Envoyés : {res.sent} · échecs : {res.failed} · joignables : {res.reachable}</span>
+            : <span className="text-[12.5px] text-neg">Erreur : {res.error || "envoi impossible"}</span>
+        )}
+      </div>
+      <p className="mt-2.5 text-[11px] text-mist/55">
+        Le bot ne peut écrire qu'aux membres ayant ouvert la mini-app / démarré le bot (les « joignables »).
+      </p>
     </div>
   );
 }

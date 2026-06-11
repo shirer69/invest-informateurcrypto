@@ -351,6 +351,106 @@ function CopyInfo() {
   );
 }
 
+/* ---------------- Facturation (frais de performance HWM) ---------------- */
+function Billing({ b }) {
+  const [copied, setCopied] = useState(false);
+  const due = b.fee_due > 0;
+  const grace = b.grace_days_left;
+  return (
+    <div className="rounded-2xl border gold-line bg-ink-800/40 p-5">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Facturation · frais de performance</span>
+        <span className="text-[11px] text-mist/60">
+          Taux actuel <b className="text-bone">{b.current_rate_pct} %</b>
+        </span>
+      </div>
+
+      <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <CopyKpi label="Taux appliqué" value={`${b.current_rate_pct} %`}
+          cls="font-display text-[20px] text-gold" />
+        <CopyKpi label="High-Water Mark" value={fmtUsd(b.hwm)} />
+        <CopyKpi label="Solde prépayé" value={fmtUsd(b.fee_balance)}
+          cls={`font-display text-[20px] ${b.fee_balance > 0 ? "text-emerald-400" : "text-bone"}`} />
+        <CopyKpi label="Frais dus" value={fmtUsd(b.fee_due)}
+          cls={`font-display text-[20px] ${due ? "text-rose-400" : "text-bone"}`} />
+      </div>
+
+      <p className="mt-3 text-[12px] leading-relaxed text-mist">
+        Frais de <b>{b.current_rate_pct} %</b> prélevés <b>mensuellement</b> sur les profits réalisés
+        qui dépassent ton plus-haut historique (High-Water Mark) — tu ne paies jamais deux fois le
+        même gain, et rien tant que tu n'as pas de nouveau record. Tarif : <b>{b.rate_low_pct} %</b> si
+        ton wallet Futures est sous {fmtUsd(b.threshold)}, sinon <b>{b.rate_high_pct} %</b>.
+      </p>
+
+      {due && (
+        <div className="mt-3 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-[13px] text-rose-300">
+          ⚠️ Frais en attente de paiement : <b>{fmtUsd(b.fee_due)}</b>.{" "}
+          {grace != null && grace > 0
+            ? `Recharge ton wallet sous ${grace} jour${grace > 1 ? "s" : ""} pour éviter la suspension de la copie.`
+            : "Délai dépassé — la copie peut être suspendue."}
+        </div>
+      )}
+
+      {/* dépôt crypto */}
+      <div className="mt-4 rounded-xl border hairline bg-ink-900/40 p-4">
+        <div className="text-[12px] uppercase tracking-widest2 text-mist/70 font-mono">Recharger (USDT · TRC-20)</div>
+        {b.deposit_address ? (
+          <>
+            <div className="mt-2 flex items-center gap-2 flex-wrap">
+              <code className="text-[12.5px] text-bone break-all bg-ink-900/60 border hairline rounded px-2 py-1">{b.deposit_address}</code>
+              <button onClick={() => { navigator.clipboard?.writeText(b.deposit_address); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                className="text-[12px] text-gold underline">{copied ? "copié ✓" : "copier"}</button>
+            </div>
+            <p className="mt-2 text-[11.5px] text-mist/60">
+              Envoie de l'USDT (réseau TRC-20 uniquement) à cette adresse dédiée. Le crédit est
+              confirmé manuellement par l'équipe puis ajouté à ton solde prépayé.
+            </p>
+          </>
+        ) : (
+          <p className="mt-2 text-[12.5px] text-mist/70">
+            Ton adresse de dépôt dédiée sera attribuée par l'équipe — contacte le support pour l'obtenir.
+          </p>
+        )}
+      </div>
+
+      {/* historique des factures */}
+      {b.invoices && b.invoices.length > 0 && (
+        <div className="mt-4">
+          <div className="text-[11px] uppercase tracking-widest2 text-mist/60 font-mono mb-2">Historique de facturation</div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12.5px] font-mono">
+              <thead>
+                <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
+                  <th className="text-left font-medium py-1.5">Date</th>
+                  <th className="text-right font-medium">Profit</th>
+                  <th className="text-right font-medium">Taux</th>
+                  <th className="text-right font-medium">Frais</th>
+                  <th className="text-right font-medium">Réglé</th>
+                  <th className="text-left font-medium pl-3">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {b.invoices.map((iv, i) => (
+                  <tr key={i} className="border-t hairline">
+                    <td className="py-2 text-mist/80">{new Date(iv.ts * 1000).toLocaleDateString("fr-FR")}</td>
+                    <td className="text-right text-mist">{fmtUsd(iv.profit)}</td>
+                    <td className="text-right text-mist">{Math.round(iv.rate * 100)} %</td>
+                    <td className="text-right text-bone">{fmtUsd(iv.fee)}</td>
+                    <td className="text-right text-emerald-400">{fmtUsd(iv.paid)}</td>
+                    <td className={`pl-3 ${iv.status === "paid" ? "text-emerald-400" : "text-rose-400"}`}>
+                      {iv.status === "paid" ? "Réglé" : "Dû"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ---------------- Monitoring : activité live du trader maître ---------------- */
 export function Monitoring() {
   const [user, setUser] = useState(null);
@@ -730,6 +830,9 @@ export function CopyTrading() {
               </p>
             </div>
           )}
+
+          {/* facturation */}
+          {s.billing && <Billing b={s.billing} />}
         </div>
       )}
 

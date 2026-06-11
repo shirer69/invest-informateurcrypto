@@ -188,6 +188,8 @@ function Members({ members, adminKey }) {
               <th className="px-5 py-3">Source</th>
               <th className="px-5 py-3">Inscription</th>
               <th className="px-5 py-3">Dépôt</th>
+              <th className="px-5 py-3">Clé Kraken</th>
+              <th className="px-5 py-3">Accès</th>
               <th className="px-5 py-3 text-right">Messages</th>
               <th className="px-5 py-3">Academy</th>
               <th className="px-5 py-3">Dernière activité</th>
@@ -215,6 +217,8 @@ function Members({ members, adminKey }) {
                     : m.deposit === "pending" ? <span className="text-flag">en attente</span>
                     : <span className="text-mist/50">—</span>}
                 </td>
+                <td className="px-5 py-3">{m.has_kraken_key ? <span className="text-pos">✓</span> : <span className="text-mist/40">—</span>}</td>
+                <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
                 <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
                 <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
                 <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
@@ -363,7 +367,7 @@ function BulkIiban({ adminKey, onReload }) {
     const d = await adminPost("/api/admin/bulk", adminKey, { text });
     setBusy(false);
     if (d && d.ok) {
-      setMsg({ ok: true, text: `${d.parsed} entrée(s) importée(s) — ${d.added?.active || 0} active, ${d.added?.pending || 0} en attente.` });
+      setMsg({ ok: true, text: `${d.parsed} entrée(s) — ${d.added?.active || 0} active, ${d.added?.pending || 0} en attente · ${d.linked || 0} reliée(s) à un compte.` });
       setText("");
       onReload && onReload();
     } else {
@@ -414,35 +418,48 @@ function Deposits({ iiban, ov, adminKey, onReload }) {
       <BulkIiban adminKey={adminKey} onReload={onReload} />
 
       <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
-        <table className="w-full min-w-[560px] text-[13.5px]">
+        <table className="w-full min-w-[860px] text-[13.5px]">
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-              <th className="px-5 py-3">UID (4 derniers)</th>
-              <th className="px-5 py-3">Nom</th>
-              <th className="px-5 py-3">Statut</th>
-              <th className="px-5 py-3">Lien VIP</th>
+              <th className="px-4 py-3">IIBAN (4 derniers)</th>
+              <th className="px-4 py-3">Email</th>
+              <th className="px-4 py-3">Telegram</th>
+              <th className="px-4 py-3">Clé Kraken</th>
+              <th className="px-4 py-3">Statut dépôt</th>
+              <th className="px-4 py-3">Accès</th>
+              <th className="px-4 py-3">Lien VIP</th>
             </tr>
           </thead>
           <tbody>
             {iiban.length === 0 && (
-              <tr><td colSpan={4} className="px-5 py-4 text-mist/60 text-[13px]">Aucune entrée. Collez votre liste d'IIBAN dans le champ ci-dessus.</td></tr>
+              <tr><td colSpan={7} className="px-4 py-4 text-mist/60 text-[13px]">Aucune entrée. Collez votre liste d'IIBAN dans le champ ci-dessus.</td></tr>
             )}
             {iiban.map((r) => (
               <tr key={r.code} className="border-b hairline last:border-0">
-                <td className="px-5 py-3 font-mono text-bone">{r.code}</td>
-                <td className="px-5 py-3 text-mist">{r.name || "—"}</td>
-                <td className="px-5 py-3">
+                <td className="px-4 py-3 font-mono text-bone">{r.code}</td>
+                <td className="px-4 py-3 text-mist">
+                  {r.email ? (
+                    <span className="text-bone">{r.email}</span>
+                  ) : (
+                    <span className="text-flag/80" title="Aucun compte ne correspond encore à cet IIBAN">non relié</span>
+                  )}
+                </td>
+                <td className="px-4 py-3 font-mono text-[12px] text-mist">{r.tg_id || "—"}</td>
+                <td className="px-4 py-3">{r.has_kraken_key ? <span className="text-pos">✓</span> : <span className="text-mist/40">—</span>}</td>
+                <td className="px-4 py-3">
                   {r.status === "active" ? <span className="text-pos">✓ actif</span> : <span className="text-flag">en attente</span>}
                 </td>
-                <td className="px-5 py-3">{r.has_link ? <span className="text-pos">généré</span> : <span className="text-mist/50">—</span>}</td>
+                <td className="px-4 py-3">{r.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
+                <td className="px-4 py-3">{r.has_link ? <span className="text-pos">généré</span> : <span className="text-mist/50">—</span>}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <p className="mt-4 text-[11.5px] text-mist/60">
-        « Activé » = attribution Kraken active (dépôt effectué / premier trade). « En attente » = inscrit, pas encore activé.
-        Collez/actualisez la liste directement via le champ ci-dessus (ou la page <span className="font-mono">/update</span>).
+        Chaque IIBAN est relié automatiquement au compte (<b>email · Telegram · clé Kraken · accès</b>)
+        dès qu'un membre a validé cet IIBAN. « non relié » = aucun compte ne correspond encore.
+        « Activé » = attribution Kraken active. Collez/actualisez la liste via le champ ci-dessus.
       </p>
     </div>
   );

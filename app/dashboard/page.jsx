@@ -179,7 +179,7 @@ export default function Dashboard() {
         const primary = nav.filter((n) => PRIMARY_TABS.includes(n.id));
         const activeInPrimary = primary.some((n) => n.id === tab);
         return (
-          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 glass border-t hairline pb-[env(safe-area-inset-bottom)]">
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900 border-t gold-line shadow-[0_-10px_30px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)]">
             <div className="grid grid-cols-5">
               {primary.map((n) => (
                 <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}

@@ -288,6 +288,29 @@ export default function JoinProvider({ children }) {
                       Renseignez vos informations pour accéder à votre tableau de bord.
                     </p>
 
+                    {codeInfo && (
+                      codeInfo.valid && !codeInfo.used ? (
+                        <div className="mt-3 rounded-xl border border-emerald-500/40 bg-emerald-500/[0.08] px-4 py-2.5">
+                          <p className="text-[13px] text-emerald-300">
+                            🔑 Code <span className="font-mono text-bone">{codeInfo.code}</span> valide ✓ —
+                            vos <b>3 mois d'accès offerts</b> seront activés à la création de votre compte.
+                          </p>
+                        </div>
+                      ) : codeInfo.used ? (
+                        <div className="mt-3 rounded-xl border border-amber-500/40 bg-amber-500/[0.08] px-4 py-2.5">
+                          <p className="text-[13px] text-amber-300">
+                            🔑 Code <span className="font-mono">{codeInfo.code}</span> — ce code a déjà été utilisé.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 rounded-xl border border-rose-500/40 bg-rose-500/[0.08] px-4 py-2.5">
+                          <p className="text-[13px] text-rose-300">
+                            🔑 Code <span className="font-mono">{codeInfo.code}</span> invalide.
+                          </p>
+                        </div>
+                      )
+                    )}
+
                     <input
                       type="text"
                       autoFocus

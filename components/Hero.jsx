@@ -104,12 +104,6 @@ export default function Hero() {
                 Découvrir la méthode
               </a>
             </div>
-            <button
-              onClick={openJoin}
-              className="mt-3 text-[12.5px] text-mist hover:text-bone transition-colors underline decoration-white/20 underline-offset-2"
-            >
-              Pas de code ? Demander mon accès
-            </button>
           </motion.div>
 
           {/* trust strip */}

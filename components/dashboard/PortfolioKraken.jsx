@@ -5,6 +5,7 @@ import { copyMaster } from "@/lib/clientStore";
 import { Locked } from "./UnlockProvider";
 import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
+import KrakenLogo from "@/components/KrakenLogo";
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -238,6 +239,11 @@ export default function PortfolioKraken() {
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>
         <div className="pointer-events-none absolute -top-20 -right-10 h-56 w-56 rounded-full blur-3xl"
              style={{ background: "radial-gradient(circle, rgba(124,92,252,0.22), transparent 70%)" }} />
+        {/* Logo Kraken en filigrane (violet) */}
+        <KrakenLogo
+          mark wordmark={false} color="#7C5CFC"
+          className="pointer-events-none absolute -bottom-8 -right-6 opacity-[0.10] [&_svg]:h-44 [&_svg]:w-44"
+        />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
             P&L du compte {TRACKING_STARTED ? "· depuis le départ" : "· en attente du départ"}

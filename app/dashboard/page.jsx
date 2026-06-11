@@ -10,7 +10,6 @@ import LoginModal from "@/components/dashboard/LoginModal";
 import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
 import Account from "@/components/dashboard/Account";
-import LogoMark from "@/components/LogoMark";
 import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -117,7 +116,6 @@ export default function Dashboard() {
       <header className="sticky top-0 z-40 glass border-b hairline">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
           <a href="/" className="flex items-center gap-2.5 min-w-0">
-            <LogoMark className="h-9 w-9 shrink-0" />
             <span className="leading-tight min-w-0">
               <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Pôle Invest</span>
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>

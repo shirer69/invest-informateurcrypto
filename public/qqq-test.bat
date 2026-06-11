@@ -48,7 +48,11 @@ $res | ConvertTo-Json -Depth 8
 $status=$res.sendStatus.status
 Write-Host ''
 if($status -eq 'placed'){
-  Write-Host 'RESULTAT : ELIGIBLE - ordre accepte (place sans s executer).' -ForegroundColor Green
+  Write-Host 'RESULTAT : ELIGIBLE - ordre accepte (place sans s executer). Tu peux OUVRIR.' -ForegroundColor Green
+}elseif($status -eq 'wouldNotReducePosition'){
+  Write-Host 'RESULTAT : REDUCE-ONLY - ton compte ne peut que FERMER, pas OUVRIR sur ce contrat.' -ForegroundColor Yellow
+  Write-Host '  => Compte NON eligible a l ouverture : questionnaire reglementaire xStocks non rempli'
+  Write-Host '     OU juridiction exclue. Remplis le questionnaire dans Kraken puis relance ce test.'
 }else{
   Write-Host ('RESULTAT : NON place - status = ' + $status) -ForegroundColor Yellow
   Write-Host '  agreement / region / notEligible          => questionnaire reglementaire ou zone exclue'

@@ -16,16 +16,16 @@ import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccessCode } from "@/lib/clientStore";
 
 const NAV = [
-  { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
-  { id: "vip", label: "🔔 Signaux", icon: "◆" },
+  { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
+  { id: "vip", label: "Signaux", icon: "🔔" },
   { id: "monitoring", label: "Monitoring", icon: "📡" },
-  { id: "logs", label: "Logs", icon: "≣" },
-  { id: "academy", label: "Academy", icon: "✸" },
-  { id: "analytics", label: "Analytics", icon: "◴" },
-  { id: "community", label: "Communauté", icon: "✦" },
-  { id: "copy", label: "Copy-trading", icon: "⇄", badge: "Soon" },
-  { id: "billing", label: "Facturation", icon: "❖" },
-  { id: "account", label: "Mon compte", icon: "☻" },
+  { id: "logs", label: "Logs", icon: "🧾" },
+  { id: "academy", label: "Academy", icon: "🎓" },
+  { id: "analytics", label: "Analytics", icon: "📈" },
+  { id: "community", label: "Communauté", icon: "👥" },
+  { id: "copy", label: "Copy-trading", icon: "🔁", badge: "Soon" },
+  { id: "billing", label: "Facturation", icon: "💳" },
+  { id: "account", label: "Mon compte", icon: "👤" },
 ];
 
 // Onglet Copy-trading réservé (pour l'instant) à ce compte uniquement.

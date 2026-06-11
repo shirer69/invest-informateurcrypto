@@ -1,10 +1,14 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import TrackRecord from "@/components/TrackRecord";
 import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
-import { getUser } from "@/lib/clientStore";
+import {
+  getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
+  copyResetBaseline, copyDeleteKeys,
+} from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
 const DemoTag = () => (
@@ -231,44 +235,292 @@ export function Analytics() {
   );
 }
 
-/* ---------------- Copy-trading (verrouillé) ---------------- */
+/* ---------------- Copy-trading (multi-utilisateurs) ---------------- */
+const fmtUsd = (x) =>
+  x == null ? "—" : "$" + Number(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const signClass = (x) => (Number(x) >= 0 ? "text-emerald-400" : "text-rose-400");
+const signStr = (x) => (Number(x) >= 0 ? "+" : "") + fmtUsd(x);
+
+const STATUS_META = {
+  idle: { label: "Inactif", color: "text-mist/60", dot: "bg-mist/40" },
+  active: { label: "Copie active", color: "text-emerald-400", dot: "bg-emerald-400" },
+  waiting_flat: { label: "En attente (trader en position)", color: "text-gold", dot: "bg-gold" },
+  stopped: { label: "Arrêté", color: "text-mist/60", dot: "bg-mist/40" },
+  stopped_loss: { label: "Coupé (seuil de perte atteint)", color: "text-rose-400", dot: "bg-rose-400" },
+};
+
+function EquityCurve({ points }) {
+  if (!points || points.length < 2) {
+    return (
+      <div className="h-[120px] grid place-items-center text-[12px] text-mist/50">
+        La courbe apparaîtra après quelques jours d'activité.
+      </div>
+    );
+  }
+  const w = 600, h = 120, pad = 6;
+  const vals = points.map((p) => p.equity);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = max - min || 1;
+  const xs = (i) => pad + (i * (w - 2 * pad)) / (points.length - 1);
+  const ys = (v) => h - pad - ((v - min) / span) * (h - 2 * pad);
+  const d = points.map((p, i) => `${i ? "L" : "M"}${xs(i).toFixed(1)},${ys(p.equity).toFixed(1)}`).join(" ");
+  const up = vals[vals.length - 1] >= vals[0];
+  const stroke = up ? "#2ee6a8" : "#fb7185";
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-[120px]" preserveAspectRatio="none">
+      <path d={`${d} L${xs(points.length - 1)},${h} L${xs(0)},${h} Z`} fill={stroke} opacity="0.08" />
+      <path d={d} fill="none" stroke={stroke} strokeWidth="2" />
+    </svg>
+  );
+}
+
+function CopyKpi({ label, value, cls }) {
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/50 p-4">
+      <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">{label}</div>
+      <div className={`mt-1.5 font-display text-[20px] ${cls || "text-bone"}`}>{value}</div>
+    </div>
+  );
+}
+
 export function CopyTrading() {
+  const [user, setUser] = useState(null);
+  const [s, setS] = useState(null);
+  const [keyForm, setKeyForm] = useState({ api_key: "", api_secret: "" });
+  const [msg, setMsg] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [draft, setDraft] = useState(null); // réglages en cours d'édition
+  const timer = useRef(null);
+
+  async function refresh() {
+    const d = await copyState();
+    setS(d);
+    if (d && d.settings && !draft) setDraft(d.settings);
+  }
+
+  useEffect(() => {
+    setUser(getUser());
+    refresh();
+    timer.current = setInterval(refresh, 4000);
+    return () => clearInterval(timer.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  if (!user) {
+    return (
+      <div>
+        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading</h3>
+        <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
+          Connecte-toi à ton compte pour activer le copy-trading.
+        </div>
+      </div>
+    );
+  }
+
+  const configured = s && s.configured;
+  const status = (s && s.status) || "idle";
+  const meta = STATUS_META[status] || STATUS_META.idle;
+  const active = s && s.active;
+
+  async function saveKeys() {
+    setBusy(true); setMsg("");
+    const r = await copySaveKeys(keyForm.api_key.trim(), keyForm.api_secret.trim());
+    setBusy(false);
+    if (r.ok) { setKeyForm({ api_key: "", api_secret: "" }); setMsg("Clés enregistrées ✓"); refresh(); }
+    else setMsg(r.error === "invalid_keys" ? "Clés refusées par le sandbox (vérifie qu'elles sont bien des clés démo Futures)." : "Erreur : " + (r.detail || r.error));
+  }
+  async function doStart() {
+    setBusy(true); const r = await copyStart(); setBusy(false);
+    setMsg(r.ok ? (r.status === "waiting_flat" ? "Copie armée — en attente que le trader soit à plat." : "Copie démarrée.") : "Erreur : " + r.error);
+    refresh();
+  }
+  async function doStop() {
+    if (!confirm("Arrêter la copie ferme immédiatement toutes tes positions copiées. Continuer ?")) return;
+    setBusy(true); const r = await copyStop(); setBusy(false);
+    setMsg(r.ok ? "Copie arrêtée, positions fermées." : "Erreur : " + r.error);
+    refresh();
+  }
+  async function saveSettings() {
+    setBusy(true); const r = await copySettings(draft); setBusy(false);
+    setMsg(r.ok ? "Réglages enregistrés ✓" : "Erreur réglages");
+    refresh();
+  }
+
   return (
     <div>
-      <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading</h3>
-      <div className="relative rounded-2xl border gold-line bg-ink-800/40 p-8 overflow-hidden">
-        <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
-             style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }} />
-        <div className="relative max-w-xl">
-          <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-widest2 text-gold/80 border gold-line rounded-full px-3 py-1">
-            🔒 Bientôt · opt-in
-          </span>
-          <h4 className="mt-4 font-display font-light text-[24px] leading-tight tracking-tightest text-bone">
-            La copie de positions n'est pas activée
-          </h4>
-          <p className="mt-3 text-[14px] leading-relaxed text-mist">
-            Pour des raisons de sécurité et de conformité, aucune exécution d'ordre n'est
-            réalisée depuis cette plateforme. La fonctionnalité de copie (sur opt-in
-            explicite, sans permission de retrait, plafonds de risque) fera l'objet d'un
-            cadre dédié.
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h3 className="font-display text-[18px] text-bone">Copy-trading <DemoTag /></h3>
+        <span className={`inline-flex items-center gap-2 text-[12px] ${meta.color}`}>
+          <span className={`h-2 w-2 rounded-full ${meta.dot}`} /> {meta.label}
+        </span>
+      </div>
+
+      {!configured ? (
+        /* ---- onboarding : saisie des clés ---- */
+        <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 max-w-2xl">
+          <h4 className="font-display text-[18px] text-bone">Connecte ton compte démo Futures</h4>
+          <p className="mt-2 text-[13.5px] leading-relaxed text-mist">
+            Le copy-trading réplique automatiquement les positions du trader sur <b>ton</b> compte
+            de démonstration Kraken Futures. Crée deux clés API sur{" "}
+            <a className="text-gold underline" href="https://demo-futures.kraken.com" target="_blank" rel="noopener noreferrer">
+              demo-futures.kraken.com
+            </a>{" "}
+            (Settings → API Keys, droit de trading), puis colle-les ci-dessous.
           </p>
-          <ul className="mt-5 space-y-2.5">
-            {[
-              "Connexion Kraken en lecture seule uniquement",
-              "Jamais de permission de retrait",
-              "Plafonds de risque et opt-in obligatoires",
-            ].map((x) => (
-              <li key={x} className="flex items-center gap-3 text-[13.5px] text-mist">
+          <div className="mt-5 space-y-3">
+            <div>
+              <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique</label>
+              <input value={keyForm.api_key} onChange={(e) => setKeyForm({ ...keyForm, api_key: e.target.value })}
+                className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+            </div>
+            <div>
+              <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé privée</label>
+              <input value={keyForm.api_secret} onChange={(e) => setKeyForm({ ...keyForm, api_secret: e.target.value })} type="password"
+                className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+            </div>
+            <button disabled={busy} onClick={saveKeys}
+              className="btn-gold rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-50">
+              {busy ? "Vérification…" : "Connecter mon compte"}
+            </button>
+            {msg && <p className="text-[12.5px] text-mist">{msg}</p>}
+          </div>
+          <ul className="mt-5 space-y-2 border-t hairline pt-4">
+            {["Sandbox démo uniquement — aucun argent réel", "Clés chiffrées au repos", "Jamais de permission de retrait", "Tu gardes le contrôle : start/stop à tout moment"].map((x) => (
+              <li key={x} className="flex items-center gap-3 text-[12.5px] text-mist/80">
                 <span className="h-1 w-1 rounded-full bg-gold" /> {x}
               </li>
             ))}
           </ul>
         </div>
-      </div>
+      ) : (
+        /* ---- tableau de bord investisseur ---- */
+        <div className="space-y-5">
+          {/* contrôles */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {!active ? (
+              <button disabled={busy} onClick={doStart}
+                className="rounded-full px-6 py-3 text-[14px] font-semibold bg-emerald-500/90 text-ink-900 disabled:opacity-50">
+                ▶ Démarrer la copie
+              </button>
+            ) : (
+              <button disabled={busy} onClick={doStop}
+                className="rounded-full px-6 py-3 text-[14px] font-semibold bg-rose-500/90 text-white disabled:opacity-50">
+                ■ Arrêter (ferme les positions)
+              </button>
+            )}
+            {msg && <span className="text-[12.5px] text-mist">{msg}</span>}
+          </div>
+
+          {status === "waiting_flat" && (
+            <div className="rounded-xl border gold-line bg-gold/5 px-4 py-3 text-[13px] text-gold/90">
+              ⏳ Le trader a une position ouverte. Pour ne pas entrer en cours de route, ta copie
+              démarrera dès qu'il sera à plat (0 position) — à la prochaine opportunité.
+            </div>
+          )}
+
+          {/* KPIs */}
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <CopyKpi label="Valeur du portefeuille" value={fmtUsd(s.equity)} />
+            <CopyKpi label="Performance totale"
+              value={`${signStr(s.pnl_total)} (${s.pnl_total_pct >= 0 ? "+" : ""}${s.pnl_total_pct}%)`}
+              cls={`font-display text-[20px] ${signClass(s.pnl_total)}`} />
+            <CopyKpi label="Gains réalisés" value={signStr(s.pnl_realized)} cls={`font-display text-[20px] ${signClass(s.pnl_realized)}`} />
+            <CopyKpi label="Gains latents" value={signStr(s.pnl_unrealized)} cls={`font-display text-[20px] ${signClass(s.pnl_unrealized)}`} />
+          </div>
+
+          {/* courbe equity */}
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+                Courbe d'équité {s.first_day ? `· depuis le ${s.first_day}` : ""}
+              </span>
+            </div>
+            <EquityCurve points={s.curve} />
+          </div>
+
+          {/* positions */}
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions en cours</span>
+            {(!s.positions || !s.positions.length) ? (
+              <div className="mt-3 text-[13px] text-mist/60">Aucune position ouverte.</div>
+            ) : (
+              <div className="mt-3 overflow-x-auto">
+                <table className="w-full text-[13px] font-mono">
+                  <thead>
+                    <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
+                      <th className="text-left font-medium py-2">Marché</th>
+                      <th className="text-left font-medium">Sens</th>
+                      <th className="text-right font-medium">Taille</th>
+                      <th className="text-right font-medium">Entrée</th>
+                      <th className="text-right font-medium">Mark</th>
+                      <th className="text-right font-medium">PnL latent</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {s.positions.map((p, i) => (
+                      <tr key={i} className="border-t hairline">
+                        <td className="py-2.5 text-bone">{p.symbol}</td>
+                        <td className={p.side === "long" ? "text-emerald-400" : "text-rose-400"}>{p.side}</td>
+                        <td className="text-right text-mist">{p.size}</td>
+                        <td className="text-right text-mist">{fmtUsd(p.entry)}</td>
+                        <td className="text-right text-mist">{fmtUsd(p.mark)}</td>
+                        <td className={`text-right ${signClass(p.upnl)}`}>{signStr(p.upnl)} ({p.upnl_pct >= 0 ? "+" : ""}{p.upnl_pct}%)</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* réglages risque */}
+          {draft && (
+            <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Garde-fous</span>
+              <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Field label="Levier max (x)" value={draft.max_leverage}
+                  onChange={(v) => setDraft({ ...draft, max_leverage: v })} step="0.5" />
+                <Field label="Stop-loss / position (%)" value={Math.round(draft.auto_stop_loss_pct * 1000) / 10}
+                  onChange={(v) => setDraft({ ...draft, auto_stop_loss_pct: (parseFloat(v) || 0) / 100 })} step="0.5" />
+                <Field label="Stop-copy à perte de (%)" value={draft.stop_copy_loss_pct}
+                  onChange={(v) => setDraft({ ...draft, stop_copy_loss_pct: parseFloat(v) || 0 })} step="1" />
+                <Field label="Multiplicateur taille" value={draft.size_ratio}
+                  onChange={(v) => setDraft({ ...draft, size_ratio: parseFloat(v) || 0 })} step="0.1" />
+              </div>
+              <div className="mt-4 flex items-center gap-3">
+                <button disabled={busy} onClick={saveSettings}
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+                  Enregistrer les garde-fous
+                </button>
+                <button onClick={async () => { if (confirm("Déconnecter ce compte et oublier les clés ?")) { await copyDeleteKeys(); refresh(); } }}
+                  className="text-[12px] text-mist/60 hover:text-rose-400 underline">
+                  Déconnecter mon compte
+                </button>
+              </div>
+              <p className="mt-3 text-[11.5px] text-mist/50">
+                Stop-loss / position : pose un stop automatique à X % de l'entrée. Stop-copy : coupe
+                tout et ferme si ta perte totale atteint X %. Levier max : plafonne ton exposition.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       <Disclaimer>
-        Aucun ordre n'est passé sur les marchés via cette interface. Tout investissement
-        comporte un risque de perte en capital.
+        Environnement de démonstration (sandbox) — aucun argent réel. Tout investissement comporte
+        un risque de perte en capital. Outil éducatif, ne constitue pas un conseil en investissement.
       </Disclaimer>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, step }) {
+  return (
+    <div>
+      <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">{label}</label>
+      <input type="number" step={step} value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
     </div>
   );
 }

@@ -36,7 +36,8 @@ export default function JoinProvider({ children }) {
   const [vState, setVState] = useState("idle"); // idle | checking | active | notfound | invalid | error
   const [inviteLink, setInviteLink] = useState("");
 
-  // Inscription (email + mot de passe) avant accès au dashboard
+  // Inscription (prénom + email + mot de passe) avant accès au dashboard
+  const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [signupErr, setSignupErr] = useState("");
@@ -100,6 +101,11 @@ export default function JoinProvider({ children }) {
   const submitSignup = async (e) => {
     e.preventDefault();
     const mail = email.trim();
+    const fn = firstName.trim();
+    if (fn.length < 2) {
+      setSignupErr("Indiquez votre prénom.");
+      return;
+    }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
       setSignupErr("Adresse e-mail invalide.");
       return;
@@ -110,8 +116,8 @@ export default function JoinProvider({ children }) {
     }
     setSignupErr("");
 
-    // Création de compte serveur (ou connexion si déjà existant).
-    let r = await apiSignup({ email: mail, password: pwd });
+    // Création de compte serveur (avec prénom + UID Kraken pour le rapprochement).
+    let r = await apiSignup({ email: mail, password: pwd, name: fn, uid });
     if (!r.ok && r.error === "email_exists") {
       r = await apiLogin({ email: mail, password: pwd });
       if (!r.ok) {
@@ -379,12 +385,20 @@ export default function JoinProvider({ children }) {
                           posts VIP, lien du groupe privé).
                         </p>
                         <input
+                          type="text"
+                          value={firstName}
+                          onChange={(e) => { setFirstName(e.target.value); setSignupErr(""); }}
+                          placeholder="Prénom"
+                          autoComplete="given-name"
+                          className="mt-4 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                        />
+                        <input
                           type="email"
                           value={email}
                           onChange={(e) => { setEmail(e.target.value); setSignupErr(""); }}
                           placeholder="Adresse e-mail"
                           autoComplete="email"
-                          className="mt-4 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                          className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
                         />
                         <input
                           type="password"

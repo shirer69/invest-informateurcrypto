@@ -167,6 +167,7 @@ function Members({ members }) {
         <thead>
           <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
             <th className="px-5 py-3">Membre</th>
+            <th className="px-5 py-3">UID</th>
             <th className="px-5 py-3">Source</th>
             <th className="px-5 py-3">Inscription</th>
             <th className="px-5 py-3">Dépôt</th>
@@ -181,6 +182,10 @@ function Members({ members }) {
               <td className="px-5 py-3">
                 <div className="text-bone">{m.name || "—"}</div>
                 <div className="font-mono text-[11px] text-mist/60">{m.email}</div>
+              </td>
+              <td className="px-5 py-3 font-mono text-[12px]">
+                {m.uid ? <span className="text-gold">{m.uid}</span> : <span className="text-mist/40">—</span>}
+                {m.tg_id && <div className="text-[10px] text-mist/50">tg:{m.tg_id}</div>}
               </td>
               <td className="px-5 py-3">
                 <span className={`font-mono text-[10px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border ${m.source === "telegram" ? "text-info border-info/30" : "text-gold border-gold/30"}`}>

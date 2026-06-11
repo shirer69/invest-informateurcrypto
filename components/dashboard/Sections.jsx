@@ -157,6 +157,8 @@ export function Intelligence() {
 
 /* ---------------- Analytics ---------------- */
 const moLabel = (m) => { const [y, mo] = m.split("-"); return `${mo}/${y.slice(2)}`; };
+// Le suivi Analytics démarre à juin 2026 (les mois antérieurs sont ignorés).
+const ANALYTICS_START_MONTH = "2026-06";
 
 export function Analytics() {
   const [rows, setRows] = useState(null);
@@ -173,6 +175,7 @@ export function Analytics() {
       (pp?.months || []).forEach((m) => { ensure(m.month).perps = m.pnl; });
       const arr = Object.entries(map)
         .map(([month, v]) => ({ month, ...v, total: v.spot + v.margin + v.perps + v.stock }))
+        .filter((r) => r.month >= ANALYTICS_START_MONTH) // suivi à partir de juin 2026
         .sort((a, b) => a.month.localeCompare(b.month));
       setRows(arr);
     })();

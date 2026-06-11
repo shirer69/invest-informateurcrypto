@@ -7,7 +7,7 @@ import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
-  copyResetBaseline, copyDeleteKeys,
+  copyResetBaseline, copyDeleteKeys, copyMaster,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -346,6 +346,98 @@ function CopyInfo() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ---------------- Monitoring : activité live du trader maître ---------------- */
+export function Monitoring() {
+  const [user, setUser] = useState(null);
+  const [m, setM] = useState(null);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    setUser(getUser());
+    const tick = async () => setM(await copyMaster());
+    tick();
+    timer.current = setInterval(tick, 4000);
+    return () => clearInterval(timer.current);
+  }, []);
+
+  if (!user) {
+    return (
+      <div>
+        <h3 className="font-display text-[18px] text-bone mb-4">Monitoring</h3>
+        <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
+          Connecte-toi pour suivre l'activité du trader en direct.
+        </div>
+      </div>
+    );
+  }
+
+  const online = m && m.online;
+  const flat = m ? m.flat : true;
+  const positions = (m && m.positions) || [];
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h3 className="font-display text-[18px] text-bone">Monitoring <DemoTag /></h3>
+        <span className={`inline-flex items-center gap-2 text-[12px] ${online ? "text-emerald-400" : "text-mist/60"}`}>
+          <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-400 animate-pulse" : "bg-mist/40"}`} />
+          {online ? "Radar actif" : "Hors ligne"}
+        </span>
+      </div>
+
+      <div className="rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Trader maître (signal)</span>
+        <div className="mt-2 flex items-center gap-3">
+          <span className={`h-3 w-3 rounded-full ${flat ? "bg-mist/40" : "bg-emerald-400 animate-pulse"}`} />
+          <span className="font-display text-[20px] text-bone">
+            {flat ? "À plat — aucune position ouverte" : `${positions.length} position${positions.length > 1 ? "s" : ""} en cours`}
+          </span>
+        </div>
+        <p className="mt-2 text-[12.5px] text-mist">
+          Le copy-trading répliquera automatiquement ces positions sur ton compte lorsqu'il est démarré.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions du trader</span>
+        {!positions.length ? (
+          <div className="mt-3 text-[13px] text-mist/60">Aucune position ouverte actuellement.</div>
+        ) : (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-[13px] font-mono">
+              <thead>
+                <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
+                  <th className="text-left font-medium py-2">Marché</th>
+                  <th className="text-left font-medium">Sens</th>
+                  <th className="text-right font-medium">Taille</th>
+                  <th className="text-right font-medium">Entrée</th>
+                  <th className="text-right font-medium">Mark</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positions.map((p, i) => (
+                  <tr key={i} className="border-t hairline">
+                    <td className="py-2.5 text-bone">{p.symbol}</td>
+                    <td className={p.side === "long" ? "text-emerald-400" : "text-rose-400"}>{p.side}</td>
+                    <td className="text-right text-mist">{p.size}</td>
+                    <td className="text-right text-mist">{fmtUsd(p.entry)}</td>
+                    <td className="text-right text-mist">{fmtUsd(p.mark)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <Disclaimer>
+        Environnement de démonstration — suivi informatif de l'activité du trader. Ne constitue pas
+        un conseil en investissement.
+      </Disclaimer>
     </div>
   );
 }

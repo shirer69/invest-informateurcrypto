@@ -6,20 +6,18 @@ import Chat from "@/components/dashboard/Chat";
 import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
-import AudioFeed from "@/components/dashboard/AudioFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
 import LogoMark from "@/components/LogoMark";
-import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
+import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 
 const NAV = [
-  { id: "overview", label: "Vue d'ensemble", icon: "▦" },
   { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
   { id: "vip", label: "Alertes", icon: "◆" },
   { id: "positions", label: "Positions", icon: "≣" },
   { id: "academy", label: "Academy", icon: "✸" },
-  { id: "audios", label: "Audios Pôle Trading", icon: "♪" },
+  { id: "monitoring", label: "Monitoring", icon: "📡" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
   { id: "copy", label: "Copy-trading (Futures)", icon: "⇄" },
@@ -27,7 +25,7 @@ const NAV = [
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState("portfolio");
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
   const [loginOpen, setLoginOpen] = useState(false);
 
@@ -123,12 +121,11 @@ export default function Dashboard() {
 
         {/* content */}
         <main className="min-w-0">
-          {tab === "overview" && <Overview tgLink={tgLink} />}
           {tab === "portfolio" && <PortfolioKraken />}
           {tab === "vip" && <VipFeed />}
           {tab === "academy" && <Academy />}
           {tab === "positions" && <Positions />}
-          {tab === "audios" && <AudioFeed />}
+          {tab === "monitoring" && <Monitoring />}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (
             <div>

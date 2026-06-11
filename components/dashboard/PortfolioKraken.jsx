@@ -135,11 +135,11 @@ export default function PortfolioKraken() {
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell = (r) => (r._pnl == null ? "—" : `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`);
 
-  // P&L spot = rendement de la ligne : (valeur actuelle − prix de revient) / prix de revient
-  const spotPnl = (h) =>
-    h.cost != null && h.cost > 0 && h.value != null ? ((h.value - h.cost) / h.cost) * 100 : null;
-  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
-  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
+  // P&L ABSOLU par actif (depuis le prix d'achat), puis exprimé en % de la valeur TOTALE du compte.
+  const spotAbs = (h) =>
+    h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
+  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: a, _share: shareOf(h.value), _pnl: a == null ? null : pnlPctOf(a) }; });
+  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: a, _share: shareOf(h.value), _pnl: a == null ? null : pnlPctOf(a) }; });
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
 
   const marginRows = marginPos.map((p) => ({
@@ -148,6 +148,7 @@ export default function PortfolioKraken() {
     cur: p.vol > 0 ? p.value / p.vol : null, // prix actuel ≈ valeur courante / volume
     lev: p.margin > 0 ? p.cost / p.margin : null,
     tp: null, sl: null,
+    _abs: p.net,
     _share: shareOf(p.value),
     _pnl: pnlPctOf(p.net),
   }));
@@ -157,7 +158,9 @@ export default function PortfolioKraken() {
     const entry = parseFloat(p.price) || 0;
     const mark = ftk[(p.symbol || "").toUpperCase()] || parseFloat(p.markPrice) || 0;
     const isLong = (p.side || "").toLowerCase() === "long";
-    const notional = Math.abs(parseFloat(p.size) || 0) * (mark || entry);
+    const size = Math.abs(parseFloat(p.size) || 0);
+    const notional = size * (mark || entry);
+    const abs = entry && mark ? (mark - entry) * size * (isLong ? 1 : -1) : null; // PnL latent ($)
     return {
       symbol: (p.symbol || "").toUpperCase(),
       side: isLong ? "long" : "short",
@@ -165,10 +168,16 @@ export default function PortfolioKraken() {
       cur: mark,
       lev: parseFloat(p.maxFixedLeverage) || null,
       tp: null, sl: null,
+      _abs: abs,
       _share: shareOf(notional),
-      _pnl: entry && mark ? ((mark - entry) / entry) * 100 * (isLong ? 1 : -1) : null,
+      _pnl: abs == null ? null : pnlPctOf(abs),
     };
   });
+
+  // P&L GLOBAL du compte (depuis le 1er juin 2026), en % de la valeur totale.
+  const sumAbs = (arr) => arr.reduce((s, r) => s + (r._abs || 0), 0);
+  const accountAbs = sumAbs(crypto) + sumAbs(stocks) + sumAbs(marginRows) + sumAbs(perps);
+  const accountPnlPct = total > 0 ? (accountAbs / total) * 100 : null;
 
   const header = (
     <div className="flex items-center gap-2 mb-4">
@@ -205,11 +214,19 @@ export default function PortfolioKraken() {
              style={{ background: "radial-gradient(circle, rgba(124,92,252,0.22), transparent 70%)" }} />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            Valeur totale (estimée) · composition du portefeuille
+            P&L du compte · depuis le 1<sup>er</sup> juin 2026
           </div>
           <Locked>
-          <div className="mt-2 font-display text-[40px] md:text-[46px] leading-none text-bone">
-            {loading ? "…" : fmtUsd(total)}
+          <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${
+            accountPnlPct == null ? "text-bone" : accountPnlPct >= 0 ? "text-emerald-400" : "text-rose-400"
+          }`}>
+            {loading ? "…" : accountPnlPct == null ? "—" : `${accountPnlPct >= 0 ? "+" : ""}${accountPnlPct.toFixed(2)} %`}
+          </div>
+          <div className="mt-1.5 font-mono text-[11px] text-mist/70">
+            P&L en % de la valeur totale du compte · valeur des avoirs confidentielle
+          </div>
+          <div className="mt-4 font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
+            Composition du portefeuille
           </div>
 
           {/* Barre de composition segmentée */}
@@ -241,11 +258,12 @@ export default function PortfolioKraken() {
       {/* Note : tout est relatif au portefeuille total */}
       <div className="rounded-xl border gold-line bg-gold/[0.04] px-4 py-2.5 mb-4">
         <p className="text-[11.5px] leading-relaxed text-mist">
-          <span className="text-gold">ⓘ</span> La <span className="text-bone">Part</span> est exprimée
-          en <span className="text-bone">% de la valeur totale du portefeuille</span>. Le{" "}
-          <span className="text-bone">P&L</span> spot est le{" "}
-          <span className="text-bone">rendement de la ligne</span> : (valeur − prix de revient) ÷ prix
-          de revient. Les montants restent confidentiels.
+          <span className="text-gold">ⓘ</span> La <span className="text-bone">Part</span> et le{" "}
+          <span className="text-bone">P&L</span> sont exprimés en{" "}
+          <span className="text-bone">% de la valeur totale du compte</span> (spot, actions US/ETF,
+          marge, perps). Le P&L de chaque ligne = (valeur − prix d'achat) ÷ valeur totale du compte ;
+          le P&L spot/actions est reconstitué depuis le prix d'achat. Suivi démarré le 1<sup>er</sup>{" "}
+          juin 2026. Les montants restent confidentiels.
         </p>
       </div>
 

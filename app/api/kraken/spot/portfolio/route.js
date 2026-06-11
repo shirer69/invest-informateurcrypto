@@ -76,14 +76,22 @@ export async function GET() {
   // Approx : coût restant pondéré, converti en USD (EUR via EURUSD).
   let costByNorm = {};
   try {
-    const th = await spotTradesHistory();
-    if (th.ok && th.result && th.result.trades) {
-      const trades = Object.values(th.result.trades).sort((a, b) => (a.time || 0) - (b.time || 0));
+    // Historique paginé (prix d'achat fiable) — jusqu'à 500 trades.
+    let trades = [];
+    for (let ofs = 0; ofs < 500; ofs += 50) {
+      const th = await spotTradesHistory(ofs).catch(() => null);
+      const batch = th?.ok && th.result?.trades ? Object.values(th.result.trades) : [];
+      if (!batch.length) break;
+      trades = trades.concat(batch);
+      if (batch.length < 50) break;
+    }
+    if (trades.length) {
+      trades.sort((a, b) => (a.time || 0) - (b.time || 0));
       const QUOTES = ["ZUSD", "USD", "ZEUR", "EUR", "USDT", "USDC"];
       const eurT = await spotTicker(["EURUSD"]);
       let eurusd = 1;
       for (const [k, v] of Object.entries(eurT)) if (k.includes("EUR") && v?.c?.[0]) eurusd = parseFloat(v.c[0]);
-      const pos = {}; // pair -> { vol, cost(quote), quote }
+      const pos = {}; // pair -> { vol, cost(quote), base, quote }
       for (const tr of trades) {
         const p = (tr.pair || "").toUpperCase();
         let quote = QUOTES.find((q) => p.endsWith(q));
@@ -102,6 +110,7 @@ export async function GET() {
       }
       for (const { vol, cost, base, quote } of Object.values(pos)) {
         if (vol <= 0 || cost <= 0) continue;
+        if (FIAT.has(base)) continue; // pas de prix de revient sur le cash/fiat
         const f = quote === "EUR" ? eurusd : 1;
         costByNorm[base] = (costByNorm[base] || 0) + cost * f;
       }

@@ -486,8 +486,8 @@ export function Monitoring({ onGoCopy }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-display text-[18px] text-bone">Monitoring <DemoTag /></h3>
         <span className={`inline-flex items-center gap-2 text-[12px] ${online ? "text-emerald-400" : "text-mist/60"}`}>
-          <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-400 animate-pulse" : "bg-mist/40"}`} />
-          {online ? "Radar actif" : "Hors ligne"}
+          {m === null ? <Spinner /> : <span className={`h-2 w-2 rounded-full ${online ? "bg-emerald-400 animate-pulse" : "bg-mist/40"}`} />}
+          {m === null ? "connexion…" : online ? "Radar actif" : "Hors ligne"}
         </span>
       </div>
 
@@ -498,8 +498,10 @@ export function Monitoring({ onGoCopy }) {
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Wallet Futures (Julien)</span>
           <div className="mt-2 flex items-center gap-3">
             <span className={`h-3 w-3 rounded-full ${flat ? "bg-mist/40" : "bg-emerald-400 animate-pulse"}`} />
-            <span className="font-display text-[20px] text-bone">
-              {flat ? "À plat — aucune position ouverte" : `${positions.length} position${positions.length > 1 ? "s" : ""} en cours`}
+            <span className="font-display text-[20px] text-bone inline-flex items-center gap-2">
+              {m === null
+                ? (<><Spinner className="text-gold" /> Chargement…</>)
+                : flat ? "À plat — aucune position ouverte" : `${positions.length} position${positions.length > 1 ? "s" : ""} en cours`}
             </span>
           </div>
           <p className="mt-2 text-[12.5px] text-mist">
@@ -515,7 +517,9 @@ export function Monitoring({ onGoCopy }) {
 
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions du trader</span>
-        {!positions.length ? (
+        {m === null ? (
+          <div className="mt-3 inline-flex items-center gap-2 text-[13px] text-mist/60"><Spinner /> Chargement des positions…</div>
+        ) : !positions.length ? (
           <div className="mt-3 text-[13px] text-mist/60">Aucune position ouverte actuellement.</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
@@ -628,6 +632,18 @@ export function CopyTrading() {
         <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading</h3>
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
           Connecte-toi à ton compte pour activer le copy-trading.
+        </div>
+      </div>
+    );
+  }
+
+  // Premier chargement des données (compte Kraken B) : spinner
+  if (s === null) {
+    return (
+      <div>
+        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading <DemoTag /></h3>
+        <div className="grid place-items-center gap-3 py-24 text-mist">
+          <Spinner className="text-gold" /> <p className="text-[13px]">Chargement de ton compte…</p>
         </div>
       </div>
     );

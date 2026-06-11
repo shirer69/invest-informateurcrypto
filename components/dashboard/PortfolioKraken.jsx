@@ -18,6 +18,15 @@ const fmtUsd = () => MASK;
 const fmtAmt = () => MASK;
 const pct = (v, t) => (t > 0 ? (v / t) * 100 : 0);
 
+function Spinner({ size = 16, className = "" }) {
+  return (
+    <svg className={`animate-spin ${className}`} width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeOpacity="0.25" strokeWidth="3" />
+      <path d="M21 12a9 9 0 0 0-9-9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function Table({ rows, cols }) {
   if (!rows.length) return <p className="px-5 py-4 text-[13px] text-mist">Aucun actif.</p>;
   return (
@@ -157,14 +166,34 @@ export default function PortfolioKraken() {
     };
   });
 
+  const header = (
+    <div className="flex items-center gap-2 mb-4">
+      <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
+      <span className="font-mono text-[9px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border"
+            style={{ color: "#7C5CFC", borderColor: "rgba(124,92,252,0.4)" }}>lecture seule</span>
+      <button onClick={load} disabled={loading}
+        className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
+        {loading ? <Spinner size={13} /> : "↻"} {loading ? "chargement…" : "rafraîchir"}
+      </button>
+    </div>
+  );
+
+  // Premier chargement : spinner plein écran pour combler le délai Kraken
+  if (loading && !spot) {
+    return (
+      <div>
+        {header}
+        <div className="grid place-items-center gap-3 py-24 text-mist">
+          <Spinner size={34} className="text-gold" />
+          <p className="text-[13px]">Chargement des données Kraken…</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="flex items-center gap-2 mb-4">
-        <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border"
-              style={{ color: "#7C5CFC", borderColor: "rgba(124,92,252,0.4)" }}>lecture seule</span>
-        <button onClick={load} className="ml-auto text-[12px] text-mist hover:text-bone">↻ rafraîchir</button>
-      </div>
+      {header}
 
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>

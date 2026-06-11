@@ -11,6 +11,7 @@ import Partners from "@/components/Partners";
 import HowToJoin from "@/components/HowToJoin";
 import Faq from "@/components/Faq";
 import Footer from "@/components/Footer";
+import TelegramRedirect from "@/components/TelegramRedirect";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -31,6 +32,7 @@ const jsonLd = {
 export default function Page() {
   return (
     <>
+      <TelegramRedirect />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

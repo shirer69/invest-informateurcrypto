@@ -1027,6 +1027,28 @@ export function CopyTrading() {
             )}
           </div>
 
+          {/* piliers copiés */}
+          {draft && (
+            <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Piliers copiés</span>
+              <div className="mt-4 grid sm:grid-cols-3 gap-3">
+                <PillarToggle label="Perps (Futures)" sub="positions à terme"
+                  checked={draft.copy_perps !== false}
+                  onChange={(v) => setDraft({ ...draft, copy_perps: v })} />
+                <PillarToggle label="Spot" sub="bientôt" disabled checked={false} />
+                <PillarToggle label="Marge" sub="bientôt" disabled checked={false} />
+              </div>
+              <div className="mt-3 flex items-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-[11.5px] text-mist/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />
+                  Actions tokenisées (xStocks) : <b className="text-bone">toujours exclues</b>
+                </span>
+                <button disabled={busy} onClick={saveSettings}
+                  className="ml-auto btn-ghost rounded-full px-4 py-2 text-[12px]">Enregistrer</button>
+              </div>
+            </div>
+          )}
+
           {/* réglages risque */}
           {draft && (
             <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
@@ -1070,6 +1092,25 @@ export function CopyTrading() {
         un risque de perte en capital. Outil éducatif, ne constitue pas un conseil en investissement.
       </Disclaimer>
     </div>
+  );
+}
+
+function PillarToggle({ label, sub, checked, onChange, disabled }) {
+  return (
+    <button type="button" disabled={disabled}
+      onClick={() => !disabled && onChange && onChange(!checked)}
+      className={`flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left transition-colors ${
+        disabled ? "hairline bg-white/[0.015] opacity-60 cursor-not-allowed"
+                 : checked ? "gold-line bg-gold/[0.06]" : "hairline bg-ink-900/40 hover:border-white/20"
+      }`}>
+      <span className="min-w-0">
+        <span className="block text-[13.5px] text-bone">{label}</span>
+        <span className="block text-[11px] text-mist/60">{sub}</span>
+      </span>
+      <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? "bg-emerald-500/80" : "bg-white/15"}`}>
+        <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${checked ? "left-[18px]" : "left-0.5"}`} />
+      </span>
+    </button>
   );
 }
 

@@ -45,6 +45,7 @@ const TABS = [
   { id: "overview", label: "Vue d'ensemble" },
   { id: "members", label: "Membres (CRM)" },
   { id: "deposits", label: "Dépôts & activation" },
+  { id: "codes", label: "Codes d'invitation" },
   { id: "copy", label: "Copy Auto" },
 ];
 
@@ -141,6 +142,7 @@ export default function Admin() {
         {tab === "overview" && <Overview ov={ov} />}
         {tab === "members" && <Members members={members} adminKey={key} />}
         {tab === "deposits" && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
+        {tab === "codes" && <Codes adminKey={key} />}
         {tab === "copy" && <CopyAuto adminKey={key} />}
       </div>
     </div>
@@ -447,6 +449,101 @@ function BulkIiban({ adminKey, onReload }) {
           <span className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.text}</span>
         )}
       </div>
+    </div>
+  );
+}
+
+function Codes({ adminKey }) {
+  const [codes, setCodes] = useState(null);
+  const [form, setForm] = useState({ code: "", days: 90, max_uses: 60 });
+  const [msg, setMsg] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    const r = await adminGet("/api/admin/codes", adminKey);
+    setCodes(r?.codes || []);
+  }, [adminKey]);
+  useEffect(() => { load(); }, [load]);
+
+  async function create() {
+    const code = (form.code || "").trim().toUpperCase().replace(/\s/g, "");
+    if (code.length < 3) { setMsg({ ok: false, t: "Code trop court (min 3)." }); return; }
+    setBusy(true); setMsg(null);
+    const d = await adminPost("/api/admin/codes/create", adminKey, {
+      code, days: Number(form.days) || 90, max_uses: Number(form.max_uses) || 1,
+    });
+    setBusy(false);
+    if (d?.ok) { setMsg({ ok: true, t: `Code ${d.code} créé (${d.max_uses} usages · ${d.days} j).` }); setForm({ ...form, code: "" }); load(); }
+    else setMsg({ ok: false, t: d?.error === "code_exists" ? "Ce code existe déjà." : "Création impossible." });
+  }
+
+  const SITE = "https://invest.informateurcrypto.fr";
+
+  return (
+    <div>
+      <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5 max-w-2xl">
+        <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">Créer un code d'invitation</div>
+        <p className="text-[12.5px] text-mist mb-3">Code nommé multi-usage : durée d'accès + nombre d'utilisations max (1 par personne).</p>
+        <div className="grid sm:grid-cols-[1fr_auto_auto_auto] gap-2 items-end">
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Code</label>
+            <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}
+              placeholder="20FREE3M"
+              className="w-full rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone font-mono uppercase tracking-wider outline-none" />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Jours</label>
+            <input type="number" value={form.days} onChange={(e) => setForm({ ...form, days: e.target.value })}
+              className="w-24 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-2.5 text-bone font-mono outline-none" />
+          </div>
+          <div>
+            <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Usages</label>
+            <input type="number" value={form.max_uses} onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
+              className="w-24 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-2.5 text-bone font-mono outline-none" />
+          </div>
+          <button onClick={create} disabled={busy}
+            className="btn-gold rounded-full px-5 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
+            {busy ? "…" : "Créer"}
+          </button>
+        </div>
+        {msg && <p className={`mt-2 text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</p>}
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+        <table className="w-full min-w-[640px] text-[13.5px]">
+          <thead>
+            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+              <th className="px-5 py-3">Code</th>
+              <th className="px-5 py-3">Accès</th>
+              <th className="px-5 py-3">Utilisations</th>
+              <th className="px-5 py-3">Restantes</th>
+              <th className="px-5 py-3">Lien d'invitation</th>
+            </tr>
+          </thead>
+          <tbody>
+            {codes === null && <tr><td colSpan={5} className="px-5 py-4 text-mist/60 text-[13px]">Chargement…</td></tr>}
+            {codes && codes.length === 0 && <tr><td colSpan={5} className="px-5 py-4 text-mist/60 text-[13px]">Aucun code nommé. Créez-en un ci-dessus.</td></tr>}
+            {codes && codes.map((c) => (
+              <tr key={c.code} className="border-b hairline last:border-0">
+                <td className="px-5 py-3 font-mono text-bone">{c.code}</td>
+                <td className="px-5 py-3 text-mist">{c.days} j</td>
+                <td className="px-5 py-3 font-mono">{c.used} / {c.max_uses}</td>
+                <td className="px-5 py-3">
+                  <span className={c.remaining > 0 ? "text-pos" : "text-flag"}>{c.remaining}</span>
+                </td>
+                <td className="px-5 py-3">
+                  <button onClick={() => { try { navigator.clipboard.writeText(`${SITE}/dashboard?code=${c.code}`); } catch {} }}
+                    className="text-[12px] text-gold hover:text-gold-soft underline">Copier le lien</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="mt-4 text-[11.5px] text-mist/60">
+        Un membre = une utilisation (impossible de réutiliser le même code). Lien d'invitation à partager :
+        <span className="font-mono"> {SITE}/dashboard?code=CODE</span>.
+      </p>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import TrackRecord from "@/components/TrackRecord";
 import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
+import AudioFeed from "@/components/dashboard/AudioFeed";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster,
@@ -432,6 +433,11 @@ export function Monitoring() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Audios Pôle Trading */}
+      <div className="mt-6">
+        <AudioFeed />
       </div>
 
       <Disclaimer>

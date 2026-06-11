@@ -122,8 +122,9 @@ export default function PortfolioKraken() {
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell = (r) => (r._pnl == null ? "—" : `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`);
 
-  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value) }));
-  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value) }));
+  const spotPnl = (h) => (h.cost != null && h.value != null ? pnlPctOf(h.value - h.cost) : null);
+  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
+  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value), _pnl: spotPnl(h) }));
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
 
   const marginRows = marginPos.map((p) => ({

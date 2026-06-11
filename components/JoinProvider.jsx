@@ -49,13 +49,14 @@ export default function JoinProvider({ children }) {
     setError(false);
   }, []);
 
-  // Lien d'entrée Telegram (?code=) : le code ne donne PAS d'accès — il sert juste
-  // d'entrée. Si déjà connecté → on laisse le dashboard (verrouillé). Sinon on ouvre
-  // l'inscription. Le déblocage se fait ensuite via IIBAN validé ou paiement.
+  // Lien d'entrée Telegram (?code=) : le code ne donne PAS d'accès, il sert d'invitation
+  // pour entrer. On pré-remplit le champ « code d'invitation » et on ouvre le modal à
+  // l'étape code. Le déblocage se fera ensuite via IIBAN validé ou paiement.
   useEffect(() => {
     let c = null;
     try { c = new URLSearchParams(window.location.search).get("code"); } catch {}
     if (!c) return;
+    c = c.trim().toUpperCase();
     try {
       const u = new URL(window.location.href); u.searchParams.delete("code");
       window.history.replaceState({}, "", u);
@@ -64,7 +65,8 @@ export default function JoinProvider({ children }) {
       if (typeof window !== "undefined") window.location.href = "/dashboard";
       return;
     }
-    setUnlocked(true);
+    setCode(c);          // pré-remplit le champ
+    setUnlocked(false);  // on reste sur l'étape « code d'invitation »
     setOpen(true);
   }, []);
 
@@ -156,14 +158,18 @@ export default function JoinProvider({ children }) {
     }
   };
 
-  const submitCode = (e) => {
+  const submitCode = async (e) => {
     e.preventDefault();
-    if (REFERRAL_CODES.includes(code.trim().toUpperCase())) {
-      setUnlocked(true);
-      setError(false);
-    } else {
-      setError(true);
+    const c = code.trim().toUpperCase();
+    // Codes parrain statiques OU code d'accès valide envoyé par Telegram.
+    if (REFERRAL_CODES.includes(c)) {
+      setUnlocked(true); setError(false); return;
     }
+    try {
+      const chk = await apiCheckCode(c);
+      if (chk && chk.valid) { setUnlocked(true); setError(false); return; }
+    } catch {}
+    setError(true);
   };
 
   return (

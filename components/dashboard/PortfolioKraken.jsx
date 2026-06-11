@@ -2,10 +2,57 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { copyMaster } from "@/lib/clientStore";
-import { Locked } from "./UnlockProvider";
+import { Locked, useUnlock } from "./UnlockProvider";
 import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
 import KrakenLogo from "@/components/KrakenLogo";
+import { IconArrow } from "@/components/Icons";
+
+// Barre d'accès au groupe VIP Telegram (grisée tant que le dashboard est verrouillé).
+function VipJoinBar() {
+  const { locked, openUnlock } = useUnlock();
+  const [link, setLink] = useState("");
+  useEffect(() => {
+    try { setLink(localStorage.getItem("pi_tg_link") || ""); } catch {}
+  }, []);
+
+  return (
+    <div className="rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 mb-5 flex flex-wrap items-center gap-3 justify-between">
+      <div className="flex items-center gap-3 min-w-0">
+        <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
+          <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+            <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
+          </svg>
+        </span>
+        <div className="min-w-0">
+          <div className="font-display text-[15px] text-bone">Groupe VIP Telegram</div>
+          <div className="text-[12px] text-mist">
+            {locked ? "Débloquez votre accès pour rejoindre le canal privé." : "Votre accès est actif — rejoignez le canal privé."}
+          </div>
+        </div>
+      </div>
+
+      {locked ? (
+        <button
+          onClick={openUnlock}
+          title="Débloquez votre accès pour rejoindre le groupe VIP"
+          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold border hairline text-mist/70 cursor-not-allowed opacity-60"
+        >
+          <span aria-hidden>🔒</span> Rejoindre le groupe Telegram
+        </button>
+      ) : link ? (
+        <a
+          href={link} target="_blank" rel="noopener noreferrer"
+          className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold"
+        >
+          Rejoindre le groupe Telegram <IconArrow className="h-4 w-4" />
+        </a>
+      ) : (
+        <span className="text-[12px] text-mist/70">Lien VIP envoyé par e-mail / dans l'onglet Facturation.</span>
+      )}
+    </div>
+  );
+}
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -243,6 +290,8 @@ export default function PortfolioKraken() {
   return (
     <div>
       {header}
+
+      <VipJoinBar />
 
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>

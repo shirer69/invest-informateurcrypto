@@ -220,10 +220,11 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
         ) : (
         <>
         <h3 className="mt-3 font-display font-light text-[22px] leading-tight tracking-tightest text-bone">
-          Accédez à l'intégralité du dashboard
+          Accéder à l'intégralité du dashboard + <span className="text-gold-grad">VIP Telegram</span>
         </h3>
         <p className="mt-2 text-[13px] leading-relaxed text-mist">
-          Positions, actifs, alertes, academy et audios — débloquez tout avec l'une des deux options :
+          Débloquez l'accès au <span className="text-bone">canal VIP privé Telegram</span> (positions
+          en direct, alertes, audios) ainsi qu'à tout le dashboard — via l'une des deux options :
         </p>
 
         {/* Étapes Kraken (préalable à l'option 1) */}

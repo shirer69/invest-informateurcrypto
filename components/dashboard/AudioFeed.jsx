@@ -29,6 +29,44 @@ function dur(sec) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
+function AudioCard({ a, latest }) {
+  return (
+    <article className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
+            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+              <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-display text-[14.5px] text-bone">Point audio</span>
+              {latest && (
+                <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>
+              )}
+              {a.duration != null && (
+                <span className="font-mono text-[10.5px] text-mist/60">{dur(a.duration)}</span>
+              )}
+            </div>
+            <div className="font-mono text-[10.5px] text-mist/70">
+              {dateLabel(a.date)} · {latest ? <span className="text-gold/90">{relTime(a.date)}</span> : relTime(a.date)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {a.caption && (
+        <p className="mt-3 text-[13.5px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words">{a.caption}</p>
+      )}
+
+      <audio controls preload="none" className="mt-3 w-full" style={{ height: 40 }}>
+        <source src={audioStreamUrl(a.id)} type={a.mime || "audio/ogg"} />
+      </audio>
+    </article>
+  );
+}
+
 export default function AudioFeed() {
   const [audios, setAudios] = useState(null);
   const [err, setErr] = useState(null);
@@ -67,45 +105,19 @@ export default function AudioFeed() {
           {err ? "Audios momentanément indisponibles." : "Aucun audio récent."}
         </div>
       ) : (
-        <Locked label="Déverrouiller les audios">
         <div className="space-y-4">
-          {audios.map((a, i) => (
-            <article key={a.id} className="rounded-2xl border hairline bg-ink-800/50 p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
-                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-                      <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
-                    </svg>
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-display text-[14.5px] text-bone">Point audio</span>
-                      {i === 0 && (
-                        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>
-                      )}
-                      {a.duration != null && (
-                        <span className="font-mono text-[10.5px] text-mist/60">{dur(a.duration)}</span>
-                      )}
-                    </div>
-                    <div className="font-mono text-[10.5px] text-mist/70">
-                      {dateLabel(a.date)} · {i === 0 ? <span className="text-gold/90">{relTime(a.date)}</span> : relTime(a.date)}
-                    </div>
-                  </div>
-                </div>
+          {/* Le plus récent reste accessible même dashboard verrouillé (aperçu). */}
+          <AudioCard a={audios[0]} latest />
+          {audios.length > 1 && (
+            <Locked label="Déverrouiller tous les audios">
+              <div className="space-y-4">
+                {audios.slice(1).map((a) => (
+                  <AudioCard key={a.id} a={a} />
+                ))}
               </div>
-
-              {a.caption && (
-                <p className="mt-3 text-[13.5px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words">{a.caption}</p>
-              )}
-
-              <audio controls preload="none" className="mt-3 w-full" style={{ height: 40 }}>
-                <source src={audioStreamUrl(a.id)} type={a.mime || "audio/ogg"} />
-              </audio>
-            </article>
-          ))}
+            </Locked>
+          )}
         </div>
-        </Locked>
       )}
 
       <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">

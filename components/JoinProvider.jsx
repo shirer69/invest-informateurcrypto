@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useCallback, useEffect } from "react";
+import Script from "next/script";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
@@ -181,6 +182,8 @@ export default function JoinProvider({ children }) {
 
   return (
     <JoinCtx.Provider value={{ open, openWithCode }}>
+      {/* SDK Telegram : permet de relier le compte créé à l'identité Telegram (Mini App). */}
+      <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       {children}
 
       <AnimatePresence>
@@ -276,9 +279,7 @@ export default function JoinProvider({ children }) {
                       Créez votre compte
                     </h3>
                     <p className="mt-3 text-[13.5px] leading-relaxed text-mist">
-                      Renseignez vos informations pour accéder à votre tableau de bord. Vous
-                      débloquerez ensuite le contenu directement depuis le dashboard
-                      (validation IIBAN Kraken — 3 mois offerts — ou abonnement).
+                      Renseignez vos informations pour accéder à votre tableau de bord.
                     </p>
 
                     <input

@@ -179,22 +179,27 @@ export default function Dashboard() {
         const primary = nav.filter((n) => PRIMARY_TABS.includes(n.id));
         const activeInPrimary = primary.some((n) => n.id === tab);
         return (
-          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900 border-t gold-line shadow-[0_-10px_30px_rgba(0,0,0,0.6)] pb-[env(safe-area-inset-bottom)]">
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-800 border-t-2 border-gold/50 shadow-[0_-14px_40px_rgba(0,0,0,0.7)] pb-[env(safe-area-inset-bottom)]">
             <div className="grid grid-cols-5">
-              {primary.map((n) => (
-                <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
-                  className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] ${
-                    tab === n.id ? "text-gold" : "text-mist"
-                  }`}>
-                  <span className="text-[17px] leading-none">{n.icon}</span>
-                  <span className="truncate max-w-[64px]">{n.label}</span>
-                </button>
-              ))}
+              {primary.map((n) => {
+                const on = tab === n.id;
+                return (
+                  <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
+                    className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors ${
+                      on ? "text-gold bg-gold/[0.10]" : "text-mist"
+                    }`}>
+                    {on && <span className="absolute top-0 inset-x-3 h-0.5 rounded-full bg-gold" />}
+                    <span className="text-[20px] leading-none">{n.icon}</span>
+                    <span className="truncate max-w-[66px]">{n.label}</span>
+                  </button>
+                );
+              })}
               <button onClick={() => setMoreOpen(true)}
-                className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] ${
-                  !activeInPrimary ? "text-gold" : "text-mist"
+                className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors ${
+                  !activeInPrimary ? "text-gold bg-gold/[0.10]" : "text-mist"
                 }`}>
-                <span className="text-[17px] leading-none">⋯</span>
+                {!activeInPrimary && <span className="absolute top-0 inset-x-3 h-0.5 rounded-full bg-gold" />}
+                <span className="text-[20px] leading-none">⋯</span>
                 <span>Plus</span>
               </button>
             </div>

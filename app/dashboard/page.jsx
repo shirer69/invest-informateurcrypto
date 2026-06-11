@@ -8,6 +8,7 @@ import SandboxKraken from "@/components/dashboard/SandboxKraken";
 import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
+import AudioFeed from "@/components/dashboard/AudioFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
 import LogoMark from "@/components/LogoMark";
 import { Overview, Positions, Intelligence, Analytics, CopyTrading } from "@/components/dashboard/Sections";
@@ -20,7 +21,7 @@ const NAV = [
   { id: "vip", label: "Alertes", icon: "◆" },
   { id: "positions", label: "Positions", icon: "≣" },
   { id: "academy", label: "Academy", icon: "✸" },
-  { id: "intelligence", label: "Intelligence", icon: "✶" },
+  { id: "audios", label: "Audios Pôle Trading", icon: "♪" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
   { id: "order", label: "Préparer un ordre", icon: "⊕" },
@@ -131,7 +132,7 @@ export default function Dashboard() {
           {tab === "vip" && <VipFeed />}
           {tab === "academy" && <Academy />}
           {tab === "positions" && <Positions />}
-          {tab === "intelligence" && <Intelligence />}
+          {tab === "audios" && <AudioFeed />}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (
             <div>

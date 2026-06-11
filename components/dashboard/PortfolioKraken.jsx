@@ -76,6 +76,7 @@ export default function PortfolioKraken() {
   const [marginPos, setMarginPos] = useState([]);
   const [ftk, setFtk] = useState({}); // map symbole -> prix mark (perps)
   const [master, setMaster] = useState(null); // positions perps du trader maître (A)
+  const [firstDone, setFirstDone] = useState(false); // 1er chargement complet terminé
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -106,6 +107,7 @@ export default function PortfolioKraken() {
     }));
     setMarginPos(list);
     setLoading(false);
+    setFirstDone(true);
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -192,8 +194,9 @@ export default function PortfolioKraken() {
     </div>
   );
 
-  // Premier chargement : spinner plein écran pour combler le délai Kraken
-  if (loading && !spot) {
+  // Spinner plein écran tant que le 1er chargement complet n'est pas terminé
+  // (on n'affiche le P&L du compte qu'une fois toutes les données remontées).
+  if (!firstDone) {
     return (
       <div>
         {header}

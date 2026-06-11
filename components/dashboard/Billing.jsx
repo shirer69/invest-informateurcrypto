@@ -118,9 +118,6 @@ export default function Billing() {
           {copy.next_bill_ts && (
             <span>Prochaine facturation copy : <span className="text-bone">{fmtDate(copy.next_bill_ts)}</span></span>
           )}
-          {copy.rate_pct != null && (
-            <span>Taux de frais copy : <span className="text-bone">{copy.rate_pct} %</span> des gains</span>
-          )}
         </div>
         <p className="mt-2 text-[10.5px] leading-relaxed text-mist/50">
           ⚠️ N'envoyez que de l'USDT sur le réseau TRC-20 (Tron). Tout autre actif/réseau serait perdu.

@@ -5,7 +5,6 @@ import TrackRecord from "@/components/TrackRecord";
 import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
-import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import LiveTag from "@/components/dashboard/LiveTag";
@@ -554,11 +553,6 @@ export function Monitoring({ onGoCopy }) {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-display text-[18px] text-bone">Monitoring — Pôle Trading</h3>
         <LiveTag />
-      </div>
-
-      {/* Audios Pôle Trading — en premier */}
-      <div className="mb-5">
-        <AudioFeed />
       </div>
 
       {/* Gains du wallet Futures (master A) */}

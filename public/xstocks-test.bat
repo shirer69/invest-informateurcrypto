@@ -4,7 +4,9 @@ exit /b
 #__PS__#
 $ErrorActionPreference='Stop'
 $BASE='https://futures.kraken.com/derivatives'
-$SYMBOLS=@('PF_QQQXUSD','PF_SPYXUSD','PF_AAPLXUSD','PF_TSLAXUSD','PF_NVDAXUSD','PF_GOOGLXUSD','PF_MSTRXUSD','PF_HOODXUSD','PF_CRCLXUSD')
+$CONTROL=@('PF_XBTUSD','PF_PAXGUSD','PF_XAUTUSD')
+$XSTOCKS=@('PF_QQQXUSD','PF_SPYXUSD','PF_AAPLXUSD','PF_TSLAXUSD','PF_NVDAXUSD','PF_GOOGLXUSD','PF_MSTRXUSD','PF_HOODXUSD','PF_CRCLXUSD')
+$SYMBOLS=$CONTROL+$XSTOCKS
 Write-Host ''
 Write-Host '=== Test eligibilite xStocks perps (categorie complete) - Kraken Futures ===' -ForegroundColor Cyan
 Write-Host 'Cles locales : jamais stockees, envoyees uniquement a Kraken.'
@@ -59,18 +61,27 @@ foreach($s in $SYMBOLS){
   $st=$res.sendStatus.status; if(-not $st){ $st=$res.error }
   if($st -eq 'placed'){ Call 'POST' '/api/v3/cancelallorders' @{symbol=$s} | Out-Null }
   $verdict = if($st -eq 'placed'){'OUVERTURE OK (eligible)'} elseif($st -eq 'wouldNotReducePosition'){'REDUCE-ONLY (ouverture bloquee)'} else {[string]$st}
-  $results+=[pscustomobject]@{Symbole=$s;Statut=$st;Verdict=$verdict}
-  Write-Host ('  ' + $s.PadRight(14) + ' -> ' + $verdict)
+  $cat = if($CONTROL -contains $s){'temoin BTC/or'}else{'xStock action'}
+  $results+=[pscustomobject]@{Categorie=$cat;Symbole=$s;Statut=$st;Verdict=$verdict}
+  Write-Host ('  [' + $cat + '] ' + $s.PadRight(14) + ' -> ' + $verdict)
 }
 
 Write-Host ''
 Write-Host '================ RECAP ================' -ForegroundColor Cyan
 $results | Format-Table -AutoSize
-$ok=@($results|Where-Object{$_.Statut -eq 'placed'}).Count
-$ro=@($results|Where-Object{$_.Statut -eq 'wouldNotReducePosition'}).Count
-if($ok -gt 0){ Write-Host ($ok.ToString()+' contrat(s) OUVRABLES => tu es eligible sur ceux-la.') -ForegroundColor Green }
-if($ro -eq $SYMBOLS.Count){ Write-Host 'TOUTE la categorie xStocks-perps est en REDUCE-ONLY pour ton compte.' -ForegroundColor Yellow; Write-Host '=> restriction reglementaire/zone sur les DERIVES actions (pas juste QQQ).' }
-elseif($ro -gt 0){ Write-Host ($ro.ToString()+' contrat(s) en reduce-only.') -ForegroundColor Yellow }
+$ctrlOk=@($results|Where-Object{($CONTROL -contains $_.Symbole) -and $_.Statut -eq 'placed'}).Count
+$xsRo=@($results|Where-Object{($XSTOCKS -contains $_.Symbole) -and $_.Statut -eq 'wouldNotReducePosition'}).Count
+$xsOk=@($results|Where-Object{($XSTOCKS -contains $_.Symbole) -and $_.Statut -eq 'placed'}).Count
+Write-Host ('Temoin (BTC/or) ouvrables : ' + $ctrlOk + ' / ' + $CONTROL.Count)
+Write-Host ('xStocks actions ouvrables : ' + $xsOk + ' / ' + $XSTOCKS.Count)
+if($ctrlOk -eq $CONTROL.Count -and $xsRo -eq $XSTOCKS.Count){
+  Write-Host ''
+  Write-Host 'PREUVE : ton compte OUVRE bien BTC + or, mais AUCUN derive action (reduce-only).' -ForegroundColor Yellow
+  Write-Host '=> La restriction vise specifiquement les DERIVES ACTIONS TOKENISEES (reglementaire/zone),' -ForegroundColor Yellow
+  Write-Host '   ce n est PAS un blocage de ton compte ni de ta cle.' -ForegroundColor Yellow
+}elseif($xsOk -gt 0){
+  Write-Host ('Tu es eligible sur ' + $xsOk + ' xStock(s) => cas par cas.') -ForegroundColor Green
+}
 
 # Securite : annule tout ordre eventuel restant
 foreach($s in $SYMBOLS){ Call 'POST' '/api/v3/cancelallorders' @{symbol=$s} | Out-Null }

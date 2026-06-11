@@ -234,61 +234,119 @@ const AUDIENCES = [
   { id: "copy", label: "Membres avec copy actif" },
 ];
 
+const CHANNELS = [
+  { id: "bot", label: "Bot Telegram" },
+  { id: "email", label: "Email" },
+  { id: "both", label: "Bot + Email" },
+];
+
+function fmtRes(res) {
+  if (!res) return null;
+  if (!res.ok) return <span className="text-[12.5px] text-neg">Erreur : {res.error || "envoi impossible"}</span>;
+  const parts = [];
+  if (res.bot) parts.push(`Bot : ${res.bot.sent}/${res.bot.reachable}`);
+  if (res.email) parts.push(`Email : ${res.email.sent}/${res.email.reachable}`);
+  return <span className="text-[12.5px] text-pos">✓ {parts.join(" · ") || "envoyé"}</span>;
+}
+
 function BroadcastPanel({ adminKey, reachable, total }) {
   const [audience, setAudience] = useState("all");
+  const [channel, setChannel] = useState("bot");
+  const [subject, setSubject] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [res, setRes] = useState(null);
+  const [teaserBusy, setTeaserBusy] = useState(false);
+  const [teaserRes, setTeaserRes] = useState(null);
+
+  const channels = channel === "both" ? ["bot", "email"] : [channel];
 
   async function send() {
     if (!text.trim()) return;
-    if (!confirm(`Envoyer ce message via le bot à l'audience « ${AUDIENCES.find((a) => a.id === audience)?.label} » ?`)) return;
-    setBusy(true);
-    setRes(null);
-    const r = await adminPost("/api/admin/broadcast", adminKey, { text: text.trim(), audience });
-    setBusy(false);
-    setRes(r);
+    const audLabel = AUDIENCES.find((a) => a.id === audience)?.label;
+    const chLabel = CHANNELS.find((c) => c.id === channel)?.label;
+    if (!confirm(`Envoyer à « ${audLabel} » via ${chLabel} ?`)) return;
+    setBusy(true); setRes(null);
+    const r = await adminPost("/api/admin/broadcast", adminKey, {
+      text: text.trim(), audience, channels,
+      subject: subject.trim() || "Un message du Pôle Invest",
+    });
+    setBusy(false); setRes(r);
     if (r && r.ok) setText("");
+  }
+
+  async function teaser(kind) {
+    if (!confirm(`Envoyer le teaser « achat ${kind} » (bot + email) à TOUS les utilisateurs ?`)) return;
+    setTeaserBusy(true); setTeaserRes(null);
+    const r = await adminPost("/api/admin/notify-trade", adminKey, { kind });
+    setTeaserBusy(false); setTeaserRes(r);
   }
 
   return (
     <div className="rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <h3 className="font-display text-[17px] text-bone">Envoyer un message via le bot</h3>
+        <h3 className="font-display text-[17px] text-bone">Envoyer un message</h3>
         <span className="font-mono text-[10.5px] text-mist/60">
-          {reachable} joignable(s) / {total} membre(s)
+          {reachable} joignable(s) bot / {total} membre(s)
         </span>
       </div>
-      <div className="mt-3 flex flex-wrap gap-1.5">
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50">Audience</span>
         {AUDIENCES.map((a) => (
           <button key={a.id} onClick={() => setAudience(a.id)}
-            className={`rounded-lg px-3 py-1.5 text-[12.5px] transition-colors border ${
-              audience === a.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"
-            }`}>
+            className={`rounded-lg px-3 py-1.5 text-[12px] transition-colors border ${
+              audience === a.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"}`}>
             {a.label}
           </button>
         ))}
       </div>
-      <textarea
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-        rows={3}
+      <div className="mt-2 flex flex-wrap items-center gap-2">
+        <span className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50">Canal</span>
+        {CHANNELS.map((c) => (
+          <button key={c.id} onClick={() => setChannel(c.id)}
+            className={`rounded-lg px-3 py-1.5 text-[12px] transition-colors border ${
+              channel === c.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"}`}>
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {channel !== "bot" && (
+        <input value={subject} onChange={(e) => setSubject(e.target.value)}
+          placeholder="Objet de l'email"
+          className="mt-3 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-2.5 text-[13.5px] text-bone placeholder:text-mist/40 outline-none" />
+      )}
+      <textarea value={text} onChange={(e) => setText(e.target.value)} rows={3}
         placeholder="Votre message… (HTML autorisé : <b>, <i>, <a href>)"
-        className="mt-3 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-[14px] text-bone placeholder:text-mist/40 outline-none resize-y"
-      />
+        className="mt-3 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-[14px] text-bone placeholder:text-mist/40 outline-none resize-y" />
       <div className="mt-3 flex items-center gap-3 flex-wrap">
         <button onClick={send} disabled={busy || !text.trim()}
           className="btn-gold rounded-full px-6 py-2.5 text-[14px] font-semibold disabled:opacity-50">
           {busy ? "Envoi…" : "Envoyer"}
         </button>
-        {res && (
-          res.ok
-            ? <span className="text-[12.5px] text-pos">✓ Envoyés : {res.sent} · échecs : {res.failed} · joignables : {res.reachable}</span>
-            : <span className="text-[12.5px] text-neg">Erreur : {res.error || "envoi impossible"}</span>
-        )}
+        {fmtRes(res)}
       </div>
-      <p className="mt-2.5 text-[11px] text-mist/55">
-        Le bot ne peut écrire qu'aux membres ayant ouvert la mini-app / démarré le bot (les « joignables »).
+
+      <div className="mt-4 pt-4 border-t hairline">
+        <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 mb-2">
+          Teaser « achat repéré » → tous (bot + email, sans détails)
+        </div>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button onClick={() => teaser("spot")} disabled={teaserBusy}
+            className="rounded-full border gold-line text-gold hover:bg-gold/[0.06] px-4 py-2 text-[12.5px] disabled:opacity-50">
+            Achat spot
+          </button>
+          <button onClick={() => teaser("marge")} disabled={teaserBusy}
+            className="rounded-full border gold-line text-gold hover:bg-gold/[0.06] px-4 py-2 text-[12.5px] disabled:opacity-50">
+            Achat marge
+          </button>
+          {fmtRes(teaserRes)}
+        </div>
+      </div>
+
+      <p className="mt-3 text-[11px] text-mist/55">
+        Bot : membres ayant ouvert la mini-app. Email : comptes avec email réel. Le teaser ne donne aucun détail (incite à rejoindre).
       </p>
     </div>
   );

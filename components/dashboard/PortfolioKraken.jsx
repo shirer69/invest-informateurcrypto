@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { copyMaster } from "@/lib/clientStore";
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -72,17 +73,19 @@ export default function PortfolioKraken() {
   const [futPos, setFutPos] = useState(null);
   const [marginPos, setMarginPos] = useState([]);
   const [ftk, setFtk] = useState({}); // map symbole -> prix mark (perps)
+  const [master, setMaster] = useState(null); // positions perps du trader maître (A)
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [s, f, fp, mp, tk] = await Promise.all([
+    const [s, f, fp, mp, tk, ma] = await Promise.all([
       fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
+      copyMaster().catch(() => null), // positions du master A (perps copiés)
     ]);
-    setSpot(s); setFut(f); setFutPos(fp);
+    setSpot(s); setFut(f); setFutPos(fp); setMaster(ma);
     const map = {};
     for (const t of (tk?.tickers || [])) {
       const p = parseFloat(t.markPrice ?? t.last ?? 0);
@@ -148,23 +151,19 @@ export default function PortfolioKraken() {
     _pnl: pnlPctOf(p.net),
   }));
 
-  const perps = futPositionsRaw.map((p) => {
-    const size = parseFloat(p.size) || 0;
-    const entry = parseFloat(p.price) || 0;
-    const sym = (p.symbol || "").toUpperCase();
-    const cur = ftk[sym] || null; // prix mark live
-    const pnl = p.pnl != null ? parseFloat(p.pnl) : null;
-    return {
-      symbol: sym,
-      side: p.side,
-      entry,
-      cur,
-      lev: p.leverage != null ? parseFloat(p.leverage) : (p.maxLeverage != null ? parseFloat(p.maxLeverage) : null),
-      tp: null, sl: null,
-      _share: shareOf(size * entry),
-      _pnl: pnl != null ? pnlPctOf(pnl) : null,
-    };
-  });
+  // Section perps = positions du TRADER MAÎTRE (A), via /api/copy/master
+  const masterPos = master?.positions || [];
+  const sumLev = masterPos.reduce((s, p) => s + (Math.abs(p.leverage) || 0), 0) || 1;
+  const perps = masterPos.map((p) => ({
+    symbol: p.symbol,
+    side: p.side,
+    entry: p.entry,
+    cur: p.mark,
+    lev: p.leverage,
+    tp: null, sl: null,
+    _share: (Math.abs(p.leverage) / sumLev) * 100, // part au sein des perps du trader
+    _pnl: p.upnl_pct,
+  }));
 
   const header = (
     <div className="flex items-center gap-2 mb-4">

@@ -19,12 +19,14 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [logged, setLogged] = useState(false);
   const { open: openJoin } = useJoin();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    setLogged(!!getToken());
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
@@ -64,18 +66,29 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => setLoginOpen(true)}
-            className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
-          >
-            Connexion dashboard
-          </button>
-          <button
-            onClick={openJoin}
-            className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
-          >
-            Demander mon accès
-          </button>
+          {logged ? (
+            <a
+              href="/dashboard"
+              className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
+            >
+              Accéder au dashboard
+            </a>
+          ) : (
+            <>
+              <button
+                onClick={() => setLoginOpen(true)}
+                className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
+              >
+                Connexion dashboard
+              </button>
+              <button
+                onClick={openJoin}
+                className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
+              >
+                Demander mon accès
+              </button>
+            </>
+          )}
           <button
             onClick={() => setOpen((v) => !v)}
             className="md:hidden h-10 w-10 grid place-items-center rounded-lg border hairline text-bone"
@@ -103,21 +116,33 @@ export default function Navbar() {
                 {l.label}
               </a>
             ))}
-            <button
-              onClick={() => { setOpen(false); setLoginOpen(true); }}
-              className="btn-ghost rounded-full px-5 py-3 text-center text-sm mt-1"
-            >
-              Connexion dashboard
-            </button>
-            <button
-              onClick={() => {
-                setOpen(false);
-                openJoin();
-              }}
-              className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold"
-            >
-              Demander mon accès au Pôle Invest
-            </button>
+            {logged ? (
+              <a
+                href="/dashboard"
+                onClick={() => setOpen(false)}
+                className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold mt-1"
+              >
+                Accéder au dashboard
+              </a>
+            ) : (
+              <>
+                <button
+                  onClick={() => { setOpen(false); setLoginOpen(true); }}
+                  className="btn-ghost rounded-full px-5 py-3 text-center text-sm mt-1"
+                >
+                  Connexion dashboard
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    openJoin();
+                  }}
+                  className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold"
+                >
+                  Demander mon accès au Pôle Invest
+                </button>
+              </>
+            )}
           </div>
         </motion.div>
       )}

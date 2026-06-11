@@ -152,19 +152,23 @@ export default function PortfolioKraken() {
     _pnl: pnlPctOf(p.net),
   }));
 
-  // Section perps = positions du TRADER MAÎTRE (A), via /api/copy/master
-  const masterPos = master?.positions || [];
-  const sumLev = masterPos.reduce((s, p) => s + (Math.abs(p.leverage) || 0), 0) || 1;
-  const perps = masterPos.map((p) => ({
-    symbol: p.symbol,
-    side: p.side,
-    entry: p.entry,
-    cur: p.mark,
-    lev: p.leverage,
-    tp: null, sl: null,
-    _share: (Math.abs(p.leverage) / sumLev) * 100, // part au sein des perps du trader
-    _pnl: p.upnl_pct,
-  }));
+  // Section perps = positions du compte Futures RÉEL (master A), via /api/kraken/futures/positions
+  const perps = futPositionsRaw.map((p) => {
+    const entry = parseFloat(p.price) || 0;
+    const mark = ftk[(p.symbol || "").toUpperCase()] || parseFloat(p.markPrice) || 0;
+    const isLong = (p.side || "").toLowerCase() === "long";
+    const notional = Math.abs(parseFloat(p.size) || 0) * (mark || entry);
+    return {
+      symbol: (p.symbol || "").toUpperCase(),
+      side: isLong ? "long" : "short",
+      entry,
+      cur: mark,
+      lev: parseFloat(p.maxFixedLeverage) || null,
+      tp: null, sl: null,
+      _share: shareOf(notional),
+      _pnl: entry && mark ? ((mark - entry) / entry) * 100 * (isLong ? 1 : -1) : null,
+    };
+  });
 
   const header = (
     <div className="flex items-center gap-2 mb-4">

@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiAccessCode, apiSignup, apiLogin, getUser } from "@/lib/clientStore";
+import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiAccessCode, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL } from "@/lib/site";
 
@@ -200,7 +200,27 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
             </button>
           </div>
         ) : step === "signup" ? (
-          <form onSubmit={submitSignup} className="mt-3">
+          <div className="mt-3">
+            {/* Raccourci code d'invitation — utile en mini-app (déjà connecté, pas besoin d'email). */}
+            {getToken() && (
+              <div className="mb-4 rounded-xl border gold-line bg-gold/[0.05] p-4">
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-2">
+                  J'ai un code d'invitation
+                </div>
+                <form onSubmit={redeemCode} className="flex gap-2">
+                  <input value={code}
+                    onChange={(e) => { setCode(e.target.value); setCodeMsg(""); }}
+                    placeholder="CODE"
+                    className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone font-mono uppercase tracking-wider outline-none" />
+                  <button type="submit" className="btn-gold rounded-lg px-4 text-[13px] font-semibold">Valider</button>
+                </form>
+                {codeMsg && <p className="mt-2 text-[12.5px] text-rose-400/90">{codeMsg}</p>}
+                <div className="mt-3 flex items-center gap-3 text-[11px] text-mist/50">
+                  <span className="h-px flex-1 bg-white/10" /> ou créez un compte ci-dessous <span className="h-px flex-1 bg-white/10" />
+                </div>
+              </div>
+            )}
+          <form onSubmit={submitSignup}>
             <h3 className="font-display font-light text-[22px] leading-tight tracking-tightest text-bone">
               Créez votre compte
             </h3>
@@ -225,6 +245,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
               {suBusy ? "Création…" : <>Continuer <IconArrow className="h-4 w-4" /></>}
             </button>
           </form>
+          </div>
         ) : (
         <>
         <h3 className="mt-3 font-display font-light text-[22px] leading-tight tracking-tightest text-bone">

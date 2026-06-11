@@ -8,6 +8,7 @@ import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
 import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
+import Billing from "@/components/dashboard/Billing";
 import LogoMark from "@/components/LogoMark";
 import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -22,6 +23,7 @@ const NAV = [
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
   { id: "copy", label: "Copy-trading (Futures)", icon: "⇄", badge: "Soon" },
+  { id: "billing", label: "Facturation", icon: "❖" },
 ];
 
 export default function Dashboard() {
@@ -147,6 +149,7 @@ export default function Dashboard() {
             </div>
           )}
           {tab === "copy" && <CopyTrading />}
+          {tab === "billing" && <Billing />}
         </main>
       </div>
     </div>

@@ -12,6 +12,7 @@ import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
+  copyContract, copyContractSign,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -660,6 +661,11 @@ export function CopyTrading() {
   const [unlocked, setUnlocked] = useState(false);
   const [pw, setPw] = useState("");
   const [pwErr, setPwErr] = useState(false);
+  const [contract, setContract] = useState(null); // {signed, text, signed_name, ...}
+  const [signName, setSignName] = useState("");
+  const [signAccept, setSignAccept] = useState(false);
+  const [signing, setSigning] = useState(false);
+  const [signErr, setSignErr] = useState("");
   const timer = useRef(null);
 
   async function refresh() {
@@ -667,11 +673,26 @@ export function CopyTrading() {
     setS(d);
     if (d && d.settings && !draft) setDraft(d.settings);
   }
+  async function loadContract() {
+    const c = await copyContract();
+    if (c.ok) setContract(c);
+  }
+  async function signContract() {
+    setSignErr("");
+    if (signName.trim().length < 3) { setSignErr("Saisissez votre nom complet."); return; }
+    if (!signAccept) { setSignErr("Cochez la case d'acceptation."); return; }
+    setSigning(true);
+    const r = await copyContractSign(signName.trim());
+    setSigning(false);
+    if (r.ok) { await loadContract(); setMsg("Contrat signé ✓ — vous pouvez démarrer la copie."); }
+    else setSignErr("Erreur lors de la signature, réessayez.");
+  }
 
   useEffect(() => {
     setUser(getUser());
     try { if (sessionStorage.getItem("copy_unlocked") === "1") setUnlocked(true); } catch {}
     refresh();
+    loadContract();
     timer.current = setInterval(refresh, 4000);
     return () => clearInterval(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -744,6 +765,11 @@ export function CopyTrading() {
   }
   async function doStart() {
     setBusy(true); const r = await copyStart(); setBusy(false);
+    if (!r.ok && r.error === "contract_required") {
+      await loadContract();
+      setMsg("Signez d'abord le contrat de commission ci-dessous.");
+      return;
+    }
     setMsg(r.ok ? (r.status === "waiting_flat" ? "Copie armée — en attente que le trader soit à plat." : "Copie démarrée.") : "Erreur : " + r.error);
     refresh();
   }
@@ -810,10 +836,50 @@ export function CopyTrading() {
       ) : (
         /* ---- tableau de bord investisseur ---- */
         <div className="space-y-5">
+          {/* Contrat de commission à signer (préalable au démarrage) */}
+          {contract && !contract.signed && (
+            <div className="rounded-2xl border gold-line bg-gold/[0.05] p-5">
+              <div className="flex items-center gap-2">
+                <span className="grid place-items-center h-7 w-7 rounded-full border gold-line text-gold text-[13px]">✍️</span>
+                <h4 className="font-display text-[17px] text-bone">Contrat de commission — signature requise</h4>
+              </div>
+              <p className="mt-2 text-[12.5px] text-mist">
+                Avant d'activer la copie, lisez et signez électroniquement le contrat de commission
+                sur les profits. Sans signature, la copie ne peut pas démarrer.
+              </p>
+              <pre className="mt-3 max-h-56 overflow-y-auto whitespace-pre-wrap rounded-xl border hairline bg-ink-900/60 p-4 text-[12px] leading-relaxed text-mist font-sans">
+                {contract.text}
+              </pre>
+              <input
+                value={signName}
+                onChange={(e) => { setSignName(e.target.value); setSignErr(""); }}
+                placeholder="Votre nom et prénom (signature)"
+                className="mt-3 w-full bg-ink-900/60 border hairline rounded-lg px-3.5 py-2.5 text-[13px] text-bone outline-none focus:border-gold/50"
+              />
+              <label className="mt-2.5 flex items-start gap-2.5 text-[12.5px] text-mist cursor-pointer">
+                <input type="checkbox" checked={signAccept}
+                  onChange={(e) => { setSignAccept(e.target.checked); setSignErr(""); }}
+                  className="mt-0.5 accent-gold" />
+                <span>J'ai lu et j'accepte les termes du contrat de commission. Je signe électroniquement (horodatage + IP conservés comme preuve).</span>
+              </label>
+              {signErr && <p className="mt-2 text-[12.5px] text-rose-400/90">{signErr}</p>}
+              <button disabled={signing} onClick={signContract}
+                className="btn-gold mt-3 rounded-full px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
+                {signing ? "Signature…" : "Signer & activer le copy-trading"}
+              </button>
+            </div>
+          )}
+          {contract && contract.signed && (
+            <p className="text-[11.5px] text-emerald-400/90">
+              ✓ Contrat de commission signé{contract.signed_name ? ` par ${contract.signed_name}` : ""}.
+            </p>
+          )}
+
           {/* contrôles */}
           <div className="flex items-center gap-3 flex-wrap">
             {!active ? (
-              <button disabled={busy} onClick={doStart}
+              <button disabled={busy || (contract && !contract.signed)} onClick={doStart}
+                title={contract && !contract.signed ? "Signez d'abord le contrat" : ""}
                 className="rounded-full px-6 py-3 text-[14px] font-semibold bg-emerald-500/90 text-ink-900 disabled:opacity-50">
                 ▶ Démarrer la copie
               </button>

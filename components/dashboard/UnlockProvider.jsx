@@ -29,7 +29,8 @@ export function UnlockProvider({ children }) {
   }, [refresh]);
 
   const openUnlock = useCallback(() => setOpen(true), []);
-  const onUnlocked = useCallback(() => { setLocked(false); setOpen(false); }, []);
+  // Débloque le contenu en arrière-plan ; le modal reste ouvert pour afficher le lien VIP.
+  const onUnlocked = useCallback(() => { setLocked(false); }, []);
 
   return (
     <Ctx.Provider value={{ locked, openUnlock, wallet }}>
@@ -74,6 +75,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
   const [paying, setPaying] = useState(false);
   const [payMsg, setPayMsg] = useState("");
   const [bal, setBal] = useState(wallet);
+  const [done, setDone] = useState(null); // { invite } après déblocage réussi
 
   useEffect(() => { setBal(wallet); }, [wallet]);
 
@@ -82,7 +84,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
     if (uid.trim().replace(/\s+/g, "").length < 4) { setState("notfound"); return; }
     setState("checking");
     const r = await apiAccessIiban(uid.trim());
-    if (r.ok) { onUnlocked(); return; }
+    if (r.ok) { onUnlocked(); setDone({ invite: r.tg_invite }); return; }
     if (r.status === 403) setState(r.uid_status === "pending" ? "pending" : "notfound");
     else setState("error");
   }
@@ -91,7 +93,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
     setPaying(true); setPayMsg("");
     const r = await apiAccessPay();
     setPaying(false);
-    if (r.ok) { onUnlocked(); return; }
+    if (r.ok) { onUnlocked(); setDone({ invite: r.tg_invite }); return; }
     if (r.status === 402) {
       setPayMsg(
         `Solde insuffisant : ${Number(r.wallet_balance ?? 0).toFixed(2)} $ / ${Number(r.price_usd ?? 239).toFixed(0)} $. ` +
@@ -111,13 +113,46 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
       <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onClose} />
       <div className="relative my-auto w-full max-w-md rounded-2xl border gold-line bg-ink-900/95 p-6 shadow-2xl">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Déverrouiller l'accès</span>
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
+            {done ? "Accès débloqué" : "Déverrouiller l'accès"}
+          </span>
           <button onClick={onClose} aria-label="Fermer"
                   className="h-8 w-8 grid place-items-center rounded-full border hairline text-mist hover:text-bone">
             <span className="block w-3 h-px bg-current rotate-45 translate-y-[0.5px]" />
             <span className="block w-3 h-px bg-current -rotate-45 -translate-y-[0.5px]" />
           </button>
         </div>
+
+        {done ? (
+          <div className="mt-3">
+            <div className="flex items-center gap-2.5">
+              <span className="grid place-items-center h-8 w-8 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-400">✓</span>
+              <h3 className="font-display font-light text-[22px] leading-tight tracking-tightest text-bone">
+                Bienvenue — accès activé
+              </h3>
+            </div>
+            <p className="mt-3 text-[13px] leading-relaxed text-mist">
+              Votre accès est débloqué. Rejoignez le <span className="text-bone">canal VIP privé</span> via
+              votre lien d'invitation personnel ci-dessous (demande d'adhésion). Il vous a aussi été{" "}
+              <span className="text-bone">envoyé par e-mail</span>.
+            </p>
+            {done.invite ? (
+              <a href={done.invite} target="_blank" rel="noopener noreferrer"
+                 className="btn-gold mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold">
+                Rejoindre le canal VIP <IconArrow className="h-4 w-4" />
+              </a>
+            ) : (
+              <p className="mt-4 text-[12.5px] text-amber-300/90">
+                Votre lien VIP arrive par e-mail dans un instant (ou retrouvez-le dans l'onglet Facturation).
+              </p>
+            )}
+            <button onClick={onClose}
+              className="btn-ghost mt-2.5 w-full rounded-full px-6 py-2.5 text-[13px]">
+              Accéder à mon dashboard
+            </button>
+          </div>
+        ) : (
+        <>
         <h3 className="mt-3 font-display font-light text-[22px] leading-tight tracking-tightest text-bone">
           Accédez à l'intégralité du dashboard
         </h3>
@@ -231,6 +266,8 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
         <p className="mt-4 text-[11px] leading-relaxed text-mist/50">
           Aucun conseil en investissement. Risque de perte en capital.
         </p>
+        </>
+        )}
       </div>
     </div>
   );

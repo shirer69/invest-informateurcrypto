@@ -64,11 +64,27 @@ export default function Billing() {
           <span className={`font-display text-[22px] ${statusColor}`}>{statusLabel}</span>
         </div>
         {has ? (
-          <p className="mt-2 text-[13px] text-mist">
-            {isSub ? "Abonnement" : "Accès offert"} valable jusqu'au{" "}
-            <span className="text-bone">{fmtDate(access.access_until)}</span>
-            <span className="text-mist/60"> ({daysLeft(access.access_until)} jours restants)</span>.
-          </p>
+          <>
+            <p className="mt-2 text-[13px] text-mist">
+              {isSub ? "Abonnement" : "Accès offert"} valable jusqu'au{" "}
+              <span className="text-bone">{fmtDate(access.access_until)}</span>
+              <span className="text-mist/60"> ({daysLeft(access.access_until)} jours restants)</span>.
+            </p>
+            {access.tg_invite && (
+              <div className="mt-3 rounded-xl border gold-line bg-ink-900/60 p-3.5">
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
+                  Votre accès au canal VIP privé
+                </div>
+                <p className="mt-1 text-[12px] text-mist">
+                  Lien d'invitation personnel (demande d'adhésion) — également envoyé par e-mail.
+                </p>
+                <a href={access.tg_invite} target="_blank" rel="noopener noreferrer"
+                   className="btn-gold mt-2.5 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
+                  Rejoindre le canal VIP <IconArrow className="h-4 w-4" />
+                </a>
+              </div>
+            )}
+          </>
         ) : (
           <>
             <p className="mt-2 text-[13px] text-mist">

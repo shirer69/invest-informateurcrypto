@@ -125,7 +125,7 @@ export default function Dashboard() {
           {tab === "vip" && <VipFeed />}
           {tab === "academy" && <Academy />}
           {tab === "positions" && <Positions />}
-          {tab === "monitoring" && <Monitoring />}
+          {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (
             <div>

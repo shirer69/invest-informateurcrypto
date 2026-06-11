@@ -453,7 +453,7 @@ function Billing({ b }) {
 }
 
 /* ---------------- Monitoring : activité live du trader maître ---------------- */
-export function Monitoring() {
+export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
   const [m, setM] = useState(null);
   const timer = useRef(null);
@@ -491,17 +491,26 @@ export function Monitoring() {
         </span>
       </div>
 
-      <div className="rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Trader maître (signal)</span>
-        <div className="mt-2 flex items-center gap-3">
-          <span className={`h-3 w-3 rounded-full ${flat ? "bg-mist/40" : "bg-emerald-400 animate-pulse"}`} />
-          <span className="font-display text-[20px] text-bone">
-            {flat ? "À plat — aucune position ouverte" : `${positions.length} position${positions.length > 1 ? "s" : ""} en cours`}
-          </span>
+      <div className="relative rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5 overflow-hidden">
+        <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
+             style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }} />
+        <div className="relative">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Wallet Futures (Julien)</span>
+          <div className="mt-2 flex items-center gap-3">
+            <span className={`h-3 w-3 rounded-full ${flat ? "bg-mist/40" : "bg-emerald-400 animate-pulse"}`} />
+            <span className="font-display text-[20px] text-bone">
+              {flat ? "À plat — aucune position ouverte" : `${positions.length} position${positions.length > 1 ? "s" : ""} en cours`}
+            </span>
+          </div>
+          <p className="mt-2 text-[12.5px] text-mist">
+            Active le <b>copy auto</b> pour répliquer automatiquement les positions de Julien sur ton
+            propre compte Futures, proportionnellement à ton capital.
+          </p>
+          <button onClick={() => onGoCopy && onGoCopy()}
+            className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold">
+            ⇄ Activer le copy auto
+          </button>
         </div>
-        <p className="mt-2 text-[12.5px] text-mist">
-          Le copy-trading répliquera automatiquement ces positions sur ton compte lorsqu'il est démarré.
-        </p>
       </div>
 
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
@@ -518,6 +527,8 @@ export function Monitoring() {
                   <th className="text-right font-medium">Taille</th>
                   <th className="text-right font-medium">Entrée</th>
                   <th className="text-right font-medium">Mark</th>
+                  <th className="text-right font-medium">Levier</th>
+                  <th className="text-right font-medium">PnL %</th>
                 </tr>
               </thead>
               <tbody>
@@ -528,6 +539,10 @@ export function Monitoring() {
                     <td className="text-right text-mist">{p.size}</td>
                     <td className="text-right text-mist">{fmtUsd(p.entry)}</td>
                     <td className="text-right text-mist">{fmtUsd(p.mark)}</td>
+                    <td className="text-right text-mist">{p.leverage != null ? `${p.leverage}x` : "—"}</td>
+                    <td className={`text-right ${p.upnl_pct == null ? "text-mist" : p.upnl_pct >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
+                      {p.upnl_pct == null ? "—" : `${p.upnl_pct >= 0 ? "+" : ""}${p.upnl_pct}%`}
+                    </td>
                   </tr>
                 ))}
               </tbody>

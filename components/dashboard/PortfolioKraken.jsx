@@ -199,17 +199,19 @@ export default function PortfolioKraken() {
     }));
     setMarginPos(list);
     setLoading(false);
+    setFirstDone(true); // 1 tentative suffit : on n'entre JAMAIS dans une boucle de retry
   }, []);
 
-  // Ne charge les vraies données que si le dashboard est déverrouillé
+  // Charge les vraies données seulement si déverrouillé.
   useEffect(() => { if (!locked) load(); }, [load, locked]);
 
-  // Tant que les données ne sont pas remontées (1er chargement), on réessaie.
+  // Rafraîchissement DOUX toutes les 60 s (récupère un éventuel rate-limit transitoire),
+  // sans marteler l'API. Aucun retry rapide.
   useEffect(() => {
-    if (firstDone || locked) return;
-    const id = setInterval(() => { if (!firstDone) load(); }, 3500);
+    if (locked) return;
+    const id = setInterval(() => load(), 60000);
     return () => clearInterval(id);
-  }, [firstDone, load, locked]);
+  }, [load, locked]);
 
   // Si verrouillé → données mock, pas de spinner
   if (locked) {
@@ -400,6 +402,7 @@ export default function PortfolioKraken() {
     return (
       <div>
         {header}
+        <VipJoinBar />
         <div className="grid place-items-center gap-3 py-24 text-mist">
           <Spinner size={34} className="text-gold" />
           <p className="text-[13px]">Chargement des données Kraken…</p>

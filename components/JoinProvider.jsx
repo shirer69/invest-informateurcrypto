@@ -1,10 +1,10 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
-import { apiSignup, apiLogin } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiAccessCode, getToken } from "@/lib/clientStore";
 
 const JoinCtx = createContext({ open: () => {}, openWithCode: () => {} });
 export const useJoin = () => useContext(JoinCtx);
@@ -45,6 +45,34 @@ export default function JoinProvider({ children }) {
   const open = useCallback(() => {
     setOpen(true);
     setError(false);
+  }, []);
+
+  // Code d'accès reçu par Telegram : invest.informateurcrypto.fr/?code=XXXX
+  // → si déjà connecté, on applique tout de suite ; sinon on ouvre l'inscription
+  //   (le code tient lieu d'invitation) et il sera appliqué après création du compte.
+  useEffect(() => {
+    let c = null;
+    try { c = new URLSearchParams(window.location.search).get("code"); } catch {}
+    if (!c) return;
+    c = c.trim();
+    try { localStorage.setItem("pi_pending_code", c); } catch {}
+    try {
+      const u = new URL(window.location.href); u.searchParams.delete("code");
+      window.history.replaceState({}, "", u);
+    } catch {}
+    (async () => {
+      if (getToken()) {
+        const r = await apiAccessCode(c);
+        if (r.ok) {
+          try { localStorage.removeItem("pi_pending_code"); } catch {}
+          if (typeof window !== "undefined") window.location.href = "/dashboard";
+          return;
+        }
+      }
+      // Non connecté → on ouvre directement l'inscription (gate d'invitation sautée).
+      setUnlocked(true);
+      setOpen(true);
+    })();
   }, []);
 
   // Ouvre le modal en passant directement par le code parrain (saisi dans le hero).
@@ -129,6 +157,12 @@ export default function JoinProvider({ children }) {
       setSignupErr("Création du compte impossible. Réessayez.");
       return;
     }
+
+    // Applique un éventuel code d'accès offert mémorisé (lien Telegram ?code=).
+    try {
+      const pc = localStorage.getItem("pi_pending_code");
+      if (pc) { await apiAccessCode(pc); localStorage.removeItem("pi_pending_code"); }
+    } catch {}
 
     if (typeof window !== "undefined") {
       window.location.href = "/dashboard";

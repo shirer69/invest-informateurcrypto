@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { copyMaster, apiAccess } from "@/lib/clientStore";
-import { useUnlock } from "./UnlockProvider";
+import { Locked, useUnlock } from "./UnlockProvider";
 import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
 import KrakenLogo from "@/components/KrakenLogo";
@@ -74,8 +74,9 @@ const CAT = {
 
 // Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
 const DISPLAY_MULT = 100;
-// Le suivi de performance n'a pas encore démarré → on affiche 0,00 % en attendant la date de départ.
+// Le suivi de performance démarre le 21 juin 2026 → on affiche 0,00 % jusqu'à cette date.
 const TRACKING_STARTED = false;
+const TRACKING_START_LABEL = "21 juin 2026";
 const fmtUsd = (x) =>
   x == null || isNaN(x)
     ? "—"
@@ -226,7 +227,7 @@ export default function PortfolioKraken() {
     return a && p ? `${a} · ${p}` : a || p;
   };
 
-  // P&L ABSOLU par actif (progression depuis le 1er juin), en % de la valeur TOTALE du compte.
+  // P&L ABSOLU par actif (progression depuis le 21 juin), en % de la valeur TOTALE du compte.
   // Tant que le suivi n'a pas démarré (TRACKING_STARTED=false) → 0.
   const spotAbs = (h) =>
     h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
@@ -316,7 +317,7 @@ export default function PortfolioKraken() {
         />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&L du compte {TRACKING_STARTED ? "· depuis le départ" : "· en attente du départ"}
+            P&L du compte {TRACKING_STARTED ? `· depuis le ${TRACKING_START_LABEL}` : `· départ le ${TRACKING_START_LABEL}`}
           </div>
           <Locked>
           <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${
@@ -367,7 +368,7 @@ export default function PortfolioKraken() {
           <span className="text-bone">P&L</span> sont exprimés en{" "}
           <span className="text-bone">% de la valeur totale du compte</span> (spot, actions US/ETF,
           marge, perps). Le P&L spot/actions mesure la <span className="text-bone">progression
-          depuis le cours de départ</span> : quantité × (cours actuel − cours de départ), rapporté à
+          depuis le cours au {TRACKING_START_LABEL}</span> : quantité × (cours actuel − cours de départ), rapporté à
           la valeur totale du compte.
         </p>
       </div>

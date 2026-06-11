@@ -59,34 +59,17 @@ export default function Dashboard() {
     if (!inTg) setBooted(true);
   }, []);
 
-  // Code reçu par Telegram : bouton "SAISIR MON CODE" → /dashboard?code=XXXX → redemption auto.
+  // Code reçu par Telegram (bouton "SAISIR MON CODE" → /dashboard?code=XXXX) :
+  // le code ne sert QU'À entrer ici — le dashboard reste verrouillé. Le déblocage se fait
+  // ensuite via inscription + validation IIBAN ou paiement. On nettoie juste le paramètre.
   useEffect(() => {
-    let code = null;
-    try { code = new URLSearchParams(window.location.search).get("code"); } catch {}
-    if (!code) return;
-    let tries = 0;
-    const id = setInterval(async () => {
-      tries += 1;
-      if (getToken()) {
-        clearInterval(id);
-        const r = await apiAccessCode(code.trim());
-        if (r.ok) {
-          setUser(getUser());
-          setTab("billing");
-          setCodeMsg({ ok: true, text: "Code validé — accès 3 mois activé ✓" });
-        } else {
-          const M = { code_used: "Ce code a déjà été utilisé.", code_invalid: "Code invalide." };
-          setCodeMsg({ ok: false, text: M[r.error] || "Code invalide." });
-        }
-        try {
-          const u = new URL(window.location.href); u.searchParams.delete("code");
-          window.history.replaceState({}, "", u);
-        } catch {}
-      } else if (tries > 60) {
-        clearInterval(id);
+    try {
+      const u = new URL(window.location.href);
+      if (u.searchParams.has("code")) {
+        u.searchParams.delete("code");
+        window.history.replaceState({}, "", u);
       }
-    }, 200);
-    return () => clearInterval(id);
+    } catch {}
   }, []);
 
   // Mini App Telegram : init SDK + connexion automatique via initData

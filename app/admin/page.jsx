@@ -28,6 +28,19 @@ async function adminGet(path, key) {
   return res.json();
 }
 
+async function adminPost(path, key, body) {
+  try {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method: "POST",
+      headers: { "x-admin-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify(body || {}),
+    });
+    return await res.json();
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
 const TABS = [
   { id: "overview", label: "Vue d'ensemble" },
   { id: "members", label: "Membres (CRM)" },
@@ -128,7 +141,7 @@ export default function Admin() {
         {tab === "overview" && <Overview ov={ov} />}
         {tab === "members" && <Members members={members} />}
         {tab === "deposits" && <Deposits iiban={iiban} ov={ov} />}
-        {tab === "copy" && <CopyAuto members={members} />}
+        {tab === "copy" && <CopyAuto adminKey={key} />}
       </div>
     </div>
   );
@@ -253,58 +266,178 @@ function Deposits({ iiban, ov }) {
   );
 }
 
-function CopyAuto({ members }) {
-  if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
-  const eligible = members.filter((m) => m.deposit === "active");
+function Toggle({ on, onClick, label, sub }) {
+  return (
+    <button type="button" onClick={onClick}
+      className="w-full flex items-center justify-between rounded-xl border hairline bg-ink-900/40 px-4 py-3.5">
+      <span className="text-left">
+        <span className="block text-[14px] text-bone">{label}</span>
+        {sub && <span className="block text-[11.5px] text-mist/60">{sub}</span>}
+      </span>
+      <span className={`relative h-6 w-11 rounded-full transition-colors ${on ? "bg-pos" : "bg-white/15"}`}>
+        <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-all ${on ? "left-[22px]" : "left-0.5"}`} />
+      </span>
+    </button>
+  );
+}
+
+function Field({ label, value, onChange }) {
+  return (
+    <label className="block">
+      <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">{label}</span>
+      <input value={value} onChange={(e) => onChange(e.target.value)} inputMode="decimal"
+        className="mt-1.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone font-mono text-[13.5px] outline-none" />
+    </label>
+  );
+}
+
+const usd = (n) => (n == null || isNaN(n) ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $");
+
+function CopyAuto({ adminKey }) {
+  const [st, setSt] = useState(null);
+  const [risk, setRisk] = useState(null);
+  const [busy, setBusy] = useState("");
+  const [msg, setMsg] = useState("");
+
+  const load = useCallback(async () => {
+    const s = await adminGet("/api/admin/copy/status", adminKey);
+    setSt(s);
+    setRisk((prev) => {
+      if (prev || !s || !s.risk) return prev;
+      return {
+        size_ratio: s.risk.size_ratio,
+        max_leverage: s.risk.max_leverage,
+        slpct: Math.round((s.risk.auto_stop_loss_pct || 0) * 10000) / 100,
+        max_notional_usd: s.risk.max_notional_usd,
+        allowed: (s.risk.allowed_symbols || []).join(", "),
+      };
+    });
+  }, [adminKey]);
+
+  useEffect(() => { load(); const id = setInterval(load, 5000); return () => clearInterval(id); }, [load]);
+
+  async function patchRisk(patch) { await adminPost("/api/admin/copy/risk", adminKey, patch); load(); }
+  async function act(path, label) { setBusy(label); await adminPost(`/api/admin/copy/${path}`, adminKey); setBusy(""); load(); }
+  async function saveGuards() {
+    setMsg("");
+    const r = await adminPost("/api/admin/copy/risk", adminKey, {
+      size_ratio: Number(risk.size_ratio) || 0,
+      max_leverage: Number(risk.max_leverage) || 0,
+      auto_stop_loss_pct: (Number(risk.slpct) || 0) / 100,
+      max_notional_usd: Number(risk.max_notional_usd) || 0,
+      allowed_symbols: risk.allowed.split(",").map((x) => x.trim()).filter(Boolean),
+    });
+    setMsg(r && r.ok ? "Garde-fous enregistrés ✓" : "Erreur d'enregistrement");
+    load();
+  }
+
+  if (!st) return <div className="text-mist text-[14px]">Chargement…</div>;
+  if (st.offline) return (
+    <div className="rounded-2xl border border-amber-500/25 bg-amber-500/[0.06] p-5 text-amber-200/90 text-[13.5px]">
+      Moteur copy-auto hors ligne. {st.error}
+    </div>
+  );
+  const rk = st.risk || {};
+
   return (
     <div>
-      <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-3 mb-5">
-        <p className="text-[12.5px] leading-relaxed text-amber-200/90">
-          ⚠️ Le copy-trading <span className="font-semibold">automatique n'exécute aucun ordre</span> depuis cette plateforme
-          (limite de sécurité). Cet onglet <span className="font-semibold">monitore</span> les membres et leur statut
-          d'opt-in ; l'exécution réelle reste manuelle / externe.
-        </p>
+      <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-2.5 mb-5 text-[12px] text-amber-200/90">
+        🧪 Exécution réelle sur l'environnement <span className="font-mono">demo-futures.kraken.com</span> (fonds fictifs). Aucun fonds réel.
       </div>
-      <div className="grid sm:grid-cols-3 gap-4 mb-5">
-        <KPI label="Membres éligibles (activés)" value={eligible.length} accent="text-pos" />
-        <KPI label="Opt-in copy auto" value={0} sub="aucun pour l'instant" />
-        <KPI label="Suivis actifs" value={0} />
+
+      <div className="grid lg:grid-cols-2 gap-5 items-start">
+        {/* Capital & Ratio */}
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-6">
+          <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70 mb-4">Capital & Ratio</div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border hairline bg-ink-900/40 p-4">
+              <div className="text-[12px] text-mist">Compte A (maître)</div>
+              <div className="mt-1 font-display text-[22px] text-bone tabular-nums">{usd(st.equity_a)}</div>
+              <div className="text-[11px] text-info">source</div>
+            </div>
+            <div className="rounded-xl border hairline bg-ink-900/40 p-4">
+              <div className="text-[12px] text-mist">Compte B (esclave)</div>
+              <div className="mt-1 font-display text-[22px] text-bone tabular-nums">{usd(st.equity_b)}</div>
+              <div className="text-[11px] text-info">réplique</div>
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between border-t hairline pt-3">
+            <span className="text-[13px] text-mist">Ratio de copie (B/A)</span>
+            <span className="font-mono text-bone">{(st.ratio * 100).toFixed(2)} %</span>
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[12.5px]">
+            <span className="text-mist">WebSocket fills (A)</span>
+            <span className="font-mono text-mist/80">{st.ws_status}</span>
+          </div>
+          {st.last_error && <div className="mt-2 text-[12px] text-neg">{st.last_error}</div>}
+
+          <div className="mt-5 flex flex-wrap items-center gap-3 border-t hairline pt-4">
+            <button onClick={() => act("start", "start")} disabled={busy === "start"}
+              className="inline-flex items-center gap-2 rounded-lg bg-pos/90 hover:bg-pos px-4 py-2.5 text-[13.5px] font-semibold text-slate-950">
+              ▶ {busy === "start" ? "…" : "Démarrer"}
+            </button>
+            <button onClick={() => act("stop", "stop")} disabled={busy === "stop"}
+              className="inline-flex items-center gap-2 rounded-lg bg-rose-500/90 hover:bg-rose-500 px-4 py-2.5 text-[13.5px] font-semibold text-white">
+              ■ {busy === "stop" ? "…" : "Arrêter"}
+            </button>
+            <button onClick={() => { if (confirm("Fermer toutes les positions de B ?")) act("flatten", "flat"); }}
+              className="ml-auto inline-flex items-center gap-2 rounded-lg border border-rose-500/50 text-rose-300 hover:bg-rose-500/10 px-4 py-2.5 text-[13px] font-semibold">
+              ⚠ Tout fermer (B)
+            </button>
+          </div>
+          <div className="mt-3 text-[12px]">
+            <span className={`font-mono ${st.running ? "text-pos" : "text-mist/60"}`}>
+              {st.running ? "● moteur actif" : "○ moteur arrêté"}
+            </span>
+          </div>
+        </div>
+
+        {/* Garde-fous */}
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-6">
+          <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70 mb-4">Garde-fous (compte B)</div>
+          <div className="space-y-2.5">
+            <Toggle on={rk.dry_run} onClick={() => patchRisk({ dry_run: !rk.dry_run })}
+              label="Mode simulation" sub="dry-run, aucun ordre réel" />
+            <Toggle on={rk.enabled} onClick={() => patchRisk({ enabled: !rk.enabled })}
+              label="Copie activée" />
+          </div>
+          {risk && (
+            <>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <Field label="Multiplicateur taille" value={risk.size_ratio} onChange={(v) => setRisk({ ...risk, size_ratio: v })} />
+                <Field label="Levier max (x)" value={risk.max_leverage} onChange={(v) => setRisk({ ...risk, max_leverage: v })} />
+                <Field label="Stop-loss auto (%)" value={risk.slpct} onChange={(v) => setRisk({ ...risk, slpct: v })} />
+                <Field label="Notionnel max / ordre ($)" value={risk.max_notional_usd} onChange={(v) => setRisk({ ...risk, max_notional_usd: v })} />
+              </div>
+              <label className="block mt-3">
+                <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Marchés autorisés (vide = tous, ex: PI_XBTUSD, PF_ETHUSD)</span>
+                <input value={risk.allowed} onChange={(e) => setRisk({ ...risk, allowed: e.target.value })}
+                  className="mt-1.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone font-mono text-[13px] outline-none" />
+              </label>
+              <button onClick={saveGuards}
+                className="btn-gold mt-4 w-full rounded-xl px-6 py-3 text-[14px] font-semibold">
+                Enregistrer les garde-fous
+              </button>
+              {msg && <p className="mt-2 text-[12.5px] text-pos">{msg}</p>}
+            </>
+          )}
+        </div>
       </div>
-      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-[13.5px]">
-          <thead>
-            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-              <th className="px-5 py-3">Membre</th>
-              <th className="px-5 py-3">Statut dépôt</th>
-              <th className="px-5 py-3">Copy auto</th>
-              <th className="px-5 py-3">Mode</th>
-              <th className="px-5 py-3 text-right">PnL copié</th>
-            </tr>
-          </thead>
-          <tbody>
-            {members.map((m) => (
-              <tr key={m.email} className="border-b hairline last:border-0">
-                <td className="px-5 py-3">
-                  <div className="text-bone">{m.name || "—"}</div>
-                  <div className="font-mono text-[11px] text-mist/60">{m.email}</div>
-                </td>
-                <td className="px-5 py-3">
-                  {m.deposit === "active" ? <span className="text-pos">✓ actif</span>
-                    : m.deposit === "pending" ? <span className="text-flag">en attente</span>
-                    : <span className="text-mist/50">—</span>}
-                </td>
-                <td className="px-5 py-3"><span className="text-mist/50">inactif</span></td>
-                <td className="px-5 py-3 text-mist/50">—</td>
-                <td className="px-5 py-3 text-right text-mist/50">—</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      {/* Journal */}
+      <div className="mt-5 rounded-2xl border hairline bg-ink-800/40 p-6">
+        <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70 mb-3">Journal d'activité</div>
+        <div className="space-y-1.5 max-h-[320px] overflow-y-auto font-mono text-[12px]">
+          {(st.events || []).length === 0 && <div className="text-mist/50">Aucun événement.</div>}
+          {(st.events || []).map((e, i) => (
+            <div key={i} className="flex gap-3">
+              <span className="text-mist/50 shrink-0">{e.t ? new Date(e.t * 1000).toLocaleTimeString("fr-FR") : ""}</span>
+              <span className="text-gold/80 uppercase shrink-0 w-16">{e.kind}</span>
+              <span className="text-mist">{e.msg}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <p className="mt-4 text-[11.5px] text-mist/60">
-        Structure de monitoring prête : dès qu'un mécanisme d'opt-in copy (lecture seule / signaux) est branché,
-        les colonnes « Copy auto », « Mode » et « PnL copié » se rempliront automatiquement.
-      </p>
     </div>
   );
 }

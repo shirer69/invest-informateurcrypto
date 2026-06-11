@@ -62,16 +62,24 @@ export default function PortfolioKraken() {
   const [fut, setFut] = useState(null);
   const [futPos, setFutPos] = useState(null);
   const [marginPos, setMarginPos] = useState([]);
+  const [ftk, setFtk] = useState({}); // map symbole -> prix mark (perps)
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [s, f, fp, mp] = await Promise.all([
+    const [s, f, fp, mp, tk] = await Promise.all([
       fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
     ]);
     setSpot(s); setFut(f); setFutPos(fp);
+    const map = {};
+    for (const t of (tk?.tickers || [])) {
+      const p = parseFloat(t.markPrice ?? t.last ?? 0);
+      if (t.symbol && p) map[t.symbol.toUpperCase()] = p;
+    }
+    setFtk(map);
     // OpenPositions (marge) : result = { txid: {...} }
     const raw = mp?.result || {};
     const list = Object.entries(raw).map(([id, p]) => ({
@@ -114,13 +122,14 @@ export default function PortfolioKraken() {
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell = (r) => (r._pnl == null ? "—" : `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`);
 
-  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, _share: shareOf(h.value) }));
-  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, _share: shareOf(h.value) }));
+  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value) }));
+  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => ({ ...h, cur: h.price, _share: shareOf(h.value) }));
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
 
   const marginRows = marginPos.map((p) => ({
     ...p,
     entry: p.vol > 0 ? p.cost / p.vol : null,
+    cur: p.vol > 0 ? p.value / p.vol : null, // prix actuel ≈ valeur courante / volume
     lev: p.margin > 0 ? p.cost / p.margin : null,
     tp: null, sl: null,
     _share: shareOf(p.value),
@@ -130,11 +139,14 @@ export default function PortfolioKraken() {
   const perps = futPositionsRaw.map((p) => {
     const size = parseFloat(p.size) || 0;
     const entry = parseFloat(p.price) || 0;
+    const sym = (p.symbol || "").toUpperCase();
+    const cur = ftk[sym] || null; // prix mark live
     const pnl = p.pnl != null ? parseFloat(p.pnl) : null;
     return {
-      symbol: (p.symbol || "").toUpperCase(),
+      symbol: sym,
       side: p.side,
       entry,
+      cur,
       lev: p.leverage != null ? parseFloat(p.leverage) : (p.maxLeverage != null ? parseFloat(p.maxLeverage) : null),
       tp: null, sl: null,
       _share: shareOf(size * entry),
@@ -203,6 +215,7 @@ export default function PortfolioKraken() {
         <Section title="Spot crypto" dot={CAT.crypto.color}>
           <Table rows={crypto} cols={[
             { k: "symbol", h: "Actif" },
+            { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell },
           ]} />
@@ -221,6 +234,7 @@ export default function PortfolioKraken() {
             { k: "pair", h: "Paire" },
             { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
             { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.entry) },
+            { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
             { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
             { k: "tp", h: "TP", right: true, hide: "hidden md:table-cell", render: (r) => px(r.tp) },
             { k: "sl", h: "SL", right: true, hide: "hidden md:table-cell", render: (r) => px(r.sl) },
@@ -237,6 +251,7 @@ export default function PortfolioKraken() {
               { k: "symbol", h: "Symbole" },
               { k: "side", h: "Sens", cls: (r) => (r.side === "long" ? "text-emerald-400" : "text-rose-400") },
               { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.entry) },
+              { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
               { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
               { k: "tp", h: "TP", right: true, hide: "hidden md:table-cell", render: (r) => px(r.tp) },
               { k: "sl", h: "SL", right: true, hide: "hidden md:table-cell", render: (r) => px(r.sl) },

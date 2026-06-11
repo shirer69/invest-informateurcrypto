@@ -18,7 +18,7 @@ const POINTS = [
   },
   {
     t: "Cadre réglementaire",
-    d: "Statut Money Services Business (FinCEN, États-Unis), enregistrement crypto auprès de la FCA (Royaume-Uni), et KYC / AML stricts dans ses juridictions.",
+    d: "Cadre européen MiCA et enregistrement PSAN auprès de l'AMF (France) ; statut Money Services Business (FinCEN, États-Unis), enregistrement crypto auprès de la FCA (Royaume-Uni) et KYC / AML stricts dans ses juridictions.",
   },
   {
     t: "Usage institutionnel",

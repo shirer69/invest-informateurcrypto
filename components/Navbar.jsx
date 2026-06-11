@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useJoin } from "./JoinProvider";
 import LogoMark from "./LogoMark";
 import LoginModal from "./dashboard/LoginModal";
+import { getToken } from "@/lib/clientStore";
 
 const LINKS = [
   { label: "Membres", href: "#membres" },

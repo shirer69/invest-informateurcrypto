@@ -12,7 +12,7 @@ import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
-  copyContract, copyContractSign,
+  copyContract, copyContractSign, copySpotPlan,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -1080,6 +1080,9 @@ export function CopyTrading() {
             </div>
           )}
 
+          {/* Option 2 — plan spot manuel */}
+          <SpotPlanPanel />
+
           {/* facturation */}
           {s.billing && <Billing b={s.billing} />}
         </div>
@@ -1091,6 +1094,76 @@ export function CopyTrading() {
         Environnement de démonstration (sandbox) — aucun argent réel. Tout investissement comporte
         un risque de perte en capital. Outil éducatif, ne constitue pas un conseil en investissement.
       </Disclaimer>
+    </div>
+  );
+}
+
+function SpotPlanPanel() {
+  const [capital, setCapital] = useState("1000");
+  const [data, setData] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function compute() {
+    setBusy(true); setErr("");
+    const r = await copySpotPlan(parseFloat(capital) || 0);
+    setBusy(false);
+    if (r.ok) setData(r);
+    else setErr(r.error === "not_configured" ? "Plan spot indisponible (compte maître non configuré)." : "Erreur de calcul du plan.");
+  }
+
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Plan spot — à exécuter manuellement</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-cyan-300 border border-cyan-500/30 rounded px-1.5 py-0.5">suggestion</span>
+      </div>
+      <p className="mt-2 text-[12.5px] leading-relaxed text-mist">
+        Réplique la <b>composition spot</b> de Julien (hors xStocks) sur le capital de ton choix.
+        <b className="text-bone"> Aucune exécution automatique</b> : tu passes les ordres toi-même sur ton compte Kraken.
+      </p>
+      <div className="mt-3 flex items-end gap-2 flex-wrap">
+        <div>
+          <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Capital à allouer ($)</label>
+          <input type="number" step="100" value={capital}
+            onChange={(e) => setCapital(e.target.value)}
+            className="w-40 bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+        </div>
+        <button disabled={busy} onClick={compute}
+          className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+          {busy ? "Calcul…" : "Calculer le plan"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-[12.5px] text-rose-400/90">{err}</p>}
+      {data && data.plan && (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[440px] text-[13px] font-mono">
+            <thead>
+              <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                <th className="px-3 py-2">Actif</th>
+                <th className="px-3 py-2 text-right">Part</th>
+                <th className="px-3 py-2 text-right">Montant</th>
+                <th className="px-3 py-2 text-right">Quantité ≈</th>
+                <th className="px-3 py-2 text-right">Prix</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.plan.filter((p) => p.target_usd > 0).map((p) => (
+                <tr key={p.asset} className="border-b hairline last:border-0">
+                  <td className="px-3 py-2 text-bone">{p.asset}</td>
+                  <td className="px-3 py-2 text-right text-gold">{p.pct} %</td>
+                  <td className="px-3 py-2 text-right text-bone">${p.target_usd}</td>
+                  <td className="px-3 py-2 text-right text-mist">{p.target_qty}</td>
+                  <td className="px-3 py-2 text-right text-mist">${p.price}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-[11px] leading-relaxed text-mist/60">
+            {data.note} Quantités indicatives au prix courant ; ajuste selon les minimums d'ordre Kraken.
+          </p>
+        </div>
+      )}
     </div>
   );
 }

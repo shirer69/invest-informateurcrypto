@@ -5,7 +5,7 @@ import Script from "next/script";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
-import { apiSignup, apiLogin, apiAccessCode, getToken } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiAccessCode, apiCheckCode, getToken } from "@/lib/clientStore";
 
 const JoinCtx = createContext({ open: () => {}, openWithCode: () => {} });
 export const useJoin = () => useContext(JoinCtx);
@@ -42,6 +42,7 @@ export default function JoinProvider({ children }) {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [signupErr, setSignupErr] = useState("");
+  const [codeInfo, setCodeInfo] = useState(null); // {code, valid, used} si lien ?code=
 
   const open = useCallback(() => {
     setOpen(true);
@@ -70,6 +71,11 @@ export default function JoinProvider({ children }) {
           return;
         }
       }
+      // Vérifie le code (sans le consommer) pour l'afficher dans le formulaire.
+      try {
+        const chk = await apiCheckCode(c);
+        setCodeInfo({ code: c, valid: !!chk.valid, used: !!chk.used });
+      } catch { setCodeInfo({ code: c, valid: false, used: false }); }
       // Non connecté → on ouvre directement l'inscription (gate d'invitation sautée).
       setUnlocked(true);
       setOpen(true);

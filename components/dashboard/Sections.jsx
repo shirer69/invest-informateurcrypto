@@ -510,7 +510,7 @@ function Billing({ b }) {
   );
 }
 
-/* ---------------- Monitoring : positions du compte Futures réel (master A) ---------------- */
+/* ---------------- Monitoring - Pôle Trading : audios + positions Futures réel (master A) ---------------- */
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
   const [acct, setAcct] = useState(null); // {ok, data} compte futures
@@ -541,7 +541,7 @@ export function Monitoring({ onGoCopy }) {
   if (!user) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Monitoring</h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Monitoring — Pôle Trading</h3>
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
           Connecte-toi pour suivre l'activité du trader en direct.
         </div>
@@ -552,8 +552,13 @@ export function Monitoring({ onGoCopy }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 className="font-display text-[18px] text-bone">Monitoring</h3>
+        <h3 className="font-display text-[18px] text-bone">Monitoring — Pôle Trading</h3>
         <LiveTag />
+      </div>
+
+      {/* Audios Pôle Trading — en premier */}
+      <div className="mb-5">
+        <AudioFeed />
       </div>
 
       {/* Gains du wallet Futures (master A) */}
@@ -635,11 +640,6 @@ export function Monitoring({ onGoCopy }) {
             </table>
           </div>
         )}
-      </div>
-
-      {/* Audios Pôle Trading */}
-      <div className="mt-6">
-        <AudioFeed />
       </div>
 
       <Disclaimer>

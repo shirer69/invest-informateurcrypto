@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { REFERRAL_CODES } from "@/lib/site";
-import { apiSignup, apiLogin } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiCheckCode, apiAccessCode } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
 // Tunnel d'entrée (mini-app / accès direct au dashboard) : code d'invitation →
@@ -19,13 +19,21 @@ export default function SignupGate({ onDone, onLogin }) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
-  function submitCode(e) {
+  async function submitCode(e) {
     e.preventDefault();
-    if (REFERRAL_CODES.includes(code.trim().toUpperCase())) {
-      setUnlocked(true); setCodeErr(false);
-    } else {
-      setCodeErr(true);
-    }
+    const c = code.trim().toUpperCase();
+    if (!c) { setCodeErr(true); return; }
+    // Codes parrain statiques.
+    if (REFERRAL_CODES.includes(c)) { try { localStorage.removeItem("pi_pending_code"); } catch {} setUnlocked(true); setCodeErr(false); return; }
+    // Codes d'accès (ex. 20FREE3M) : vérifie via l'API, mémorise pour la redemption post-inscription.
+    try {
+      const chk = await apiCheckCode(c);
+      if (chk && chk.valid) { try { localStorage.setItem("pi_pending_code", c); } catch {} setUnlocked(true); setCodeErr(false); return; }
+      if (chk && chk.code && chk.valid === false) { setCodeErr(true); return; } // API : code inexistant
+    } catch {}
+    // Réseau/webview indéterminé → on accepte, la redemption tranchera après inscription.
+    try { localStorage.setItem("pi_pending_code", c); } catch {}
+    setUnlocked(true); setCodeErr(false);
   }
 
   async function submitSignup(e) {
@@ -42,6 +50,13 @@ export default function SignupGate({ onDone, onLogin }) {
       if (!r.ok) { setBusy(false); setErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
     } else if (!r.ok) {
       setBusy(false); setErr("Création du compte impossible. Réessayez."); return;
+    }
+    // Consomme le code d'accès mémorisé → octroie l'accès immédiatement.
+    let pending = "";
+    try { pending = localStorage.getItem("pi_pending_code") || ""; } catch {}
+    if (pending) {
+      try { await apiAccessCode(pending.trim()); } catch {}
+      try { localStorage.removeItem("pi_pending_code"); } catch {}
     }
     setBusy(false);
     onDone && onDone();

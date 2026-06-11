@@ -20,7 +20,7 @@ const NAV = [
   { id: "monitoring", label: "Monitoring", icon: "📡" },
   { id: "analytics", label: "Analytics", icon: "◴" },
   { id: "community", label: "Communauté", icon: "✦" },
-  { id: "copy", label: "Copy-trading (Futures)", icon: "⇄" },
+  { id: "copy", label: "Copy-trading (Futures)", icon: "⇄", badge: "Soon" },
 ];
 
 export default function Dashboard() {
@@ -111,6 +111,11 @@ export default function Dashboard() {
                 >
                   <span className={`text-[15px] ${tab === n.id ? "text-gold" : "text-mist/60"}`}>{n.icon}</span>
                   {n.label}
+                  {n.badge && (
+                    <span className="ml-1 rounded-full bg-gold/15 border gold-line px-1.5 py-0.5 text-[8.5px] font-mono uppercase tracking-widest2 text-gold">
+                      {n.badge}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>

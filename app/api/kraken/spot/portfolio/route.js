@@ -4,8 +4,11 @@ import {
   spotBalance,
   spotTradeBalance,
   spotTicker,
-  spotTradesHistory,
+  spotOHLC,
 } from "@/lib/krakenSpot";
+
+// Référence de performance : cours de chaque actif au 1er juin 2026 (00:00 UTC).
+const BASELINE_TS = Math.floor(Date.UTC(2026, 5, 1) / 1000); // mois index 5 = juin
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,57 +75,33 @@ export async function GET() {
     return null;
   }
 
-  // Prix de revient par actif (depuis l'historique des trades) -> P&L
-  // Approx : coût restant pondéré, converti en USD (EUR via EURUSD).
-  let costByNorm = {};
-  try {
-    // Historique paginé (prix d'achat fiable) — jusqu'à 500 trades.
-    let trades = [];
-    for (let ofs = 0; ofs < 500; ofs += 50) {
-      const th = await spotTradesHistory(ofs).catch(() => null);
-      const batch = th?.ok && th.result?.trades ? Object.values(th.result.trades) : [];
-      if (!batch.length) break;
-      trades = trades.concat(batch);
-      if (batch.length < 50) break;
-    }
-    if (trades.length) {
-      trades.sort((a, b) => (a.time || 0) - (b.time || 0));
-      const QUOTES = ["ZUSD", "USD", "ZEUR", "EUR", "USDT", "USDC"];
-      const eurT = await spotTicker(["EURUSD"]);
-      let eurusd = 1;
-      for (const [k, v] of Object.entries(eurT)) if (k.includes("EUR") && v?.c?.[0]) eurusd = parseFloat(v.c[0]);
-      const pos = {}; // pair -> { vol, cost(quote), base, quote }
-      for (const tr of trades) {
-        const p = (tr.pair || "").toUpperCase();
-        let quote = QUOTES.find((q) => p.endsWith(q));
-        if (!quote) continue;
-        let base = p.slice(0, p.length - quote.length).replace(/^[XZ]/, "");
-        if (base.length === 4 && base[0] === "X") base = base.slice(1);
-        quote = quote.replace(/^Z/, "");
-        const v = parseFloat(tr.vol) || 0, c = parseFloat(tr.cost) || 0;
-        pos[p] = pos[p] || { vol: 0, cost: 0, base, quote };
-        if (tr.type === "buy") { pos[p].vol += v; pos[p].cost += c; }
-        else if (pos[p].vol > 0) {
-          const avg = pos[p].cost / pos[p].vol;
-          pos[p].vol = Math.max(0, pos[p].vol - v);
-          pos[p].cost = Math.max(0, pos[p].cost - avg * v);
+  // Baseline de performance : cours de CHAQUE actif au 1er juin 2026 (OHLC journalier).
+  // P&L = progression depuis ce cours (même pour les actifs détenus avant le 1er juin).
+  const baselineByNorm = {};
+  const baseNorms = [...new Set(pairAssets)]; // hors USD/ZUSD
+  await Promise.all(
+    baseNorms.map(async (norm) => {
+      try {
+        // `since` quelques jours avant pour garantir la bougie du 1er juin.
+        const res = await spotOHLC(`${norm}USD`, BASELINE_TS - 3 * 86400, 1440);
+        for (const [k, candles] of Object.entries(res)) {
+          if (k === "last" || !Array.isArray(candles)) continue;
+          // 1ère bougie dont le temps >= 1er juin → cours d'ouverture de ce jour.
+          const c = candles.find((row) => Number(row[0]) >= BASELINE_TS);
+          if (c) { baselineByNorm[norm] = parseFloat(c[1]); break; } // [time, open, ...]
         }
-      }
-      for (const { vol, cost, base, quote } of Object.values(pos)) {
-        if (vol <= 0 || cost <= 0) continue;
-        if (FIAT.has(base)) continue; // pas de prix de revient sur le cash/fiat
-        const f = quote === "EUR" ? eurusd : 1;
-        costByNorm[base] = (costByNorm[base] || 0) + cost * f;
-      }
-    }
-  } catch {}
+      } catch {}
+    })
+  );
 
   const holdings = entries.map((e) => {
     const kind = classify(e.norm);
     const price = kind === "cash" && e.norm === "USD" ? 1 : priceFor(e.norm);
     const value = price !== null ? e.amount * price : null;
-    const cost = costByNorm[e.norm] != null ? costByNorm[e.norm] : null;
-    return { asset: e.asset, symbol: e.norm, amount: e.amount, price, value, cost, kind };
+    // baseline = prix unitaire au 1er juin ; cost = valeur de référence (qté × baseline).
+    const baseline = baselineByNorm[e.norm] != null ? baselineByNorm[e.norm] : null;
+    const cost = baseline != null ? e.amount * baseline : null;
+    return { asset: e.asset, symbol: e.norm, amount: e.amount, price, value, baseline, cost, kind };
   });
 
   const sum = (k) =>

@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { copyMaster } from "@/lib/clientStore";
 import { Locked } from "./UnlockProvider";
+import RealFuturesPositions from "./RealFuturesPositions";
 
 // Couleurs par catégorie (identification rapide)
 const CAT = {
@@ -261,9 +262,9 @@ export default function PortfolioKraken() {
           <span className="text-gold">ⓘ</span> La <span className="text-bone">Part</span> et le{" "}
           <span className="text-bone">P&L</span> sont exprimés en{" "}
           <span className="text-bone">% de la valeur totale du compte</span> (spot, actions US/ETF,
-          marge, perps). Le P&L de chaque ligne = (valeur − prix d'achat) ÷ valeur totale du compte ;
-          le P&L spot/actions est reconstitué depuis le prix d'achat. Suivi démarré le 1<sup>er</sup>{" "}
-          juin 2026. Les montants restent confidentiels.
+          marge, perps). Le P&L spot/actions mesure la <span className="text-bone">progression
+          depuis le cours du 1<sup>er</sup> juin 2026</span> : quantité × (cours actuel − cours au
+          1<sup>er</sup> juin), rapporté à la valeur totale du compte. Les montants restent confidentiels.
         </p>
       </div>
 
@@ -301,21 +302,10 @@ export default function PortfolioKraken() {
         </Section>
 
         <Section title="Futures crypto (perps)" dot={CAT.perps.color}>
-          {perps.length === 0 ? (
-            <p className="px-5 py-4 text-[13px] text-mist">Aucune position future ouverte.</p>
-          ) : (
-            <Table rows={perps} cols={[
-              { k: "symbol", h: "Symbole" },
-              { k: "side", h: "Sens", cls: (r) => (r.side === "long" ? "text-emerald-400" : "text-rose-400") },
-              { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.entry) },
-              { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
-              { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
-              { k: "tp", h: "TP", right: true, hide: "hidden md:table-cell", render: (r) => px(r.tp) },
-              { k: "sl", h: "SL", right: true, hide: "hidden md:table-cell", render: (r) => px(r.sl) },
-              { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
-              { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell },
-            ]} />
-          )}
+          {/* Même source et même affichage que l'onglet Futures */}
+          <div className="p-1.5">
+            <RealFuturesPositions />
+          </div>
         </Section>
 
         <Section title="Cash & stablecoins" dot={CAT.cash.color}>

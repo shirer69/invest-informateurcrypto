@@ -402,8 +402,9 @@ function Billing({ b }) {
                 className="text-[12px] text-gold underline">{copied ? "copié ✓" : "copier"}</button>
             </div>
             <p className="mt-2 text-[11.5px] text-mist/60">
-              Envoie de l'USDT (réseau TRC-20 uniquement) à cette adresse dédiée. Le crédit est
-              confirmé manuellement par l'équipe puis ajouté à ton solde prépayé.
+              Envoie de l'USDT (réseau <b>TRC-20 uniquement</b>) à cette adresse de dépôt dédiée.
+              Les dépôts sont <b>détectés et crédités automatiquement</b> sur ton solde prépayé,
+              utilisé pour régler les commissions.
             </p>
           </>
         ) : (

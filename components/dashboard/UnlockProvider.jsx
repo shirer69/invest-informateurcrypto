@@ -51,7 +51,7 @@ export function Locked({ children, label = "Déverrouiller", className = "" }) {
   const { locked, openUnlock } = useUnlock();
   if (!locked) return children;
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative min-h-[120px] ${className}`}>
       <div className="pointer-events-none select-none blur-[2.5px] opacity-70" aria-hidden>
         {children}
       </div>

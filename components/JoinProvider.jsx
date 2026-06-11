@@ -70,13 +70,20 @@ export default function JoinProvider({ children }) {
     setOpen(true);
   }, []);
 
-  // Ouvre le modal en passant directement par le code parrain (saisi dans le hero).
-  const openWithCode = useCallback((c) => {
-    const ok = REFERRAL_CODES.includes((c || "").trim().toUpperCase());
+  // Ouvre le modal avec le code saisi dans le hero : accepte un code parrain
+  // OU un code d'accès valide (envoyé par Telegram).
+  const openWithCode = useCallback(async (c) => {
+    const up = (c || "").trim().toUpperCase();
     setCode(c || "");
-    setUnlocked(ok);
-    setError(!ok && !!(c || "").trim());
     setOpen(true);
+    if (REFERRAL_CODES.includes(up)) { setUnlocked(true); setError(false); return; }
+    if (!up) { setUnlocked(false); setError(false); return; }
+    try {
+      const chk = await apiCheckCode(up);
+      if (chk && chk.valid) { setUnlocked(true); setError(false); return; }
+    } catch {}
+    setUnlocked(false);
+    setError(true);
   }, []);
 
   const close = useCallback(() => {

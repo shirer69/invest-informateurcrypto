@@ -129,7 +129,33 @@ function Section({ title, dot, children }) {
   );
 }
 
+// Données simulées affichées derrière le floutage (dashboard verrouillé).
+// Aucun appel API n'est effectué tant que le contenu est verrouillé.
+const MOCK = {
+  accountPnlPct: 18.43,
+  accountAbs:    0.1843,
+  total:         1,
+  comp: { crypto: 0.52, stock: 0.18, margin: 0, perps: 0.21, cash: 0.09 },
+  crypto: [
+    { symbol: "BTC",  value: 0.2810, _share: 28.1, cur: 107420, _abs: 0.052, _pnl: 5.2 },
+    { symbol: "ETH",  value: 0.1540, _share: 15.4, cur: 3820,   _abs: 0.031, _pnl: 3.1 },
+    { symbol: "SOL",  value: 0.0850, _share: 8.5,  cur: 186.4,  _abs: 0.018, _pnl: 1.8 },
+  ],
+  stocks: [
+    { symbol: "NVDA", value: 0.0980, _share: 9.8,  cur: 1342,   _abs: 0.021, _pnl: 2.1 },
+    { symbol: "AAPL", value: 0.0820, _share: 8.2,  cur: 218.5,  _abs: 0.012, _pnl: 1.2 },
+  ],
+  perps: [
+    { symbol: "PF_XBTUSD", side: "long",  entry: 102100, cur: 107420, lev: 5, tp: null, sl: null, _abs: 0.053, _share: 10.6, _pnl: 5.3 },
+    { symbol: "PF_ETHUSD", side: "short", entry: 3950,   cur: 3820,   lev: 3, tp: null, sl: null, _abs: 0.013, _share: 5.1,  _pnl: 1.3 },
+  ],
+  cash: [
+    { symbol: "USDT", value: 0.09, _share: 9.0 },
+  ],
+};
+
 export default function PortfolioKraken() {
+  const { locked } = useUnlock();
   const [loading, setLoading] = useState(true);
   const [spot, setSpot] = useState(null);
   const [fut, setFut] = useState(null);
@@ -175,14 +201,109 @@ export default function PortfolioKraken() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  // Ne charge les vraies données que si le dashboard est déverrouillé
+  useEffect(() => { if (!locked) load(); }, [load, locked]);
 
   // Tant que les données ne sont pas remontées (1er chargement), on réessaie.
   useEffect(() => {
-    if (firstDone) return;
+    if (firstDone || locked) return;
     const id = setInterval(() => { if (!firstDone) load(); }, 3500);
     return () => clearInterval(id);
-  }, [firstDone, load]);
+  }, [firstDone, load, locked]);
+
+  // Si verrouillé → données mock, pas de spinner
+  if (locked) {
+    const m = MOCK;
+    const px = (n) => (n ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
+    const pnlCell = (r) => {
+      const a = r._abs != null ? `${r._abs >= 0 ? "+" : ""}${fmtUsd(r._abs)}` : "";
+      const p = r._pnl != null ? `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %` : "";
+      return a && p ? `${a} · ${p}` : a || p;
+    };
+    return (
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
+          <LiveTag />
+        </div>
+        <VipJoinBar />
+        {/* Hero mock */}
+        <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>
+          <div className="pointer-events-none absolute -top-20 -right-10 h-56 w-56 rounded-full blur-3xl"
+               style={{ background: "radial-gradient(circle, rgba(124,92,252,0.22), transparent 70%)" }} />
+          <KrakenLogo mark wordmark={false} color="#7C5CFC"
+            className="pointer-events-none absolute -bottom-8 -right-6 opacity-[0.10] [&_svg]:h-44 [&_svg]:w-44" />
+          <div className="relative">
+            <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>P&L du compte</div>
+            <Locked>
+              <div className="mt-2 font-display text-[44px] md:text-[54px] leading-none text-emerald-400">
+                +{m.accountPnlPct.toFixed(2)} %
+              </div>
+              <div className="mt-1.5 font-mono text-[12.5px]">
+                <span className="text-emerald-400">+{fmtUsd(m.accountAbs)}</span>
+                <span className="text-mist/60"> · valeur totale du compte {fmtUsd(m.total)}</span>
+              </div>
+              <div className="mt-4 font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Composition du portefeuille</div>
+              <div className="mt-5 flex h-3.5 w-full rounded-full overflow-hidden bg-white/[0.05]">
+                {Object.entries(m.comp).filter(([,v])=>v>0).map(([k,v])=>(
+                  <div key={k} style={{ width:`${v*100}%`, background: CAT[k].color }} />
+                ))}
+              </div>
+              <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                {Object.entries(CAT).map(([k,c])=>(
+                  <div key={k} className="flex items-start gap-2">
+                    <span className="mt-1 h-2.5 w-2.5 rounded-sm shrink-0" style={{ background: c.color }} />
+                    <div className="leading-tight">
+                      <div className="text-[12px] text-bone">{c.label}</div>
+                      <div className="font-mono text-[13px] text-bone">
+                        {((m.comp[k]||0)*100).toFixed(0)}<span className="text-mist/60"> %</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Locked>
+          </div>
+        </div>
+        <div className="space-y-5">
+          {[
+            { title: "Spot crypto", dot: CAT.crypto.color, rows: m.crypto, cols: [
+              {k:"symbol",h:"Actif"}, {k:"cur",h:"Prix actuel",right:true,hide:"hidden sm:table-cell",render:(r)=>px(r.cur)},
+              {k:"value",h:"Valeur",right:true,render:(r)=>fmtUsd(r.value)}, {k:"_share",h:"Part",right:true,cls:()=>"text-gold",render:(r)=>`${r._share.toFixed(1)} %`},
+              {k:"_pnl",h:"P&L",right:true,cls:(r)=>(r._pnl>=0?"text-emerald-400":"text-rose-400"),render:pnlCell},
+            ]},
+            { title: "Actions / ETF tokenisés", dot: CAT.stock.color, rows: m.stocks, cols: [
+              {k:"symbol",h:"Titre"}, {k:"cur",h:"Prix actuel",right:true,hide:"hidden sm:table-cell",render:(r)=>px(r.cur)},
+              {k:"value",h:"Valeur",right:true,render:(r)=>fmtUsd(r.value)}, {k:"_share",h:"Part",right:true,cls:()=>"text-gold",render:(r)=>`${r._share.toFixed(1)} %`},
+              {k:"_pnl",h:"P&L",right:true,cls:(r)=>(r._pnl>=0?"text-emerald-400":"text-rose-400"),render:pnlCell},
+            ]},
+            { title: "Futures crypto (perps)", dot: CAT.perps.color, rows: m.perps, cols: [
+              {k:"symbol",h:"Contrat"}, {k:"side",h:"Sens",cls:(r)=>(r.side==="long"?"text-emerald-400":"text-rose-400"),render:(r)=>(r.side==="long"?"Long":"Short")},
+              {k:"entry",h:"Entrée",right:true,hide:"hidden sm:table-cell",render:(r)=>px(r.entry)}, {k:"cur",h:"Mark",right:true,hide:"hidden sm:table-cell",render:(r)=>px(r.cur)},
+              {k:"lev",h:"Levier",right:true,hide:"hidden md:table-cell",render:(r)=>(r.lev?`×${r.lev}`:"-")},
+              {k:"_share",h:"Part",right:true,cls:()=>"text-gold",render:(r)=>`${r._share.toFixed(1)} %`},
+              {k:"_pnl",h:"P&L",right:true,cls:(r)=>(r._pnl>=0?"text-emerald-400":"text-rose-400"),render:pnlCell},
+            ]},
+            { title: "Cash & stablecoins", dot: CAT.cash.color, rows: m.cash, cols: [
+              {k:"symbol",h:"Devise"}, {k:"value",h:"Valeur",right:true,render:(r)=>fmtUsd(r.value)},
+              {k:"_share",h:"Part",right:true,cls:()=>"text-gold",render:(r)=>`${r._share.toFixed(1)} %`},
+            ]},
+          ].map(({ title, dot, rows, cols }) => (
+            <div key={title} className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden">
+              <div className="px-5 py-3 border-b hairline flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full" style={{ background: dot }} />
+                <span className="font-display text-[15px] text-bone">{title}</span>
+              </div>
+              <Locked><div className="overflow-x-auto"><Table rows={rows} cols={cols} /></div></Locked>
+            </div>
+          ))}
+        </div>
+        <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">
+          Vue agrégée en lecture seule. Valeurs estimées via les prix de marché.
+        </p>
+      </div>
+    );
+  }
 
   const holdings = spot?.ok ? spot.holdings : [];
   const t = spot?.totals || {};

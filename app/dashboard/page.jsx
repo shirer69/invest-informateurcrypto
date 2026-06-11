@@ -17,7 +17,7 @@ import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 const NAV = [
   { id: "overview", label: "Vue d'ensemble", icon: "▦" },
   { id: "portfolio", label: "Portefeuille Kraken", icon: "◈" },
-  { id: "vip", label: "Posts VIP", icon: "◆" },
+  { id: "vip", label: "Alertes", icon: "◆" },
   { id: "positions", label: "Positions", icon: "≣" },
   { id: "academy", label: "Academy", icon: "✸" },
   { id: "intelligence", label: "Intelligence", icon: "✶" },
@@ -77,7 +77,7 @@ export default function Dashboard() {
           <a href="/" className="flex items-center gap-2.5 min-w-0">
             <LogoMark className="h-9 w-9 shrink-0" />
             <span className="leading-tight min-w-0">
-              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">🕵️‍♂️ Trading OS · Pôle Invest</span>
+              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Pôle Invest</span>
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>
             </span>
           </a>

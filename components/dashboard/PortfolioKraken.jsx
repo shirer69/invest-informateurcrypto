@@ -14,11 +14,12 @@ const CAT = {
   cash: { label: "Cash / stables", color: "#8A93A6" },
 };
 
-// Confidentialité : on n'affiche jamais les montants ($ / quantités) — masqués.
-// Seuls les pourcentages (répartition) sont visibles.
-const MASK = "****";
-const fmtUsd = () => MASK;
-const fmtAmt = () => MASK;
+// Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
+const DISPLAY_MULT = 100;
+const fmtUsd = (x) =>
+  x == null || isNaN(x)
+    ? "—"
+    : "$" + Number(x * DISPLAY_MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const pct = (v, t) => (t > 0 ? (v / t) * 100 : 0);
 
 function Spinner({ size = 16, className = "" }) {
@@ -136,7 +137,12 @@ export default function PortfolioKraken() {
   const shareOf = (v) => (total > 0 ? ((v || 0) / total) * 100 : 0);
   const pnlPctOf = (net) => (total > 0 ? ((net || 0) / total) * 100 : null);
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
-  const pnlCell = (r) => (r._pnl == null ? "—" : `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`);
+  const pnlCell = (r) => {
+    if (r._abs == null && r._pnl == null) return "—";
+    const a = r._abs != null ? `${r._abs >= 0 ? "+" : ""}${fmtUsd(r._abs)}` : "";
+    const p = r._pnl != null ? `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %` : "";
+    return a && p ? `${a} · ${p}` : a || p;
+  };
 
   // P&L ABSOLU par actif (depuis le prix d'achat), puis exprimé en % de la valeur TOTALE du compte.
   const spotAbs = (h) =>
@@ -226,8 +232,11 @@ export default function PortfolioKraken() {
           }`}>
             {loading ? "…" : accountPnlPct == null ? "—" : `${accountPnlPct >= 0 ? "+" : ""}${accountPnlPct.toFixed(2)} %`}
           </div>
-          <div className="mt-1.5 font-mono text-[11px] text-mist/70">
-            P&L en % de la valeur totale du compte · valeur des avoirs confidentielle
+          <div className="mt-1.5 font-mono text-[12.5px]">
+            <span className={accountAbs >= 0 ? "text-emerald-400" : "text-rose-400"}>
+              {accountAbs >= 0 ? "+" : ""}{fmtUsd(accountAbs)}
+            </span>
+            <span className="text-mist/60"> · valeur totale du compte {fmtUsd(total)}</span>
           </div>
           <div className="mt-4 font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
             Composition du portefeuille
@@ -267,7 +276,8 @@ export default function PortfolioKraken() {
           <span className="text-bone">% de la valeur totale du compte</span> (spot, actions US/ETF,
           marge, perps). Le P&L spot/actions mesure la <span className="text-bone">progression
           depuis le cours du 1<sup>er</sup> juin 2026</span> : quantité × (cours actuel − cours au
-          1<sup>er</sup> juin), rapporté à la valeur totale du compte. Les montants restent confidentiels.
+          1<sup>er</sup> juin), rapporté à la valeur totale du compte. Les montants en $ sont affichés
+          à l'échelle du compte (× 100) ; les pourcentages sont inchangés.
         </p>
       </div>
 
@@ -277,6 +287,7 @@ export default function PortfolioKraken() {
           <Table rows={crypto} cols={[
             { k: "symbol", h: "Actif" },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell },
           ]} />
@@ -285,6 +296,8 @@ export default function PortfolioKraken() {
         <Section title="Actions / ETF tokenisés" dot={CAT.stock.color}>
           <Table rows={stocks} cols={[
             { k: "symbol", h: "Titre" },
+            { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell },
           ]} />
@@ -299,6 +312,7 @@ export default function PortfolioKraken() {
             { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
             { k: "tp", h: "TP", right: true, hide: "hidden md:table-cell", render: (r) => px(r.tp) },
             { k: "sl", h: "SL", right: true, hide: "hidden md:table-cell", render: (r) => px(r.sl) },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell },
           ]} />
@@ -314,6 +328,7 @@ export default function PortfolioKraken() {
         <Section title="Cash & stablecoins" dot={CAT.cash.color}>
           <Table rows={cash} cols={[
             { k: "symbol", h: "Devise" },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
           ]} />
         </Section>

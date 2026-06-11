@@ -200,13 +200,24 @@ export function Analytics() {
   );
   const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
   const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
+  // Montants en $ affichés à l'échelle du compte (× 100) — les % ne sont PAS multipliés.
+  const DISPLAY_MULT = 100;
+  const dUsd = (v) => "$" + Math.abs(Number(v) * DISPLAY_MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const dUsdSigned = (v) => `${v >= 0 ? "+" : "−"}${dUsd(v)}`;
+  // Cellule : montant en $ (×100) + pourcentage en dessous.
+  const cellVal = (v) => (
+    <>
+      <div>{dUsdSigned(v)}</div>
+      <div className="text-[10px] text-mist/60">{pctStr(v)}</div>
+    </>
+  );
 
   return (
     <div>
       <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats Kraken <DemoTag /></h3>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-5">
-        <CopyKpi label="PnL cumulé (part nette)" value={pctStr(totalAll)}
+        <CopyKpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`}
           cls={`font-display text-[20px] ${signClass(totalAll)}`} />
         <CopyKpi label="Mois suivis" value={rows.length} />
         <CopyKpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
@@ -227,10 +238,10 @@ export function Analytics() {
               return (
                 <div key={r.month} className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
                   <span className={`mb-1 font-mono text-[9px] ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {`${up ? "+" : ""}${pct(r.total).toFixed(0)}%`}
+                    {dUsdSigned(r.total)}
                   </span>
                   <div className={`w-full rounded-t ${up ? "bg-emerald-500/70" : "bg-rose-500/70"}`}
-                       style={{ height: `${Math.max(h, 4)}%` }} title={`${moLabel(r.month)} : ${pctStr(r.total)}`} />
+                       style={{ height: `${Math.max(h, 4)}%` }} title={`${moLabel(r.month)} : ${dUsdSigned(r.total)} · ${pctStr(r.total)}`} />
                   <span className="mt-1.5 font-mono text-[9px] text-mist/60">{moLabel(r.month)}</span>
                 </div>
               );
@@ -258,12 +269,12 @@ export function Analytics() {
               <tbody>
                 {rows.slice().reverse().map((r) => (
                   <tr key={r.month} className="border-t hairline">
-                    <td className="py-2.5 text-bone">{moLabel(r.month)}</td>
-                    <td className={`text-right ${signClass(r.spot)}`}>{pctStr(r.spot)}</td>
-                    <td className={`text-right ${signClass(r.stock)}`}>{pctStr(r.stock)}</td>
-                    <td className={`text-right ${signClass(r.margin)}`}>{pctStr(r.margin)}</td>
-                    <td className={`text-right ${signClass(r.perps)}`}>{pctStr(r.perps)}</td>
-                    <td className={`text-right font-semibold ${signClass(r.total)}`}>{pctStr(r.total)}</td>
+                    <td className="py-2.5 text-bone align-top">{moLabel(r.month)}</td>
+                    <td className={`text-right align-top ${signClass(r.spot)}`}>{cellVal(r.spot)}</td>
+                    <td className={`text-right align-top ${signClass(r.stock)}`}>{cellVal(r.stock)}</td>
+                    <td className={`text-right align-top ${signClass(r.margin)}`}>{cellVal(r.margin)}</td>
+                    <td className={`text-right align-top ${signClass(r.perps)}`}>{cellVal(r.perps)}</td>
+                    <td className={`text-right align-top font-semibold ${signClass(r.total)}`}>{cellVal(r.total)}</td>
                   </tr>
                 ))}
               </tbody>

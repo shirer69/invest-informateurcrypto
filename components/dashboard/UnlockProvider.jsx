@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiAccessCode } from "@/lib/clientStore";
+import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiAccessCode, apiSignup, apiLogin, getUser } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL } from "@/lib/site";
 
@@ -79,7 +79,35 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
   const [code, setCode] = useState("");
   const [codeMsg, setCodeMsg] = useState("");
 
+  // Étape 1 = inscription (si compte non encore enregistré : email @telegram.local ou vide).
+  const _needsSignup = () => {
+    const em = (getUser()?.email || "").toLowerCase();
+    return !em || em.endsWith("@telegram.local");
+  };
+  const [step, setStep] = useState(() => (_needsSignup() ? "signup" : "options"));
+  const [firstName, setFirstName] = useState("");
+  const [suEmail, setSuEmail] = useState("");
+  const [suPwd, setSuPwd] = useState("");
+  const [suErr, setSuErr] = useState("");
+  const [suBusy, setSuBusy] = useState(false);
+
   useEffect(() => { setBal(wallet); }, [wallet]);
+
+  async function submitSignup(e) {
+    e.preventDefault();
+    const mail = suEmail.trim(); const fn = firstName.trim();
+    if (fn.length < 2) { setSuErr("Indiquez votre prénom."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { setSuErr("Adresse e-mail invalide."); return; }
+    if (suPwd.length < 6) { setSuErr("Mot de passe : 6 caractères minimum."); return; }
+    setSuErr(""); setSuBusy(true);
+    let r = await apiSignup({ email: mail, password: suPwd, name: fn });
+    if (!r.ok && r.error === "email_exists") {
+      r = await apiLogin({ email: mail, password: suPwd });
+      if (!r.ok) { setSuBusy(false); setSuErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
+    } else if (!r.ok) { setSuBusy(false); setSuErr("Création du compte impossible. Réessayez."); return; }
+    setSuBusy(false);
+    setStep("options"); // → étape Kraken / IIBAN / abonnement
+  }
 
   async function redeemCode(e) {
     e.preventDefault();
@@ -126,7 +154,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
       <div className="relative my-auto w-full max-w-md rounded-2xl border gold-line bg-ink-900/95 p-6 shadow-2xl">
         <div className="flex items-center justify-between">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
-            {done ? "Accès débloqué" : "Déverrouiller l'accès"}
+            {done ? "Accès débloqué" : step === "signup" ? "Créer votre compte" : "Déverrouiller l'accès"}
           </span>
           <button onClick={onClose} aria-label="Fermer"
                   className="h-8 w-8 grid place-items-center rounded-full border hairline text-mist hover:text-bone">
@@ -163,6 +191,32 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
               Accéder à mon dashboard
             </button>
           </div>
+        ) : step === "signup" ? (
+          <form onSubmit={submitSignup} className="mt-3">
+            <h3 className="font-display font-light text-[22px] leading-tight tracking-tightest text-bone">
+              Créez votre compte
+            </h3>
+            <p className="mt-2 text-[13px] leading-relaxed text-mist">
+              Renseignez vos informations pour activer votre accès.
+            </p>
+            <input type="text" value={firstName} autoFocus
+              onChange={(e) => { setFirstName(e.target.value); setSuErr(""); }}
+              placeholder="Prénom" autoComplete="given-name"
+              className="mt-4 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none" />
+            <input type="email" value={suEmail}
+              onChange={(e) => { setSuEmail(e.target.value); setSuErr(""); }}
+              placeholder="Adresse e-mail" autoComplete="email"
+              className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none" />
+            <input type="password" value={suPwd}
+              onChange={(e) => { setSuPwd(e.target.value); setSuErr(""); }}
+              placeholder="Mot de passe (6 car. min.)" autoComplete="new-password"
+              className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none" />
+            {suErr && <p className="mt-2 text-[12.5px] text-rose-400/90">{suErr}</p>}
+            <button type="submit" disabled={suBusy}
+              className="btn-gold mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-60">
+              {suBusy ? "Création…" : <>Continuer <IconArrow className="h-4 w-4" /></>}
+            </button>
+          </form>
         ) : (
         <>
         <h3 className="mt-3 font-display font-light text-[22px] leading-tight tracking-tightest text-bone">

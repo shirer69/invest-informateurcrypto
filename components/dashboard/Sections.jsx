@@ -755,6 +755,8 @@ export function CopyTrading() {
   const status = (s && s.status) || "idle";
   const meta = STATUS_META[status] || STATUS_META.idle;
   const active = s && s.active;
+  const isReal = (s && s.mode) === "real";          // bascule sandbox→réel (env serveur)
+  const futuresHost = isReal ? "futures.kraken.com" : "demo-futures.kraken.com";
 
   async function saveKeys() {
     setBusy(true); setMsg("");
@@ -790,7 +792,12 @@ export function CopyTrading() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 className="font-display text-[18px] text-bone">Copy-trading <DemoTag /></h3>
+        <h3 className="font-display text-[18px] text-bone inline-flex items-center gap-2">
+          Copy-trading
+          {isReal ? (
+            <span className="font-mono text-[9px] uppercase tracking-widest2 text-rose-300 border border-rose-500/40 bg-rose-500/10 rounded px-1.5 py-0.5">réel</span>
+          ) : <DemoTag />}
+        </h3>
         <span className={`inline-flex items-center gap-2 text-[12px] ${meta.color}`}>
           <span className={`h-2 w-2 rounded-full ${meta.dot}`} /> {meta.label}
         </span>
@@ -799,15 +806,22 @@ export function CopyTrading() {
       {!configured ? (
         /* ---- onboarding : saisie des clés ---- */
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 max-w-2xl">
-          <h4 className="font-display text-[18px] text-bone">Connecte ton compte démo Futures</h4>
+          <h4 className="font-display text-[18px] text-bone">
+            Connecte ton compte {isReal ? "Kraken Futures" : "démo Futures"}
+          </h4>
           <p className="mt-2 text-[13.5px] leading-relaxed text-mist">
             Le copy-trading réplique automatiquement les positions du trader sur <b>ton</b> compte
-            de démonstration Kraken Futures. Crée deux clés API sur{" "}
-            <a className="text-gold underline" href="https://demo-futures.kraken.com" target="_blank" rel="noopener noreferrer">
-              demo-futures.kraken.com
+            Kraken Futures{isReal ? " réel" : " de démonstration"}. Crée deux clés API sur{" "}
+            <a className="text-gold underline" href={`https://${futuresHost}`} target="_blank" rel="noopener noreferrer">
+              {futuresHost}
             </a>{" "}
             (Settings → API Keys, droit de trading), puis colle-les ci-dessous.
           </p>
+          {isReal && (
+            <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">
+              ⚠️ Mode RÉEL : les ordres sont exécutés avec de l'argent réel sur ton compte.
+            </p>
+          )}
           <div className="mt-5 space-y-3">
             <div>
               <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique</label>

@@ -16,7 +16,8 @@ export const dynamic = "force-dynamic";
 // Caches en mémoire (persistent sur instance serverless chaude).
 const _baselineCache = {};            // norm -> cours au 1er juin (FIGÉ, jamais recalculé)
 let _portfolioCache = { ts: 0, data: null };
-const PORTFOLIO_TTL_MS = 25_000;      // réponse portefeuille réutilisée 25 s
+const PORTFOLIO_TTL_MS = 300_000;     // réponse portefeuille réutilisée 5 min
+const PORTFOLIO_STALE_MS = 1800_000;  // cache périmé servi si Kraken rate-limite (30 min max)
 
 const FIAT = new Set(["USD", "EUR", "GBP", "CHF", "CAD", "AUD", "JPY", "USDT", "USDC", "DAI"]);
 const STOCKS = new Set([
@@ -51,6 +52,10 @@ export async function GET() {
 
   const [bal, tb] = await Promise.all([spotBalance(), spotTradeBalance()]);
   if (!bal.ok) {
+    // Rate-limit Kraken : servir le cache périmé plutôt qu'une erreur
+    if (_portfolioCache.data && Date.now() - _portfolioCache.ts < PORTFOLIO_STALE_MS) {
+      return NextResponse.json({ ..._portfolioCache.data, stale: true, cached: true });
+    }
     return NextResponse.json({ ok: false, error: bal.error }, { status: 200 });
   }
 
@@ -89,23 +94,25 @@ export async function GET() {
   // FIGÉ → mis en cache : on n'interroge l'OHLC que pour les actifs pas encore connus.
   const baseNorms = [...new Set(pairAssets)]; // hors USD/ZUSD
   const missing = baseNorms.filter((n) => _baselineCache[n] === undefined);
-  await Promise.all(
-    missing.map(async (norm) => {
-      try {
-        // `since` quelques jours avant pour garantir la bougie du 1er juin.
-        const res = await spotOHLC(`${norm}USD`, BASELINE_TS - 3 * 86400, 1440);
-        let found = null;
-        for (const [k, candles] of Object.entries(res)) {
-          if (k === "last" || !Array.isArray(candles)) continue;
-          const c = candles.find((row) => Number(row[0]) >= BASELINE_TS);
-          if (c) { found = parseFloat(c[1]); break; } // [time, open, ...]
+  // Appels OHLC en série (max 2 en parallèle) pour ne pas saturer le rate-limit Kraken.
+  for (let i = 0; i < missing.length; i += 2) {
+    await Promise.all(
+      missing.slice(i, i + 2).map(async (norm) => {
+        try {
+          const res = await spotOHLC(`${norm}USD`, BASELINE_TS - 3 * 86400, 1440);
+          let found = null;
+          for (const [k, candles] of Object.entries(res)) {
+            if (k === "last" || !Array.isArray(candles)) continue;
+            const c = candles.find((row) => Number(row[0]) >= BASELINE_TS);
+            if (c) { found = parseFloat(c[1]); break; }
+          }
+          _baselineCache[norm] = found;
+        } catch {
+          _baselineCache[norm] = null;
         }
-        _baselineCache[norm] = found; // mémorise même null (évite de re-tenter en boucle)
-      } catch {
-        _baselineCache[norm] = null;
-      }
-    })
-  );
+      })
+    );
+  }
 
   const holdings = entries.map((e) => {
     const kind = classify(e.norm);

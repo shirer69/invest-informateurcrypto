@@ -13,6 +13,11 @@ const BASELINE_TS = Math.floor(Date.UTC(2026, 5, 1) / 1000); // mois index 5 = j
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Caches en mémoire (persistent sur instance serverless chaude).
+const _baselineCache = {};            // norm -> cours au 1er juin (FIGÉ, jamais recalculé)
+let _portfolioCache = { ts: 0, data: null };
+const PORTFOLIO_TTL_MS = 25_000;      // réponse portefeuille réutilisée 25 s
+
 const FIAT = new Set(["USD", "EUR", "GBP", "CHF", "CAD", "AUD", "JPY", "USDT", "USDC", "DAI"]);
 const STOCKS = new Set([
   "AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "GOOGL", "GOOG", "META", "NFLX", "AMD",
@@ -37,6 +42,11 @@ export async function GET() {
   const { configured } = getSpotKeys();
   if (!configured) {
     return NextResponse.json({ ok: false, error: "not_configured" }, { status: 200 });
+  }
+
+  // Cache court : on réutilise la dernière réponse OK pendant 25 s.
+  if (_portfolioCache.data && Date.now() - _portfolioCache.ts < PORTFOLIO_TTL_MS) {
+    return NextResponse.json({ ..._portfolioCache.data, cached: true });
   }
 
   const [bal, tb] = await Promise.all([spotBalance(), spotTradeBalance()]);
@@ -76,21 +86,24 @@ export async function GET() {
   }
 
   // Baseline de performance : cours de CHAQUE actif au 1er juin 2026 (OHLC journalier).
-  // P&L = progression depuis ce cours (même pour les actifs détenus avant le 1er juin).
-  const baselineByNorm = {};
+  // FIGÉ → mis en cache : on n'interroge l'OHLC que pour les actifs pas encore connus.
   const baseNorms = [...new Set(pairAssets)]; // hors USD/ZUSD
+  const missing = baseNorms.filter((n) => _baselineCache[n] === undefined);
   await Promise.all(
-    baseNorms.map(async (norm) => {
+    missing.map(async (norm) => {
       try {
         // `since` quelques jours avant pour garantir la bougie du 1er juin.
         const res = await spotOHLC(`${norm}USD`, BASELINE_TS - 3 * 86400, 1440);
+        let found = null;
         for (const [k, candles] of Object.entries(res)) {
           if (k === "last" || !Array.isArray(candles)) continue;
-          // 1ère bougie dont le temps >= 1er juin → cours d'ouverture de ce jour.
           const c = candles.find((row) => Number(row[0]) >= BASELINE_TS);
-          if (c) { baselineByNorm[norm] = parseFloat(c[1]); break; } // [time, open, ...]
+          if (c) { found = parseFloat(c[1]); break; } // [time, open, ...]
         }
-      } catch {}
+        _baselineCache[norm] = found; // mémorise même null (évite de re-tenter en boucle)
+      } catch {
+        _baselineCache[norm] = null;
+      }
     })
   );
 
@@ -99,7 +112,7 @@ export async function GET() {
     const price = kind === "cash" && e.norm === "USD" ? 1 : priceFor(e.norm);
     const value = price !== null ? e.amount * price : null;
     // baseline = prix unitaire au 1er juin ; cost = valeur de référence (qté × baseline).
-    const baseline = baselineByNorm[e.norm] != null ? baselineByNorm[e.norm] : null;
+    const baseline = _baselineCache[e.norm] != null ? _baselineCache[e.norm] : null;
     const cost = baseline != null ? e.amount * baseline : null;
     return { asset: e.asset, symbol: e.norm, amount: e.amount, price, value, baseline, cost, kind };
   });
@@ -110,7 +123,7 @@ export async function GET() {
   const tradeEquity =
     tb.ok && tb.result ? parseFloat(tb.result.eb || tb.result.e || "0") : null;
 
-  return NextResponse.json({
+  const payload = {
     ok: true,
     holdings: holdings.sort((a, b) => (b.value || 0) - (a.value || 0)),
     totals: {
@@ -119,5 +132,7 @@ export async function GET() {
       cash: sum("cash"),
       spotEquity: tradeEquity, // valeur de référence Kraken (TradeBalance)
     },
-  });
+  };
+  _portfolioCache = { ts: Date.now(), data: payload };
+  return NextResponse.json(payload);
 }

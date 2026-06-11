@@ -81,15 +81,20 @@ export default function PortfolioKraken() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [s, f, fp, mp, tk, ma] = await Promise.all([
-      fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null),
+    // 1) Spot d'abord : débloque le hero / le P&L dès que possible.
+    const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
+    setSpot(s);
+    if (s && s.ok) setFirstDone(true);
+
+    // 2) Le reste (futures, marge, tickers) en arrière-plan, sans bloquer l'affichage.
+    const [f, fp, mp, tk, ma] = await Promise.all([
       fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
-      copyMaster().catch(() => null), // positions du master A (perps copiés)
+      copyMaster().catch(() => null),
     ]);
-    setSpot(s); setFut(f); setFutPos(fp); setMaster(ma);
+    setFut(f); setFutPos(fp); setMaster(ma);
     const map = {};
     for (const t of (tk?.tickers || [])) {
       const p = parseFloat(t.markPrice ?? t.last ?? 0);
@@ -108,8 +113,6 @@ export default function PortfolioKraken() {
     }));
     setMarginPos(list);
     setLoading(false);
-    // « Chargé » uniquement si le portefeuille spot est réellement remonté.
-    if (s && s.ok) setFirstDone(true);
   }, []);
 
   useEffect(() => { load(); }, [load]);

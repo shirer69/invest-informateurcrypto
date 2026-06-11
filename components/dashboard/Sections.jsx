@@ -7,6 +7,7 @@ import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked } from "@/components/dashboard/UnlockProvider";
+import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
@@ -89,52 +90,19 @@ export function Positions() {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="font-display text-[18px] text-bone">Positions</h3>
+        <h3 className="font-display text-[18px] text-bone">Positions Futures</h3>
         <span className="font-mono text-[9px] uppercase tracking-widest2 text-emerald-400 border border-emerald-500/30 rounded px-1.5 py-0.5">
           lecture seule
         </span>
-        <DemoTag />
       </div>
       <Locked>
-      <div className="rounded-2xl border hairline bg-ink-800/50 overflow-x-auto">
-        <table className="w-full min-w-[420px] text-[13.5px]">
-          <thead>
-            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-              <th className="px-5 py-3">Actif</th>
-              <th className="px-5 py-3">Sens</th>
-              <th className="px-5 py-3 hidden sm:table-cell">Entrée</th>
-              <th className="px-5 py-3 hidden sm:table-cell">Dernier</th>
-              <th className="px-5 py-3 hidden md:table-cell">Taille</th>
-              <th className="px-5 py-3 text-right">P&L</th>
-            </tr>
-          </thead>
-          <tbody>
-            {POSITIONS.map((p) => {
-              const up = p.pnlPct >= 0;
-              return (
-                <tr key={p.asset} className="border-b hairline last:border-0">
-                  <td className="px-5 py-3.5 font-medium text-bone">{p.asset}</td>
-                  <td className="px-5 py-3.5">
-                    <span className={`text-[12px] ${p.side === "Long" ? "text-emerald-400" : "text-rose-400"}`}>
-                      {p.side}
-                    </span>
-                  </td>
-                  <td className="px-5 py-3.5 font-mono text-mist hidden sm:table-cell">{p.entry}</td>
-                  <td className="px-5 py-3.5 font-mono text-mist hidden sm:table-cell">{p.last}</td>
-                  <td className="px-5 py-3.5 font-mono text-mist hidden md:table-cell">{p.size}</td>
-                  <td className={`px-5 py-3.5 text-right font-mono ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {up ? "+" : ""}{p.pnlPct.toFixed(2)} %
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-1.5">
+        <RealFuturesPositions />
       </div>
       </Locked>
       <Disclaimer>
-        Affichage à titre illustratif — aucune connexion à un compte réel et aucune
-        exécution d'ordre n'est effectuée depuis cette interface.
+        Positions ouvertes du compte Futures Kraken, en lecture seule — aucune exécution
+        d'ordre n'est possible depuis cette interface.
       </Disclaimer>
     </div>
   );
@@ -200,11 +168,11 @@ export function Analytics() {
         copyMasterPnl().catch(() => ({ months: [] })),
       ]);
       const map = {};
-      const ensure = (m) => (map[m] = map[m] || { spot: 0, margin: 0, perps: 0 });
-      (sp?.months || []).forEach((m) => { ensure(m.month).spot = m.spot; map[m.month].margin = m.margin; });
+      const ensure = (m) => (map[m] = map[m] || { spot: 0, margin: 0, perps: 0, stock: 0 });
+      (sp?.months || []).forEach((m) => { ensure(m.month).spot = m.spot; map[m.month].margin = m.margin; map[m.month].stock = m.stock || 0; });
       (pp?.months || []).forEach((m) => { ensure(m.month).perps = m.pnl; });
       const arr = Object.entries(map)
-        .map(([month, v]) => ({ month, ...v, total: v.spot + v.margin + v.perps }))
+        .map(([month, v]) => ({ month, ...v, total: v.spot + v.margin + v.perps + v.stock }))
         .sort((a, b) => a.month.localeCompare(b.month));
       setRows(arr);
     })();
@@ -225,7 +193,7 @@ export function Analytics() {
   const max = Math.max(1, ...rows.map((r) => Math.abs(r.total)));
   // Affichage uniquement en % (jamais de montant) : part relative à l'activité totale.
   const denomAbs = rows.reduce(
-    (s, r) => s + Math.abs(r.spot) + Math.abs(r.margin) + Math.abs(r.perps), 0
+    (s, r) => s + Math.abs(r.spot) + Math.abs(r.stock) + Math.abs(r.margin) + Math.abs(r.perps), 0
   );
   const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
   const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
@@ -244,7 +212,7 @@ export function Analytics() {
       {/* histogramme PnL mensuel (total) */}
       <div className="rounded-2xl border hairline bg-ink-800/50 p-6 mb-5">
         <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-          PnL réalisé par mois — compte complet (spot · marge · perps)
+          PnL réalisé par mois — compte complet (spot · actions US · marge · perps)
         </div>
         {rows.length === 0 ? (
           <p className="mt-4 text-[13px] text-mist/60">Aucun résultat sur la période (pas encore d'historique).</p>
@@ -278,6 +246,7 @@ export function Analytics() {
                 <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
                   <th className="text-left font-medium py-2">Mois</th>
                   <th className="text-right font-medium">Spot</th>
+                  <th className="text-right font-medium">Actions US</th>
                   <th className="text-right font-medium">Marge</th>
                   <th className="text-right font-medium">Perps</th>
                   <th className="text-right font-medium">Total</th>
@@ -288,6 +257,7 @@ export function Analytics() {
                   <tr key={r.month} className="border-t hairline">
                     <td className="py-2.5 text-bone">{moLabel(r.month)}</td>
                     <td className={`text-right ${signClass(r.spot)}`}>{pctStr(r.spot)}</td>
+                    <td className={`text-right ${signClass(r.stock)}`}>{pctStr(r.stock)}</td>
                     <td className={`text-right ${signClass(r.margin)}`}>{pctStr(r.margin)}</td>
                     <td className={`text-right ${signClass(r.perps)}`}>{pctStr(r.perps)}</td>
                     <td className={`text-right font-semibold ${signClass(r.total)}`}>{pctStr(r.total)}</td>
@@ -625,6 +595,16 @@ export function Monitoring({ onGoCopy }) {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Positions du compte Futures réel (lecture seule) */}
+      <div className="mt-5 rounded-2xl border hairline bg-ink-800/50 p-5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+          Positions Futures — compte réel (lecture seule)
+        </span>
+        <div className="mt-3">
+          <RealFuturesPositions />
+        </div>
       </div>
 
       {/* Audios Pôle Trading */}

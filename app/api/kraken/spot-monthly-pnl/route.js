@@ -6,6 +6,16 @@ export const dynamic = "force-dynamic";
 
 const QUOTES = ["ZUSD", "USD", "ZEUR", "EUR", "USDT", "USDC"];
 
+// Actions US tokenisées (xStocks Kraken) — même liste que /spot/portfolio.
+const STOCKS = new Set([
+  "AAPL", "TSLA", "NVDA", "MSFT", "AMZN", "GOOGL", "GOOG", "META", "NFLX", "AMD",
+  "SPY", "QQQ", "COIN", "MSTR", "PLTR", "INTC", "DIS", "BABA", "ABNB", "MCD",
+]);
+const isStock = (base) => {
+  const b = (base || "").toUpperCase();
+  return STOCKS.has(b) || STOCKS.has(b.replace(/X$/i, ""));
+};
+
 function splitPair(pair) {
   const p = (pair || "").toUpperCase();
   const quote = QUOTES.find((q) => p.endsWith(q)) || "USD";
@@ -37,10 +47,10 @@ export async function GET() {
   } catch {}
   const toUsd = (amount, quote) => amount * (quote === "EUR" ? eurusd : 1);
 
-  const months = {}; // YYYY-MM -> { spot, margin }
+  const months = {}; // YYYY-MM -> { spot, margin, stock }
   const add = (month, kind, usd) => {
     if (!month) return;
-    months[month] = months[month] || { spot: 0, margin: 0 };
+    months[month] = months[month] || { spot: 0, margin: 0, stock: 0 };
     months[month][kind] += usd;
   };
 
@@ -72,14 +82,17 @@ export async function GET() {
       const sold = Math.min(vol, pos[k].vol);
       const proceeds = cost - fee;
       const realized = proceeds - avg * sold; // PnL réalisé en quote
-      add(month, "spot", toUsd(realized, quote));
+      add(month, isStock(base) ? "stock" : "spot", toUsd(realized, quote));
       pos[k].vol -= sold;
       pos[k].cost = Math.max(0, pos[k].cost - avg * sold);
     }
   }
 
   const out = Object.entries(months)
-    .map(([month, v]) => ({ month, spot: +v.spot.toFixed(2), margin: +v.margin.toFixed(2) }))
+    .map(([month, v]) => ({
+      month, spot: +v.spot.toFixed(2), margin: +v.margin.toFixed(2),
+      stock: +(v.stock || 0).toFixed(2),
+    }))
     .sort((a, b) => a.month.localeCompare(b.month));
 
   return NextResponse.json({ ok: true, months: out });

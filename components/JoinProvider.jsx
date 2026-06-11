@@ -125,7 +125,14 @@ export default function JoinProvider({ children }) {
         return;
       }
     } else if (!r.ok) {
-      setSignupErr("Création du compte impossible. Réessayez.");
+      const MSG = {
+        uid_pending:
+          "Dépôt reçu ✓ — il reste à effectuer votre premier trade : ouvrez puis fermez une position en perpétuels (futures) sur Kraken pour valider votre compte.",
+        uid_notfound:
+          "Dépôt non détecté. Créez votre compte Kraken via notre lien et déposez au moins 5 $, puis réessayez.",
+        uid_invalid: "UID Kraken invalide (saisissez au moins les 4 derniers caractères).",
+      };
+      setSignupErr(MSG[r.error] || "Création du compte impossible. Réessayez.");
       return;
     }
 
@@ -319,22 +326,37 @@ export default function JoinProvider({ children }) {
                           </button>
                         </div>
                         {vState === "notfound" && (
-                          <p className="mt-2.5 text-[12.5px] text-amber-300/90">
-                            Attribution introuvable ou pas encore active. Si vous venez de
-                            déposer, patientez puis réessayez — ou contactez-nous sur{" "}
-                            <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer" className="underline decoration-gold/40 text-gold">Telegram</a>.
-                          </p>
+                          <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
+                            <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
+                              Étape 1 — Dépôt non détecté
+                            </div>
+                            <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
+                              Nous ne détectons pas encore de dépôt rattaché à cet UID. Créez votre
+                              compte <b>Kraken</b> via notre lien partenaire et effectuez un dépôt
+                              (<b>5&nbsp;$ minimum</b>), puis réessayez. Si vous venez de déposer,
+                              patientez quelques minutes.
+                            </p>
+                            <a
+                              href={KRAKEN_URL}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-gold hover:text-gold-soft transition-colors"
+                            >
+                              Créer mon compte Kraken & déposer
+                              <IconArrow className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
                         )}
                         {vState === "pending" && (
                           <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
                             <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
-                              Statut : en attente (pending)
+                              Étape 2 — Premier trade requis
                             </div>
                             <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
-                              Votre compte est bien rattaché mais l'attribution n'est pas encore
-                              <b> active</b>. Pour l'activer : ouvrez puis refermez une petite
-                              position en <b>perpétuels (futures)</b> sur Kraken, puis cliquez
-                              de nouveau sur <b>Vérifier</b> pour obtenir votre accès.
+                              ✓ <b>Dépôt bien reçu.</b> Dernière étape pour valider votre compte :
+                              <b> ouvrez puis refermez une position en perpétuels (futures)</b> sur
+                              Kraken — même un montant minime suffit. Cliquez ensuite de nouveau sur
+                              <b> Vérifier</b> pour débloquer votre accès.
                             </p>
                             <a
                               href={KRAKEN_URL}

@@ -12,6 +12,7 @@ import Billing from "@/components/dashboard/Billing";
 import Account from "@/components/dashboard/Account";
 import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
+import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccessCode } from "@/lib/clientStore";
 
@@ -41,6 +42,7 @@ export default function Dashboard() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
   const [codeMsg, setCodeMsg] = useState(null); // {ok, text} — redemption auto via ?code
+  const [booted, setBooted] = useState(false); // résolution initiale (web immédiat, mini-app après auto-login)
 
   useEffect(() => {
     setUser(getUser());
@@ -48,6 +50,13 @@ export default function Dashboard() {
       const l = localStorage.getItem("pi_tg_link");
       if (l) setTgLink(l);
     } catch {}
+    // Hors mini-app Telegram : on peut statuer immédiatement.
+    let inTg = false;
+    try {
+      inTg = /tgWebApp/i.test(window.location.hash) || /tgWebApp/i.test(window.location.search) ||
+        !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+    } catch {}
+    if (!inTg) setBooted(true);
   }, []);
 
   // Code reçu par Telegram : bouton "SAISIR MON CODE" → /dashboard?code=XXXX → redemption auto.
@@ -93,10 +102,14 @@ export default function Dashboard() {
         if (!getToken() && tg.initData) {
           apiTelegramAuth(tg.initData).then((r) => {
             if (r.ok) setUser(r.user);
+            setBooted(true);
           });
+        } else {
+          setBooted(true);
         }
       } else if (tries > 40) {
         clearInterval(id);
+        setBooted(true);
       }
     }, 100);
     return () => clearInterval(id);
@@ -105,6 +118,31 @@ export default function Dashboard() {
   const name = user?.name || "Invité";
   const canCopy = (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
   const nav = NAV; // Copy-trading reste visible pour tous ; l'accès est restreint au contenu.
+
+  // Tunnel d'entrée : tant que l'utilisateur n'a pas créé son compte (prénom/mail/pwd),
+  // on affiche le gate code → inscription. Un compte Telegram brut (tg…@telegram.local)
+  // n'est pas considéré comme inscrit.
+  const emailLc = (user?.email || "").toLowerCase();
+  const registered = !!user && !emailLc.endsWith("@telegram.local");
+
+  if (!booted) {
+    return (
+      <div className="min-h-screen aura grid place-items-center">
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
+        <div className="text-mist text-[13px]">Chargement…</div>
+      </div>
+    );
+  }
+
+  if (!registered) {
+    return (
+      <div className="min-h-screen aura">
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
+        <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+        <SignupGate onDone={() => setUser(getUser())} onLogin={() => setLoginOpen(true)} />
+      </div>
+    );
+  }
 
   return (
     <UnlockProvider>

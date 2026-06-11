@@ -116,8 +116,9 @@ export default function JoinProvider({ children }) {
     }
     setSignupErr("");
 
-    // Création de compte serveur (avec prénom + UID Kraken pour le rapprochement).
-    let r = await apiSignup({ email: mail, password: pwd, name: fn, uid });
+    // Création de compte serveur (prénom + email + mot de passe). L'accès au contenu
+    // reste verrouillé dans le dashboard tant qu'il n'est pas débloqué (IIBAN ou 239 $).
+    let r = await apiSignup({ email: mail, password: pwd, name: fn });
     if (!r.ok && r.error === "email_exists") {
       r = await apiLogin({ email: mail, password: pwd });
       if (!r.ok) {
@@ -125,31 +126,11 @@ export default function JoinProvider({ children }) {
         return;
       }
     } else if (!r.ok) {
-      const MSG = {
-        uid_pending:
-          "Dépôt reçu ✓ — il reste à effectuer votre premier trade : ouvrez puis fermez une position en perpétuels (futures) sur Kraken pour valider votre compte.",
-        uid_notfound:
-          "Dépôt non détecté. Créez votre compte Kraken via notre lien et déposez au moins 5 $, puis réessayez.",
-        uid_invalid: "UID Kraken invalide (saisissez au moins les 4 derniers caractères).",
-      };
-      setSignupErr(MSG[r.error] || "Création du compte impossible. Réessayez.");
+      setSignupErr("Création du compte impossible. Réessayez.");
       return;
     }
 
-    // Génère un lien d'invitation unique (avec demande d'adhésion), titré au nom du membre.
-    let link = inviteLink;
-    try {
-      const res = await fetch(`${API_BASE}/api/verify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid, name: mail }),
-      });
-      const data = await res.json();
-      if (data.status === "active" && data.link) link = data.link;
-    } catch {}
-
     if (typeof window !== "undefined") {
-      if (link) localStorage.setItem("pi_tg_link", link);
       window.location.href = "/dashboard";
     }
   };
@@ -250,199 +231,58 @@ export default function JoinProvider({ children }) {
                     </form>
                   </motion.div>
                 ) : (
-                  <motion.div
-                    key="steps"
+                  <motion.form
+                    key="signup"
+                    onSubmit={submitSignup}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, ease }}
                   >
                     <h3 className="font-display font-light text-[26px] leading-tight tracking-tightest text-bone">
-                      Trois étapes pour rejoindre{" "}
-                      <span className="text-mist">(5 min)</span>
+                      Créez votre compte
                     </h3>
                     <p className="mt-3 text-[13.5px] leading-relaxed text-mist">
-                      Suivez ces étapes dans l'ordre. L'accès est activé après validation de
-                      votre dépôt.
+                      Renseignez vos informations pour accéder à votre tableau de bord. Vous
+                      débloquerez ensuite le contenu directement depuis le dashboard
+                      (validation IIBAN Kraken — 3 mois offerts — ou abonnement).
                     </p>
 
-                    <div className="mt-4 flex items-center gap-3 rounded-2xl border gold-line bg-gold/[0.06] px-4 py-3">
-                      <span className="font-display text-[34px] leading-none text-gold-grad whitespace-nowrap shrink-0">5&nbsp;$</span>
-                      <span className="text-[13px] leading-snug text-bone min-w-0">
-                        Dépôt minimum
-                        <span className="block text-[11.5px] text-mist">ticket d'entrée pour accéder au Pôle Invest</span>
-                      </span>
-                    </div>
-
-                    <div className="mt-6 space-y-3">
-                      {STEPS.map((s) => (
-                        <div
-                          key={s.n}
-                          className="flex gap-4 rounded-2xl border hairline bg-white/[0.02] p-4"
-                        >
-                          <span className="grid place-items-center h-8 w-8 shrink-0 rounded-full border gold-line text-gold font-mono text-[13px]">
-                            {s.n}
-                          </span>
-                          <div className="min-w-0">
-                            <h4 className="font-display text-[16px] text-bone">{s.t}</h4>
-                            <p className="mt-1 text-[13px] leading-relaxed text-mist">{s.d}</p>
-                            {s.cta && (
-                              <a
-                                href={s.cta.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group mt-2.5 inline-flex items-center gap-1.5 text-[12.5px] text-gold hover:text-gold-soft transition-colors"
-                              >
-                                {s.cta.label}
-                                <IconArrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Vérification de l'UID */}
-                    {vState !== "active" ? (
-                      <form onSubmit={verifyUid} className="mt-5 rounded-2xl border gold-line bg-gold/[0.05] p-4">
-                        <label className="font-mono text-[10.5px] uppercase tracking-widest2 text-gold/80">
-                          Votre UID Kraken (identifiant IIBAN)
-                        </label>
-                        <div className="mt-2.5 flex gap-2">
-                          <input
-                            value={uid}
-                            onChange={(e) => {
-                              setUid(e.target.value);
-                              if (vState !== "idle" && vState !== "checking") setVState("idle");
-                            }}
-                            placeholder="UID Kraken (identifiant IIBAN)"
-                            className="flex-1 min-w-0 rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 font-mono text-[13px] tracking-wide outline-none transition-colors"
-                          />
-                          <button
-                            type="submit"
-                            disabled={vState === "checking"}
-                            className="btn-gold shrink-0 rounded-xl px-5 py-3 text-[13.5px] font-semibold disabled:opacity-60"
-                          >
-                            {vState === "checking" ? "Vérification…" : "Vérifier"}
-                          </button>
-                        </div>
-                        {vState === "notfound" && (
-                          <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
-                            <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
-                              Étape 1 — Dépôt non détecté
-                            </div>
-                            <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
-                              Nous ne détectons pas encore de dépôt rattaché à cet UID. Créez votre
-                              compte <b>Kraken</b> via notre lien partenaire et effectuez un dépôt
-                              (<b>5&nbsp;$ minimum</b>), puis réessayez. Si vous venez de déposer,
-                              patientez quelques minutes.
-                            </p>
-                            <a
-                              href={KRAKEN_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-gold hover:text-gold-soft transition-colors"
-                            >
-                              Créer mon compte Kraken & déposer
-                              <IconArrow className="h-3.5 w-3.5" />
-                            </a>
-                          </div>
-                        )}
-                        {vState === "pending" && (
-                          <div className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] p-3.5">
-                            <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
-                              Étape 2 — Premier trade requis
-                            </div>
-                            <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
-                              ✓ <b>Dépôt bien reçu.</b> Dernière étape pour valider votre compte :
-                              <b> ouvrez puis refermez une position en perpétuels (futures)</b> sur
-                              Kraken — même un montant minime suffit. Cliquez ensuite de nouveau sur
-                              <b> Vérifier</b> pour débloquer votre accès.
-                            </p>
-                            <a
-                              href={KRAKEN_URL}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="mt-2 inline-flex items-center gap-1.5 text-[12.5px] text-gold hover:text-gold-soft transition-colors"
-                            >
-                              Ouvrir Kraken (futures)
-                              <IconArrow className="h-3.5 w-3.5" />
-                            </a>
-                          </div>
-                        )}
-                        {vState === "invalid" && (
-                          <p className="mt-2.5 text-[12.5px] text-red-400/90">
-                            Saisissez un identifiant valide (au moins les 4 derniers caractères de votre IIBAN).
-                          </p>
-                        )}
-                        {vState === "error" && (
-                          <p className="mt-2.5 text-[12.5px] text-red-400/90">
-                            Erreur de vérification. Réessayez dans un instant.
-                          </p>
-                        )}
-
-                        <a
-                          href={KRAKEN_URL}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="group mt-3 inline-flex items-center gap-1.5 text-[12.5px] text-mist hover:text-bone transition-colors"
-                        >
-                          Pas encore de compte ? Créer mon compte Kraken
-                          <IconArrow className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
-                        </a>
-                      </form>
-                    ) : (
-                      <motion.form
-                        onSubmit={submitSignup}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-5 rounded-2xl border gold-line bg-gold/[0.06] p-5"
-                      >
-                        <div className="flex items-center gap-2 text-[12px] text-gold font-mono uppercase tracking-widest2">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                          Statut : actif ✓
-                        </div>
-                        <p className="mt-2.5 text-[14px] text-bone">
-                          Dernière étape : créez votre compte pour accéder à votre{" "}
-                          <span className="text-gold">tableau de bord</span> (track record,
-                          posts VIP, lien du groupe privé).
-                        </p>
-                        <input
-                          type="text"
-                          value={firstName}
-                          onChange={(e) => { setFirstName(e.target.value); setSignupErr(""); }}
-                          placeholder="Prénom"
-                          autoComplete="given-name"
-                          className="mt-4 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
-                        />
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => { setEmail(e.target.value); setSignupErr(""); }}
-                          placeholder="Adresse e-mail"
-                          autoComplete="email"
-                          className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
-                        />
-                        <input
-                          type="password"
-                          value={pwd}
-                          onChange={(e) => { setPwd(e.target.value); setSignupErr(""); }}
-                          placeholder="Mot de passe (6 caractères min.)"
-                          autoComplete="new-password"
-                          className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
-                        />
-                        {signupErr && (
-                          <p className="mt-2 text-[12.5px] text-red-400/90">{signupErr}</p>
-                        )}
-                        <button
-                          type="submit"
-                          className="btn-gold mt-4 w-full inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[15px] font-semibold"
-                        >
-                          Créer mon compte & accéder au tableau de bord
-                          <IconArrow className="h-4 w-4" />
-                        </button>
-                      </motion.form>
+                    <input
+                      type="text"
+                      autoFocus
+                      value={firstName}
+                      onChange={(e) => { setFirstName(e.target.value); setSignupErr(""); }}
+                      placeholder="Prénom"
+                      autoComplete="given-name"
+                      className="mt-5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                    />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => { setEmail(e.target.value); setSignupErr(""); }}
+                      placeholder="Adresse e-mail"
+                      autoComplete="email"
+                      className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                    />
+                    <input
+                      type="password"
+                      value={pwd}
+                      onChange={(e) => { setPwd(e.target.value); setSignupErr(""); }}
+                      placeholder="Mot de passe (6 caractères min.)"
+                      autoComplete="new-password"
+                      className="mt-2.5 w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/40 text-[14px] outline-none transition-colors"
+                    />
+                    {signupErr && (
+                      <p className="mt-2 text-[12.5px] text-red-400/90">{signupErr}</p>
                     )}
-                  </motion.div>
+                    <button
+                      type="submit"
+                      className="btn-gold mt-5 w-full inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[15px] font-semibold"
+                    >
+                      Créer mon compte & accéder au tableau de bord
+                      <IconArrow className="h-4 w-4" />
+                    </button>
+                  </motion.form>
                 )}
               </div>
             </motion.div>

@@ -1,24 +1,34 @@
 "use client";
 
-import { useState } from "react";
-import { getUser } from "@/lib/clientStore";
-import { API_BASE } from "@/lib/site";
+import { useEffect, useState } from "react";
+import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
-// Accès actif si access_until (epoch s ou ms) est dans le futur.
-export function hasAccess() {
-  const u = getUser();
-  const t = u && u.access_until;
-  if (!t) return false;
-  const ms = Number(t) < 1e12 ? Number(t) * 1000 : Number(t);
-  return ms > Date.now();
-}
+export { hasAccess };
 
 export default function LockGate({ children, title = "Contenu réservé aux membres" }) {
-  const [unlocked] = useState(hasAccess());
+  const [unlocked, setUnlocked] = useState(false);
+  const [ready, setReady] = useState(false);
   const [uid, setUid] = useState("");
-  const [state, setState] = useState("idle"); // idle | checking | eligible | pending | notfound | error
-  const [pay, setPay] = useState(false);
+  const [state, setState] = useState("idle"); // idle | checking | pending | notfound | error
+  const [wallet, setWallet] = useState(null);  // {wallet_balance, price_usd, can_pay}
+  const [paying, setPaying] = useState(false);
+  const [payMsg, setPayMsg] = useState("");
+
+  // Confirme l'accès auprès du backend (et synchronise l'utilisateur local).
+  useEffect(() => {
+    let alive = true;
+    setUnlocked(hasAccess());
+    apiAccess().then((r) => {
+      if (!alive) return;
+      if (r && r.ok) {
+        setUnlocked(Boolean(r.has_access));
+        setWallet({ wallet_balance: r.wallet_balance, price_usd: r.price_usd, can_pay: r.can_pay });
+      }
+      setReady(true);
+    });
+    return () => { alive = false; };
+  }, []);
 
   if (unlocked) return children;
 
@@ -26,15 +36,33 @@ export default function LockGate({ children, title = "Contenu réservé aux memb
     e.preventDefault();
     if (uid.trim().replace(/\s+/g, "").length < 4) { setState("notfound"); return; }
     setState("checking");
-    try {
-      const r = await fetch(`${API_BASE}/api/verify`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid }),
-      });
-      const d = await r.json();
-      setState(d.status === "active" ? "eligible" : d.status === "pending" ? "pending" : "notfound");
-    } catch { setState("error"); }
+    const r = await apiAccessIiban(uid.trim());
+    if (r.ok) { setUnlocked(true); return; }
+    if (r.status === 403) {
+      setState(r.uid_status === "pending" ? "pending" : "notfound");
+    } else {
+      setState("error");
+    }
   }
+
+  async function pay() {
+    setPaying(true); setPayMsg("");
+    const r = await apiAccessPay();
+    setPaying(false);
+    if (r.ok) { setUnlocked(true); return; }
+    if (r.status === 402) {
+      setPayMsg(
+        `Solde insuffisant : ${Number(r.wallet_balance ?? 0).toFixed(2)} $ / ${Number(r.price_usd ?? 239).toFixed(0)} $. ` +
+        `Alimentez votre wallet USDT dédié (il manque ${Number(r.missing ?? 0).toFixed(2)} $).`
+      );
+    } else if (r.status === 401) {
+      setPayMsg("Connectez-vous pour finaliser le paiement.");
+    } else {
+      setPayMsg("Erreur lors du paiement, réessayez.");
+    }
+  }
+
+  const price = wallet?.price_usd ?? 239;
 
   return (
     <div className="relative">
@@ -77,11 +105,6 @@ export default function LockGate({ children, title = "Contenu réservé aux memb
                 {state === "checking" ? "…" : "Valider"}
               </button>
             </form>
-            {state === "eligible" && (
-              <p className="mt-2 text-[12.5px] text-emerald-400">
-                ✓ Éligible — vos 3 mois d'accès vont être activés.
-              </p>
-            )}
             {state === "pending" && (
               <p className="mt-2 text-[12.5px] text-amber-300/90">
                 Attribution en attente : ouvrez/fermez une position perps sur Kraken, puis réessayez.
@@ -97,27 +120,29 @@ export default function LockGate({ children, title = "Contenu réservé aux memb
             )}
           </div>
 
-          {/* Option 2 : 239$ via wallet */}
+          {/* Option 2 : abonnement via wallet */}
           <div className="mt-3 rounded-xl border hairline bg-white/[0.02] p-4">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
                 Option 2 · Abonnement
               </span>
-              <span className="text-[13px] font-display text-bone">239 $ <span className="text-mist text-[11px]">/ 3 mois</span></span>
+              <span className="text-[13px] font-display text-bone">
+                {Number(price).toFixed(0)} $ <span className="text-mist text-[11px]">/ 3 mois</span>
+              </span>
             </div>
-            <button
-              onClick={() => setPay(true)}
-              className="btn-ghost mt-2.5 w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px]"
-            >
-              Payer depuis mon wallet <IconArrow className="h-4 w-4" />
-            </button>
-            {pay && (
-              <p className="mt-2 text-[12px] leading-relaxed text-mist">
-                Le paiement se fera par débit de votre <span className="text-bone">wallet USDT</span> dédié
-                (activation à venir). En attendant, alimentez votre wallet depuis l'espace
-                facturation.
+            {wallet && (
+              <p className="mt-2 text-[11.5px] text-mist">
+                Solde wallet : <span className="text-bone font-mono">{Number(wallet.wallet_balance ?? 0).toFixed(2)} $</span>
               </p>
             )}
+            <button
+              onClick={pay}
+              disabled={paying}
+              className="btn-gold mt-2.5 w-full inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60"
+            >
+              {paying ? "Traitement…" : <>Payer {Number(price).toFixed(0)} $ depuis mon wallet <IconArrow className="h-4 w-4" /></>}
+            </button>
+            {payMsg && <p className="mt-2 text-[12px] leading-relaxed text-amber-300/90">{payMsg}</p>}
           </div>
 
           <p className="mt-4 text-[11px] leading-relaxed text-mist/50">

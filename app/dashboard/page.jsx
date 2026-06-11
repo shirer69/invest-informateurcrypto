@@ -132,20 +132,34 @@ export default function Dashboard() {
               <PortfolioKraken />
             </LockGate>
           )}
-          {tab === "vip" && <VipFeed />}
-          {tab === "academy" && <Academy />}
+          {tab === "vip" && (
+            <LockGate title="Alertes & signaux en direct">
+              <VipFeed />
+            </LockGate>
+          )}
+          {tab === "academy" && (
+            <LockGate title="Academy">
+              <Academy />
+            </LockGate>
+          )}
           {tab === "positions" && (
             <LockGate title="Positions Futures en direct">
               <Positions />
             </LockGate>
           )}
-          {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
+          {tab === "monitoring" && (
+            <LockGate title="Monitoring">
+              <Monitoring onGoCopy={() => setTab("copy")} />
+            </LockGate>
+          )}
           {tab === "analytics" && <Analytics />}
           {tab === "community" && (
-            <div>
-              <h3 className="font-display text-[18px] text-bone mb-4">Communauté</h3>
-              <Chat me={user?.name} />
-            </div>
+            <LockGate title="Communauté">
+              <div>
+                <h3 className="font-display text-[18px] text-bone mb-4">Communauté</h3>
+                <Chat me={user?.name} />
+              </div>
+            </LockGate>
           )}
           {tab === "copy" && <CopyTrading />}
         </main>

@@ -5,6 +5,7 @@ import Membership from "@/components/Membership";
 import Founder from "@/components/Founder";
 import Videos from "@/components/Videos";
 import Approach from "@/components/Approach";
+import DashboardShowcase from "@/components/DashboardShowcase";
 import Testimonials from "@/components/Testimonials";
 import Partners from "@/components/Partners";
 import HowToJoin from "@/components/HowToJoin";
@@ -42,6 +43,7 @@ export default function Page() {
         <Founder />
         <Videos />
         <Approach />
+        <DashboardShowcase />
         <Testimonials />
         <Partners />
         <HowToJoin />

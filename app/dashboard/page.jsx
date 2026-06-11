@@ -23,7 +23,7 @@ const NAV = [
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
   { id: "analytics", label: "Analytics", icon: "📈" },
-  { id: "community", label: "Communauté", icon: "👥" },
+  { id: "community", label: "Chat", icon: "💬" },
   { id: "copy", label: "Copy-trading", icon: "🔁", badge: "Soon" },
   { id: "billing", label: "Facturation", icon: "💳" },
   { id: "account", label: "Mon compte", icon: "👤" },
@@ -209,10 +209,11 @@ export default function Dashboard() {
           {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {tab === "analytics" && <Analytics />}
+          {/* Chat : ouvert à tous (même dashboard verrouillé) */}
           {tab === "community" && (
             <div>
-              <h3 className="font-display text-[18px] text-bone mb-4">Communauté</h3>
-              <Locked><Chat me={user?.name} /></Locked>
+              <h3 className="font-display text-[18px] text-bone mb-4">💬 Chat</h3>
+              <Chat me={user?.name} />
             </div>
           )}
           {tab === "copy" && (canCopy ? (

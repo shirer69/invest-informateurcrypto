@@ -31,11 +31,15 @@ const NAV = [
 // Onglet Copy-trading réservé (pour l'instant) à ce compte uniquement.
 const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
 
+// Onglets principaux de la barre du bas (mobile) — les autres sont sous « Plus ».
+const PRIMARY_TABS = ["portfolio", "vip", "positions", "academy"];
+
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("portfolio");
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   useEffect(() => {
     setUser(getUser());
@@ -100,16 +104,11 @@ export default function Dashboard() {
         </div>
       </header>
 
-      <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6 lg:py-8 grid lg:grid-cols-[210px_1fr] gap-5 lg:gap-8">
-        {/* sidebar */}
-        <aside className="lg:sticky lg:top-24 self-start min-w-0">
-          <div className="lg:hidden mb-1.5 flex items-center gap-1.5 font-mono text-[9.5px] uppercase tracking-widest2 text-gold/70">
-            <span>Menu</span>
-            <span className="text-mist/50">— faites défiler</span>
-            <span className="animate-pulse">→</span>
-          </div>
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6 lg:py-8 pb-28 lg:pb-8 grid lg:grid-cols-[210px_1fr] gap-5 lg:gap-8">
+        {/* sidebar (desktop) */}
+        <aside className="hidden lg:block lg:sticky lg:top-24 self-start min-w-0">
           <div className="relative">
-            <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 sm:-mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <nav className="flex lg:flex-col gap-1.5">
               {nav.map((n) => (
                 <button
                   key={n.id}
@@ -174,6 +173,67 @@ export default function Dashboard() {
           {tab === "account" && <Account />}
         </main>
       </div>
+
+      {/* Barre du bas (mobile uniquement) */}
+      {(() => {
+        const primary = nav.filter((n) => PRIMARY_TABS.includes(n.id));
+        const activeInPrimary = primary.some((n) => n.id === tab);
+        return (
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 glass border-t hairline pb-[env(safe-area-inset-bottom)]">
+            <div className="grid grid-cols-5">
+              {primary.map((n) => (
+                <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
+                  className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] ${
+                    tab === n.id ? "text-gold" : "text-mist"
+                  }`}>
+                  <span className="text-[17px] leading-none">{n.icon}</span>
+                  <span className="truncate max-w-[64px]">{n.label}</span>
+                </button>
+              ))}
+              <button onClick={() => setMoreOpen(true)}
+                className={`flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] ${
+                  !activeInPrimary ? "text-gold" : "text-mist"
+                }`}>
+                <span className="text-[17px] leading-none">⋯</span>
+                <span>Plus</span>
+              </button>
+            </div>
+          </nav>
+        );
+      })()}
+
+      {/* Feuille « Plus » (mobile) — tous les onglets */}
+      {moreOpen && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMoreOpen(false)} />
+          <div className="relative w-full rounded-t-3xl border-t gold-line bg-ink-900/98 p-5 pb-[calc(env(safe-area-inset-bottom)+16px)]">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Menu</span>
+              <button onClick={() => setMoreOpen(false)} aria-label="Fermer"
+                className="h-8 w-8 grid place-items-center rounded-full border hairline text-mist">
+                <span className="block w-3.5 h-px bg-current rotate-45 translate-y-[0.5px]" />
+                <span className="block w-3.5 h-px bg-current -rotate-45 -translate-y-[0.5px]" />
+              </button>
+            </div>
+            <div className="grid grid-cols-3 gap-2.5">
+              {nav.map((n) => (
+                <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
+                  className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-4 text-[12px] ${
+                    tab === n.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist border-white/8 hover:text-bone"
+                  }`}>
+                  <span className={`text-[20px] leading-none ${tab === n.id ? "text-gold" : "text-mist/70"}`}>{n.icon}</span>
+                  <span className="text-center leading-tight">{n.label}</span>
+                  {n.badge && (
+                    <span className="absolute top-1.5 right-1.5 rounded-full bg-gold/20 border gold-line px-1.5 text-[8px] font-mono uppercase tracking-wider text-gold">
+                      {n.badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
     </UnlockProvider>
   );

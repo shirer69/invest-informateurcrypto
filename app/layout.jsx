@@ -1,6 +1,7 @@
 import "./globals.css";
 import { Sora, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import JoinProvider from "@/components/JoinProvider";
+import TelegramAuth from "@/components/TelegramAuth";
 
 const display = Sora({
   subsets: ["latin"],
@@ -74,6 +75,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="fr" className={`${display.variable} ${sans.variable} ${mono.variable}`}>
       <body className="font-sans antialiased grain">
+        <TelegramAuth />
         <JoinProvider>{children}</JoinProvider>
       </body>
     </html>

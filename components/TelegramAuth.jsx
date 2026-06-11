@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { apiTelegramAuth } from "@/lib/clientStore";
+import { apiTelegramAuth, getUser } from "@/lib/clientStore";
 
 // Capture l'identité Telegram sur TOUTE page ouverte en tant que Mini App
 // (Main App / direct link du bot pointent vers la page d'accueil).
@@ -18,7 +18,10 @@ export default function TelegramAuth() {
         tg.ready();
         tg.expand();
       } catch {}
-      if (!handled && tg.initData) {
+      // Ne pas écraser une session web réelle déjà ouverte (compte unifié).
+      const cur = getUser();
+      const realSession = cur && cur.email && !cur.email.endsWith("@telegram.local");
+      if (!handled && tg.initData && !realSession) {
         handled = true;
         apiTelegramAuth(tg.initData).catch(() => {});
       }

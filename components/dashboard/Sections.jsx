@@ -12,7 +12,7 @@ import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
-  copyContract, copyContractSign, copySpotPlan,
+  copyContract, copyContractSign, copySpotPlan, copyMarginPlan,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -1080,8 +1080,9 @@ export function CopyTrading() {
             </div>
           )}
 
-          {/* Option 2 — plan spot manuel */}
+          {/* Option 2 — plans manuels (spot + xStocks, marge) */}
           <SpotPlanPanel />
+          <MarginPlanPanel />
 
           {/* facturation */}
           {s.billing && <Billing b={s.billing} />}
@@ -1164,6 +1165,109 @@ function SpotPlanPanel() {
           </p>
         </div>
       )}
+
+      {data && data.xstocks_plan && data.xstocks_plan.length > 0 && (
+        <div className="mt-5 rounded-xl border border-violet-500/30 bg-violet-500/[0.05] p-4">
+          <div className="font-mono text-[10px] uppercase tracking-widest2 text-violet-300">
+            Actions tokenisées (xStocks) — à acheter dans l'app Kraken
+          </div>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[380px] text-[13px] font-mono">
+              <thead>
+                <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                  <th className="px-3 py-2">Titre</th>
+                  <th className="px-3 py-2 text-right">Part</th>
+                  <th className="px-3 py-2 text-right">Montant</th>
+                  <th className="px-3 py-2 text-right">Prix ≈</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.xstocks_plan.filter((p) => p.target_usd > 0).map((p) => (
+                  <tr key={p.asset} className="border-b hairline last:border-0">
+                    <td className="px-3 py-2 text-bone">{p.asset}</td>
+                    <td className="px-3 py-2 text-right text-violet-300">{p.pct} %</td>
+                    <td className="px-3 py-2 text-right text-bone">${p.target_usd}</td>
+                    <td className="px-3 py-2 text-right text-mist">${p.price}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-amber-300/90">
+            ⚠️ Les xStocks ne s'achètent/vendent <b>que via l'app Kraken</b> (aucun ordre par API).
+            {data.xstocks_note ? ` ${data.xstocks_note}` : ""}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MarginPlanPanel() {
+  const [capital, setCapital] = useState("1000");
+  const [data, setData] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function compute() {
+    setBusy(true); setErr("");
+    const r = await copyMarginPlan(parseFloat(capital) || 0);
+    setBusy(false);
+    if (r.ok) setData(r);
+    else setErr(r.error === "not_configured" ? "Plan marge indisponible (compte maître non configuré)." : "Erreur de calcul.");
+  }
+
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Plan marge — à exécuter manuellement</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-cyan-300 border border-cyan-500/30 rounded px-1.5 py-0.5">suggestion</span>
+      </div>
+      <p className="mt-2 text-[12.5px] leading-relaxed text-mist">
+        Réplique les <b>positions de marge</b> de Julien (paire · sens · levier).
+        <b className="text-bone"> Aucune exécution automatique.</b>
+      </p>
+      <div className="mt-3 flex items-end gap-2 flex-wrap">
+        <div>
+          <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Capital à allouer ($)</label>
+          <input type="number" step="100" value={capital} onChange={(e) => setCapital(e.target.value)}
+            className="w-40 bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+        </div>
+        <button disabled={busy} onClick={compute}
+          className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+          {busy ? "Calcul…" : "Calculer le plan"}
+        </button>
+      </div>
+      {err && <p className="mt-2 text-[12.5px] text-rose-400/90">{err}</p>}
+      {data && (data.plan?.length ? (
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full min-w-[460px] text-[13px] font-mono">
+            <thead>
+              <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                <th className="px-3 py-2">Paire</th>
+                <th className="px-3 py-2">Sens</th>
+                <th className="px-3 py-2 text-right">Levier</th>
+                <th className="px-3 py-2 text-right">Part</th>
+                <th className="px-3 py-2 text-right">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.plan.map((p, i) => (
+                <tr key={i} className="border-b hairline last:border-0">
+                  <td className="px-3 py-2 text-bone">{p.pair}</td>
+                  <td className={`px-3 py-2 ${p.side === "long" ? "text-emerald-400" : "text-rose-400"}`}>{p.side}</td>
+                  <td className="px-3 py-2 text-right text-mist">{p.leverage ? `×${p.leverage}` : "—"}</td>
+                  <td className="px-3 py-2 text-right text-gold">{p.pct} %</td>
+                  <td className="px-3 py-2 text-right text-bone">${p.target_usd}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-3 text-[11px] leading-relaxed text-mist/60">{data.note}</p>
+        </div>
+      ) : (
+        <p className="mt-3 text-[12.5px] text-mist/60">Aucune position de marge ouverte chez Julien actuellement.</p>
+      ))}
     </div>
   );
 }

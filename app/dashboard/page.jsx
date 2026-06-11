@@ -26,6 +26,9 @@ const NAV = [
   { id: "billing", label: "Facturation", icon: "❖" },
 ];
 
+// Onglet Copy-trading réservé (pour l'instant) à ce compte uniquement.
+const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
+
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [tab, setTab] = useState("portfolio");
@@ -63,6 +66,8 @@ export default function Dashboard() {
   }, []);
 
   const name = user?.name || "Invité";
+  const canCopy = (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
+  const nav = NAV.filter((n) => n.id !== "copy" || canCopy);
 
   return (
     <UnlockProvider>
@@ -103,7 +108,7 @@ export default function Dashboard() {
           </div>
           <div className="relative">
             <nav className="flex lg:flex-col gap-1.5 overflow-x-auto pb-2 lg:pb-0 -mx-4 px-4 sm:-mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {NAV.map((n) => (
+              {nav.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => setTab(n.id)}
@@ -148,7 +153,7 @@ export default function Dashboard() {
               <Locked><Chat me={user?.name} /></Locked>
             </div>
           )}
-          {tab === "copy" && <CopyTrading />}
+          {tab === "copy" && canCopy && <CopyTrading />}
           {tab === "billing" && <Billing />}
         </main>
       </div>

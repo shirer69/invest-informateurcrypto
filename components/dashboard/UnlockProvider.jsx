@@ -105,6 +105,14 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
       r = await apiLogin({ email: mail, password: suPwd });
       if (!r.ok) { setSuBusy(false); setSuErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
     } else if (!r.ok) { setSuBusy(false); setSuErr("Création du compte impossible. Réessayez."); return; }
+    // Code d'invitation mémorisé (lien ?code=) → consommé juste après l'inscription.
+    let pending = "";
+    try { pending = localStorage.getItem("pi_pending_code") || ""; } catch {}
+    if (pending) {
+      const rc = await apiAccessCode(pending.trim());
+      try { localStorage.removeItem("pi_pending_code"); } catch {}
+      if (rc.ok) { setSuBusy(false); onUnlocked(); setDone({ invite: rc.tg_invite }); return; }
+    }
     setSuBusy(false);
     setStep("options"); // → étape Kraken / IIBAN / abonnement
   }

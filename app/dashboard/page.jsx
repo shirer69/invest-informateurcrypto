@@ -59,17 +59,27 @@ export default function Dashboard() {
     if (!inTg) setBooted(true);
   }, []);
 
-  // Code reçu par Telegram (bouton "SAISIR MON CODE" → /dashboard?code=XXXX) :
-  // le code ne sert QU'À entrer ici — le dashboard reste verrouillé. Le déblocage se fait
-  // ensuite via inscription + validation IIBAN ou paiement. On nettoie juste le paramètre.
+  // Lien d'invitation (/dashboard?code=XXXX) : on REDEEM le code d'accès.
+  //  - connecté → octroi immédiat + reload pour refléter l'accès ;
+  //  - non connecté → on mémorise le code, il sera consommé après l'inscription (modal).
   useEffect(() => {
+    let code = null;
     try {
       const u = new URL(window.location.href);
+      code = u.searchParams.get("code");
       if (u.searchParams.has("code")) {
         u.searchParams.delete("code");
         window.history.replaceState({}, "", u);
       }
     } catch {}
+    if (!code) return;
+    try { localStorage.setItem("pi_pending_code", code); } catch {}
+    if (getToken()) {
+      apiAccessCode(code).then((r) => {
+        try { localStorage.removeItem("pi_pending_code"); } catch {}
+        if (r.ok) window.location.reload();
+      });
+    }
   }, []);
 
   // Mini App Telegram : init SDK + connexion automatique via initData

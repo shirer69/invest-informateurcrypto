@@ -160,6 +160,14 @@ export default function JoinProvider({ children }) {
       return;
     }
 
+    // Consomme le code d'accès mémorisé (lien/Mini App) → octroie l'accès tout de suite.
+    let pending = "";
+    try { pending = localStorage.getItem("pi_pending_code") || ""; } catch {}
+    if (pending) {
+      try { await apiAccessCode(pending.trim()); } catch {}
+      try { localStorage.removeItem("pi_pending_code"); } catch {}
+    }
+
     if (typeof window !== "undefined") {
       window.location.href = "/dashboard";
     }
@@ -174,7 +182,11 @@ export default function JoinProvider({ children }) {
     }
     try {
       const chk = await apiCheckCode(c);
-      if (chk && chk.valid) { setUnlocked(true); setError(false); return; }
+      if (chk && chk.valid) {
+        // Code d'accès valide → mémorisé, consommé juste après l'inscription.
+        try { localStorage.setItem("pi_pending_code", c); } catch {}
+        setUnlocked(true); setError(false); return;
+      }
     } catch {}
     setError(true);
   };

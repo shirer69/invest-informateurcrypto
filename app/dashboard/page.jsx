@@ -72,6 +72,7 @@ export default function Dashboard() {
         window.history.replaceState({}, "", u);
       }
     } catch {}
+    if (!code) { try { code = localStorage.getItem("pi_pending_code"); } catch {} }
     if (!code) return;
     try { localStorage.setItem("pi_pending_code", code); } catch {}
     if (getToken()) {

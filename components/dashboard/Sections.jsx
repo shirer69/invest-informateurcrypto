@@ -8,7 +8,7 @@ import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
 import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
-  copyResetBaseline, copyDeleteKeys, copyMaster,
+  copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -185,52 +185,115 @@ export function Intelligence() {
 }
 
 /* ---------------- Analytics ---------------- */
+const moLabel = (m) => { const [y, mo] = m.split("-"); return `${mo}/${y.slice(2)}`; };
+
 export function Analytics() {
-  const max = Math.max(...MONTHLY.map((m) => Math.abs(m.r)));
+  const [rows, setRows] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      const [sp, pp] = await Promise.all([
+        fetch("/api/kraken/spot-monthly-pnl").then((r) => r.json()).catch(() => null),
+        copyMasterPnl().catch(() => ({ months: [] })),
+      ]);
+      const map = {};
+      const ensure = (m) => (map[m] = map[m] || { spot: 0, margin: 0, perps: 0 });
+      (sp?.months || []).forEach((m) => { ensure(m.month).spot = m.spot; map[m.month].margin = m.margin; });
+      (pp?.months || []).forEach((m) => { ensure(m.month).perps = m.pnl; });
+      const arr = Object.entries(map)
+        .map(([month, v]) => ({ month, ...v, total: v.spot + v.margin + v.perps }))
+        .sort((a, b) => a.month.localeCompare(b.month));
+      setRows(arr);
+    })();
+  }, []);
+
+  if (rows === null) {
+    return (
+      <div>
+        <h3 className="font-display text-[18px] text-bone mb-4">Analytics <DemoTag /></h3>
+        <div className="grid place-items-center gap-3 py-24 text-mist">
+          <Spinner className="text-gold" /> <p className="text-[13px]">Calcul du PnL mensuel…</p>
+        </div>
+      </div>
+    );
+  }
+
+  const totalAll = rows.reduce((s, r) => s + r.total, 0);
+  const max = Math.max(1, ...rows.map((r) => Math.abs(r.total)));
+
   return (
     <div>
-      <h3 className="font-display text-[18px] text-bone mb-4 flex items-center gap-2">
-        Analytics <DemoTag />
-      </h3>
-      <div className="grid lg:grid-cols-[1.4fr_1fr] gap-5 items-start">
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-6">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-            Rendements mensuels (démo)
-          </div>
+      <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats Kraken <DemoTag /></h3>
+
+      <div className="grid sm:grid-cols-3 gap-4 mb-5">
+        <CopyKpi label="PnL cumulé" value={`${totalAll >= 0 ? "+" : ""}${fmtUsd(totalAll)}`}
+          cls={`font-display text-[20px] ${signClass(totalAll)}`} />
+        <CopyKpi label="Mois suivis" value={rows.length} />
+        <CopyKpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
+      </div>
+
+      {/* histogramme PnL mensuel (total) */}
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-6 mb-5">
+        <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+          PnL réalisé par mois — compte complet (spot · marge · perps)
+        </div>
+        {rows.length === 0 ? (
+          <p className="mt-4 text-[13px] text-mist/60">Aucun résultat sur la période (pas encore d'historique).</p>
+        ) : (
           <div className="mt-6 flex items-end justify-between gap-2 h-44">
-            {MONTHLY.map((m) => {
-              const h = (Math.abs(m.r) / max) * 100;
-              const up = m.r >= 0;
+            {rows.map((r) => {
+              const h = (Math.abs(r.total) / max) * 100;
+              const up = r.total >= 0;
               return (
-                <div key={m.m} className="flex-1 flex flex-col items-center justify-end h-full">
-                  <span className={`mb-1 font-mono text-[9.5px] ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {up ? "+" : ""}{m.r}
+                <div key={r.month} className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
+                  <span className={`mb-1 font-mono text-[9px] ${up ? "text-emerald-400" : "text-rose-400"}`}>
+                    {up ? "+" : ""}{Math.round(r.total)}
                   </span>
                   <div className={`w-full rounded-t ${up ? "bg-emerald-500/70" : "bg-rose-500/70"}`}
-                       style={{ height: `${Math.max(h, 6)}%` }} />
-                  <span className="mt-1.5 font-mono text-[9px] text-mist/60">{m.m}</span>
+                       style={{ height: `${Math.max(h, 4)}%` }} title={`${r.month} : ${fmtUsd(r.total)}`} />
+                  <span className="mt-1.5 font-mono text-[9px] text-mist/60">{moLabel(r.month)}</span>
                 </div>
               );
             })}
           </div>
-        </div>
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-6">
-          <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-            Métriques de risque
-          </div>
-          <ul className="mt-4 space-y-3">
-            {RISK.map((r) => (
-              <li key={r.label} className="flex items-center justify-between text-[13.5px]">
-                <span className="text-mist">{r.label}</span>
-                <span className="text-bone font-mono">{r.value}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        )}
       </div>
+
+      {/* détail mensuel */}
+      {rows.length > 0 && (
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Détail par mois & catégorie</span>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-[13px] font-mono">
+              <thead>
+                <tr className="text-mist/60 text-[10px] uppercase tracking-widest2">
+                  <th className="text-left font-medium py-2">Mois</th>
+                  <th className="text-right font-medium">Spot</th>
+                  <th className="text-right font-medium">Marge</th>
+                  <th className="text-right font-medium">Perps</th>
+                  <th className="text-right font-medium">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.slice().reverse().map((r) => (
+                  <tr key={r.month} className="border-t hairline">
+                    <td className="py-2.5 text-bone">{moLabel(r.month)}</td>
+                    <td className={`text-right ${signClass(r.spot)}`}>{signStr(r.spot)}</td>
+                    <td className={`text-right ${signClass(r.margin)}`}>{signStr(r.margin)}</td>
+                    <td className={`text-right ${signClass(r.perps)}`}>{signStr(r.perps)}</td>
+                    <td className={`text-right font-semibold ${signClass(r.total)}`}>{signStr(r.total)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <Disclaimer>
-        Statistiques de démonstration. Les performances passées ne préjugent pas des
-        performances futures.
+        PnL réalisé reconstitué depuis l'historique Kraken (trades spot/marge + journal des perps du
+        compte maître). Le PnL spot dépend du prix de revient reconstitué (approximatif). Les
+        performances passées ne préjugent pas des performances futures.
       </Disclaimer>
     </div>
   );

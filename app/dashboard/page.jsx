@@ -15,7 +15,7 @@ import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/d
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth, apiAccessCode } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
@@ -61,28 +61,16 @@ export default function Dashboard() {
     if (!inTg) setBooted(true);
   }, []);
 
-  // Lien d'invitation (/dashboard?code=XXXX) : on REDEEM le code d'accès.
-  //  - connecté → octroi immédiat + reload pour refléter l'accès ;
-  //  - non connecté → on mémorise le code, il sera consommé après l'inscription (modal).
+  // Nettoie le param ?code= si présent (le code est entrée seule, pas accès).
   useEffect(() => {
-    let code = null;
     try {
       const u = new URL(window.location.href);
-      code = u.searchParams.get("code");
       if (u.searchParams.has("code")) {
         u.searchParams.delete("code");
         window.history.replaceState({}, "", u);
       }
     } catch {}
-    if (!code) { try { code = localStorage.getItem("pi_pending_code"); } catch {} }
-    if (!code) return;
-    try { localStorage.setItem("pi_pending_code", code); } catch {}
-    if (getToken()) {
-      apiAccessCode(code).then((r) => {
-        try { localStorage.removeItem("pi_pending_code"); } catch {}
-        if (r.ok) window.location.reload();
-      });
-    }
+    try { localStorage.removeItem("pi_pending_code"); } catch {}
   }, []);
 
   // Mini App Telegram : init SDK + connexion automatique via initData

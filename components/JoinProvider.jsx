@@ -5,7 +5,7 @@ import Script from "next/script";
 import { AnimatePresence, motion } from "framer-motion";
 import { KRAKEN_URL, TELEGRAM_URL, REFERRAL_CODES, API_BASE } from "@/lib/site";
 import { IconArrow } from "./Icons";
-import { apiSignup, apiLogin, apiAccessCode, apiCheckCode, getToken } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiCheckCode, getToken } from "@/lib/clientStore";
 
 const JoinCtx = createContext({ open: () => {}, openWithCode: () => {} });
 export const useJoin = () => useContext(JoinCtx);
@@ -158,14 +158,6 @@ export default function JoinProvider({ children }) {
     } else if (!r.ok) {
       setSignupErr("Création du compte impossible. Réessayez.");
       return;
-    }
-
-    // Consomme le code d'accès mémorisé (lien/Mini App) → octroie l'accès tout de suite.
-    let pending = "";
-    try { pending = localStorage.getItem("pi_pending_code") || ""; } catch {}
-    if (pending) {
-      try { await apiAccessCode(pending.trim()); } catch {}
-      try { localStorage.removeItem("pi_pending_code"); } catch {}
     }
 
     if (typeof window !== "undefined") {

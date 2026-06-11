@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { REFERRAL_CODES } from "@/lib/site";
-import { apiSignup, apiLogin, apiCheckCode, apiAccessCode } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiCheckCode } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
 // Tunnel d'entrée (mini-app / accès direct au dashboard) : code d'invitation →
@@ -50,13 +50,6 @@ export default function SignupGate({ onDone, onLogin }) {
       if (!r.ok) { setBusy(false); setErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
     } else if (!r.ok) {
       setBusy(false); setErr("Création du compte impossible. Réessayez."); return;
-    }
-    // Consomme le code d'accès mémorisé → octroie l'accès immédiatement.
-    let pending = "";
-    try { pending = localStorage.getItem("pi_pending_code") || ""; } catch {}
-    if (pending) {
-      try { await apiAccessCode(pending.trim()); } catch {}
-      try { localStorage.removeItem("pi_pending_code"); } catch {}
     }
     setBusy(false);
     onDone && onDone();

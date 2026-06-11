@@ -67,7 +67,7 @@ export default function Dashboard() {
 
   const name = user?.name || "Invité";
   const canCopy = (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
-  const nav = NAV.filter((n) => n.id !== "copy" || canCopy);
+  const nav = NAV; // Copy-trading reste visible pour tous ; l'accès est restreint au contenu.
 
   return (
     <UnlockProvider>
@@ -153,7 +153,21 @@ export default function Dashboard() {
               <Locked><Chat me={user?.name} /></Locked>
             </div>
           )}
-          {tab === "copy" && canCopy && <CopyTrading />}
+          {tab === "copy" && (canCopy ? (
+            <CopyTrading />
+          ) : (
+            <div>
+              <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading (Futures)</h3>
+              <div className="rounded-2xl border gold-line bg-gold/[0.05] p-8 text-center">
+                <div className="text-[28px] mb-3">🔒</div>
+                <p className="font-display text-[20px] text-bone">Bientôt disponible</p>
+                <p className="mt-2 text-[13.5px] leading-relaxed text-mist max-w-prose2 mx-auto">
+                  Le copy-trading automatique est en cours de déploiement et n'est pas encore ouvert
+                  à votre compte. Il sera activé prochainement pour l'ensemble des membres.
+                </p>
+              </div>
+            </div>
+          ))}
           {tab === "billing" && <Billing />}
         </main>
       </div>

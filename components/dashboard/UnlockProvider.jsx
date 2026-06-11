@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
+import { KRAKEN_URL, TELEGRAM_URL } from "@/lib/site";
 
 const Ctx = createContext({ locked: true, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
@@ -124,6 +125,37 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
           Positions, actifs, alertes, academy et audios — débloquez tout avec l'une des deux options :
         </p>
 
+        {/* Étapes Kraken (préalable à l'option 1) */}
+        <div className="mt-5 rounded-xl border hairline bg-white/[0.02] p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="font-display text-[26px] leading-none text-gold-grad whitespace-nowrap shrink-0">5&nbsp;$</span>
+            <span className="text-[12.5px] leading-snug text-bone min-w-0">
+              Dépôt minimum
+              <span className="block text-[11px] text-mist">ticket d'entrée pour activer votre accès</span>
+            </span>
+          </div>
+          <ol className="space-y-2.5">
+            {[
+              { n: "1", t: "Créer un compte Kraken", d: "via notre lien partenaire", href: KRAKEN_URL, cta: "Ouvrir Kraken" },
+              { n: "2", t: "Déposer au moins 5 $", d: "pour activer l'attribution de votre compte" },
+              { n: "3", t: "Ouvrir une position en perpétuels (futures)", d: "même minime — puis la refermer : c'est ce qui finalise votre accès" },
+            ].map((s) => (
+              <li key={s.n} className="flex gap-3">
+                <span className="grid place-items-center h-6 w-6 shrink-0 rounded-full border gold-line text-gold font-mono text-[11px]">{s.n}</span>
+                <span className="text-[12.5px] leading-snug text-mist min-w-0">
+                  <span className="text-bone">{s.t}</span> — {s.d}
+                  {s.href && (
+                    <a href={s.href} target="_blank" rel="noopener noreferrer"
+                       className="ml-1 inline-flex items-center gap-1 text-gold hover:text-gold-soft transition-colors">
+                      {s.cta} <IconArrow className="h-3 w-3" />
+                    </a>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
         {/* Option 1 : IIBAN Kraken */}
         <div className="mt-5 rounded-xl border gold-line bg-gold/[0.05] p-4">
           <div className="flex items-center justify-between">
@@ -142,9 +174,35 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
             </button>
           </form>
           {state === "pending" && (
-            <p className="mt-2 text-[12.5px] text-amber-300/90">
-              Attribution en attente : ouvrez/fermez une position perps sur Kraken, puis réessayez.
-            </p>
+            <div className="mt-2.5 rounded-lg border border-amber-500/30 bg-amber-500/[0.07] p-3">
+              <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-300">
+                Dépôt reçu ✓ — dernière étape
+              </div>
+              <p className="mt-1.5 text-[12.5px] leading-relaxed text-amber-100/90">
+                Pour <b>finaliser votre accès</b>, vous devez <b>ouvrir puis refermer une position
+                en perpétuels (futures)</b> sur Kraken — même un montant minime suffit. Cliquez
+                ensuite à nouveau sur <b>Valider</b>.
+              </p>
+              <a href={KRAKEN_URL} target="_blank" rel="noopener noreferrer"
+                 className="mt-2 inline-flex items-center gap-1.5 text-[12px] text-gold hover:text-gold-soft transition-colors">
+                Ouvrir Kraken (futures) <IconArrow className="h-3 w-3" />
+              </a>
+              <details className="mt-2.5 group">
+                <summary className="flex items-center gap-1.5 cursor-pointer list-none text-[11.5px] text-mist hover:text-bone transition-colors">
+                  <span className="grid place-items-center h-4 w-4 rounded-full border hairline text-[9px]">i</span>
+                  Bloqué sur le questionnaire réglementaire (futures) ?
+                </summary>
+                <p className="mt-1.5 text-[11.5px] leading-relaxed text-mist">
+                  Kraken impose un court questionnaire réglementaire avant d'activer les
+                  perpétuels. Si vous avez un doute sur les réponses, <b>contactez-nous sur
+                  Telegram</b>, on vous guide pas à pas.
+                </p>
+                <a href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer"
+                   className="mt-1.5 inline-flex items-center gap-1.5 text-[12px] text-gold hover:text-gold-soft transition-colors">
+                  Nous écrire sur Telegram <IconArrow className="h-3 w-3" />
+                </a>
+              </details>
+            </div>
           )}
           {state === "notfound" && (
             <p className="mt-2 text-[12.5px] text-rose-400/90">IIBAN non reconnu comme actif. Vérifiez votre dépôt Kraken.</p>

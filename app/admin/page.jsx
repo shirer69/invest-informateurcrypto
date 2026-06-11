@@ -140,7 +140,7 @@ export default function Admin() {
 
         {tab === "overview" && <Overview ov={ov} />}
         {tab === "members" && <Members members={members} adminKey={key} />}
-        {tab === "deposits" && <Deposits iiban={iiban} ov={ov} />}
+        {tab === "deposits" && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
         {tab === "copy" && <CopyAuto adminKey={key} />}
       </div>
     </div>
@@ -352,7 +352,56 @@ function BroadcastPanel({ adminKey, reachable, total }) {
   );
 }
 
-function Deposits({ iiban, ov }) {
+function BulkIiban({ adminKey, onReload }) {
+  const [text, setText] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState(null); // {ok, text}
+
+  async function importBulk() {
+    if (!text.trim()) { setMsg({ ok: false, text: "Collez d'abord la liste." }); return; }
+    setBusy(true); setMsg(null);
+    const d = await adminPost("/api/admin/bulk", adminKey, { text });
+    setBusy(false);
+    if (d && d.ok) {
+      setMsg({ ok: true, text: `${d.parsed} entrée(s) importée(s) — ${d.added?.active || 0} active, ${d.added?.pending || 0} en attente.` });
+      setText("");
+      onReload && onReload();
+    } else {
+      setMsg({ ok: false, text: d?.error || "Import impossible." });
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5">
+      <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">
+        Coller / mettre à jour la liste des IIBAN
+      </div>
+      <p className="text-[12.5px] leading-relaxed text-mist mb-3">
+        Collez le contenu du dashboard affilié Kraken (IIBAN masqués + statut). Les lignes
+        contenant <b>Active</b> donnent l'accès, <b>Pending</b> les met en attente. Seuls les
+        4 derniers caractères de chaque IIBAN sont conservés.
+      </p>
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        rows={8}
+        placeholder={"***************FQDQ\n8 juin 2026\n92,15 USD\nActive\n***************Q3BY\nPending"}
+        className="w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone placeholder:text-mist/30 font-mono text-[12.5px] outline-none transition-colors resize-y"
+      />
+      <div className="mt-3 flex items-center gap-3 flex-wrap">
+        <button onClick={importBulk} disabled={busy}
+                className="btn-gold rounded-full px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
+          {busy ? "Import…" : "Importer la liste"}
+        </button>
+        {msg && (
+          <span className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.text}</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Deposits({ iiban, ov, adminKey, onReload }) {
   if (!iiban) return <div className="text-mist text-[14px]">Chargement…</div>;
   return (
     <div>
@@ -361,6 +410,9 @@ function Deposits({ iiban, ov }) {
         <KPI label="En attente" value={ov?.iiban_pending ?? "—"} accent="text-flag" />
         <KPI label="Total suivi" value={ov?.iiban_total ?? "—"} />
       </div>
+
+      <BulkIiban adminKey={adminKey} onReload={onReload} />
+
       <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
         <table className="w-full min-w-[560px] text-[13.5px]">
           <thead>
@@ -373,7 +425,7 @@ function Deposits({ iiban, ov }) {
           </thead>
           <tbody>
             {iiban.length === 0 && (
-              <tr><td colSpan={4} className="px-5 py-4 text-mist/60 text-[13px]">Aucune entrée. Ajoutez des IIBAN via /update.</td></tr>
+              <tr><td colSpan={4} className="px-5 py-4 text-mist/60 text-[13px]">Aucune entrée. Collez votre liste d'IIBAN dans le champ ci-dessus.</td></tr>
             )}
             {iiban.map((r) => (
               <tr key={r.code} className="border-b hairline last:border-0">
@@ -390,7 +442,7 @@ function Deposits({ iiban, ov }) {
       </div>
       <p className="mt-4 text-[11.5px] text-mist/60">
         « Activé » = attribution Kraken active (dépôt effectué / premier trade). « En attente » = inscrit, pas encore activé.
-        La liste se met à jour depuis la page <span className="font-mono">/update</span>.
+        Collez/actualisez la liste directement via le champ ci-dessus (ou la page <span className="font-mono">/update</span>).
       </p>
     </div>
   );

@@ -9,6 +9,7 @@ import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
 import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
+import Account from "@/components/dashboard/Account";
 import LogoMark from "@/components/LogoMark";
 import { Positions, Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -24,6 +25,7 @@ const NAV = [
   { id: "community", label: "Communauté", icon: "✦" },
   { id: "copy", label: "Copy-trading", icon: "⇄", badge: "Soon" },
   { id: "billing", label: "Facturation", icon: "❖" },
+  { id: "account", label: "Mon compte", icon: "☻" },
 ];
 
 // Onglet Copy-trading réservé (pour l'instant) à ce compte uniquement.
@@ -169,6 +171,7 @@ export default function Dashboard() {
             </div>
           ))}
           {tab === "billing" && <Billing />}
+          {tab === "account" && <Account />}
         </main>
       </div>
     </div>

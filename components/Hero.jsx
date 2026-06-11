@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import TrackRecord from "./TrackRecord";
 import { TRUST } from "@/lib/site";
 import { IconArrow } from "./Icons";
 import { useJoin } from "./JoinProvider";
+import { getToken } from "@/lib/clientStore";
 import FrenchFlag from "./FrenchFlag";
 import KrakenLogo from "./KrakenLogo";
 import HyperliquidLogo from "./HyperliquidLogo";
@@ -16,6 +17,8 @@ const ease = [0.22, 1, 0.36, 1];
 export default function Hero() {
   const { open: openJoin, openWithCode } = useJoin();
   const [heroCode, setHeroCode] = useState("");
+  const [logged, setLogged] = useState(false);
+  useEffect(() => { setLogged(!!getToken()); }, []);
   return (
     <section id="top" className="relative aura pt-24 sm:pt-32 md:pt-44 pb-16 sm:pb-20 md:pb-28">
       {/* fine vertical guide lines */}
@@ -76,27 +79,37 @@ export default function Hero() {
             className="mt-7"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
-              Accès sur invitation
+              {logged ? "Votre espace" : "Accès sur invitation"}
             </span>
             <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
-              <form
-                onSubmit={(e) => { e.preventDefault(); openWithCode(heroCode); }}
-                className="flex items-stretch rounded-full border gold-line bg-ink-900/60 overflow-hidden focus-within:border-gold/60 transition-colors"
-              >
-                <input
-                  value={heroCode}
-                  onChange={(e) => setHeroCode(e.target.value)}
-                  placeholder="CODE D'INVITATION"
-                  className="bg-transparent px-5 py-4 w-[180px] sm:w-[200px] font-mono uppercase tracking-[0.18em] text-bone placeholder:text-mist/40 text-[14px] outline-none"
-                />
-                <button
-                  type="submit"
-                  className="btn-gold group inline-flex items-center gap-2 px-6 text-[15px] font-semibold"
+              {logged ? (
+                <a
+                  href="/dashboard"
+                  className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
                 >
-                  Accéder
+                  Mon dashboard
                   <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
-              </form>
+                </a>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); openWithCode(heroCode); }}
+                  className="flex items-stretch rounded-full border gold-line bg-ink-900/60 overflow-hidden focus-within:border-gold/60 transition-colors"
+                >
+                  <input
+                    value={heroCode}
+                    onChange={(e) => setHeroCode(e.target.value)}
+                    placeholder="CODE D'INVITATION"
+                    className="bg-transparent px-5 py-4 w-[180px] sm:w-[200px] font-mono uppercase tracking-[0.18em] text-bone placeholder:text-mist/40 text-[14px] outline-none"
+                  />
+                  <button
+                    type="submit"
+                    className="btn-gold group inline-flex items-center gap-2 px-6 text-[15px] font-semibold"
+                  >
+                    Accéder
+                    <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </button>
+                </form>
+              )}
               <a
                 href="#approche"
                 className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"

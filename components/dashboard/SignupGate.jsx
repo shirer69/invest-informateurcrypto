@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { REFERRAL_CODES } from "@/lib/site";
-import { apiSignup, apiLogin, apiCheckCode } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiCheckCode, apiAccessCode } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
 /**
@@ -60,6 +60,14 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
       return;
     }
     setBusy(false);
+    // Enregistre l'usage du code d'invitation (tracking uniquement — pas d'accès accordé).
+    try {
+      const pending = localStorage.getItem("pi_pending_code");
+      if (pending) {
+        await apiAccessCode(pending);
+        localStorage.removeItem("pi_pending_code");
+      }
+    } catch {}
     onDone && onDone();
   }
 

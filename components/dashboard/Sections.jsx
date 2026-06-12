@@ -161,6 +161,76 @@ export function Intelligence() {
   );
 }
 
+/* ---------------- Dernier investissement (bloc commun Invest + Actions) ---------------- */
+const DISPLAY_MULT = 100;
+
+function LastInvestment() {
+  const [item, setItem] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/kraken/spot/portfolio", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.ok || !d.holdings) return;
+        // Sélectionne le holding non-cash avec la valeur la plus élevée
+        const best = d.holdings
+          .filter((h) => h.kind !== "cash" && h.value > 0 && h.baseline)
+          .sort((a, b) => b.value - a.value)[0];
+        if (best) setItem(best);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!item) return null;
+
+  const MULT = DISPLAY_MULT;
+  const value   = item.value  * MULT;
+  const cost    = item.cost   ? item.cost * MULT : null;
+  const pnlAbs  = cost != null ? value - cost : null;
+  const pnlPct  = cost && cost > 0 ? ((value - cost) / cost) * 100 : null;
+  const fmtUsd  = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const up      = pnlAbs == null || pnlAbs >= 0;
+
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/40 px-5 py-3.5 mb-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+      {/* label */}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Dernier investissement</span>
+      </div>
+      {/* actif */}
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
+        <span className="font-display text-[15px] text-bone">{item.symbol}</span>
+      </div>
+      {/* prix d'entrée */}
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Prix d'entrée</span>
+        <span className="font-mono text-[13.5px] text-bone">{item.baseline ? fmtUsd(item.baseline) : "—"}</span>
+      </div>
+      {/* taille */}
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Taille</span>
+        <span className="font-mono text-[13.5px] text-bone">{fmtUsd(value)}</span>
+      </div>
+      {/* PnL en cours */}
+      <div className="flex items-center gap-1.5 ml-auto">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">PnL en cours</span>
+        {pnlAbs != null ? (
+          <span className={`font-mono text-[13.5px] font-semibold ${up ? "text-emerald-400" : "text-rose-400"}`}>
+            {pnlAbs >= 0 ? "+" : "−"}{fmtUsd(pnlAbs)}
+            {pnlPct != null && (
+              <span className="ml-1 text-[11px] opacity-80">
+                ({pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(2)} %)
+              </span>
+            )}
+          </span>
+        ) : <span className="font-mono text-[13.5px] text-mist/50">—</span>}
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Analytics ---------------- */
 const moLabel = (m) => { const [y, mo] = m.split("-"); return `${mo}/${y.slice(2)}`; };
 // Le suivi Analytics démarre à juin 2026 (les mois antérieurs sont ignorés).
@@ -272,6 +342,7 @@ export function Analytics() {
 
   return (
     <div>
+      <LastInvestment />
       <div className="flex items-center gap-2.5 flex-wrap mb-4">
         <h3 className="font-display text-[18px] text-bone">Performance INVEST</h3>
         <LiveTag />
@@ -1657,6 +1728,7 @@ export function XStocks() {
 
   return (
     <div>
+      <LastInvestment />
       {/* Titre */}
       <div className="mb-5">
         <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisés)</span></h3>

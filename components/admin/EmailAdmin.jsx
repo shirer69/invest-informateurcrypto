@@ -92,19 +92,23 @@ export default function EmailAdmin({ adminKey }) {
 const emptyTpl = () => ({ id: null, name: "", subject: "", intro: "", body_html: "", cta_label: "", cta_url: "", footnote: "" });
 
 function TemplatesSection({ adminKey, templates, onReload }) {
-  const [form, setForm] = useState(emptyTpl());
-  const [msg,  setMsg]  = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [preview, setPreview] = useState(false);
+  const [form, setForm]           = useState(emptyTpl());
+  const [msg,  setMsg]            = useState(null);
+  const [busy, setBusy]           = useState(false);
+  const [previewHtml, setPreviewHtml] = useState(null);   // null = masqué, "" = chargement, string = HTML
+  const [previewBusy, setPreviewBusy] = useState(false);
+  const [seedBusy, setSeedBusy]   = useState(false);
+  const [seedMsg,  setSeedMsg]    = useState(null);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   function load(t) {
-    setForm({ id: t.id, name: t.name || "", subject: t.subject || "", intro: t.intro || "", body_html: t.body_html || "", cta_label: t.cta_label || "", cta_url: t.cta_url || "", footnote: t.footnote || "" });
-    setMsg(null); setPreview(false);
+    setForm({ id: t.id, name: t.name || "", subject: t.subject || "", intro: t.intro || "",
+              body_html: t.body_html || "", cta_label: t.cta_label || "", cta_url: t.cta_url || "", footnote: t.footnote || "" });
+    setMsg(null); setPreviewHtml(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function reset() { setForm(emptyTpl()); setMsg(null); setPreview(false); }
+  function reset() { setForm(emptyTpl()); setMsg(null); setPreviewHtml(null); }
 
   async function save() {
     if (!form.name.trim()) { setMsg({ ok: false, t: "Donnez un nom au template." }); return; }
@@ -122,12 +126,39 @@ function TemplatesSection({ adminKey, templates, onReload }) {
     onReload();
   }
 
-  /* Aperçu HTML du gabarit (rendu côté client, sans appel serveur) */
-  const previewHtml = buildPreviewHtml(form);
+  async function fetchPreview() {
+    if (previewHtml !== null) { setPreviewHtml(null); return; }   // toggle off
+    setPreviewBusy(true); setPreviewHtml("");
+    try {
+      const r = await fetch(`${API_BASE}/api/admin/mail/preview`, {
+        method: "POST",
+        headers: hdr(adminKey),
+        body: JSON.stringify(form),
+      });
+      const html = await r.text();
+      setPreviewHtml(html);
+    } catch {
+      setPreviewHtml("<p style='color:#ff6b6b;padding:20px'>Erreur de rendu</p>");
+    } finally {
+      setPreviewBusy(false);
+    }
+  }
+
+  async function seedTemplates() {
+    setSeedBusy(true); setSeedMsg(null);
+    const r = await aPost("/api/admin/mail/templates/seed", adminKey, {});
+    setSeedBusy(false);
+    if (r.ok) {
+      setSeedMsg(r.added?.length
+        ? `✓ ${r.added.length} template(s) importé(s) · ${r.skipped} déjà présent(s).`
+        : `Tous les templates sont déjà importés (${r.skipped} présents).`);
+      onReload();
+    } else setSeedMsg("Erreur d'import.");
+  }
 
   return (
     <div className="grid lg:grid-cols-[1.4fr_1fr] gap-5 items-start">
-      {/* Éditeur */}
+      {/* ── Éditeur ── */}
       <div className="rounded-2xl border hairline bg-ink-800/40 p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <h3 className="font-display text-[17px] text-bone">
@@ -140,23 +171,25 @@ function TemplatesSection({ adminKey, templates, onReload }) {
         <Field label="Sujet de l'email" value={form.subject} onChange={(v) => set("subject", v)} placeholder="Ex : Bienvenue sur le Pôle Invest 👋" />
 
         <div>
-          <label className="field-label">Introduction <span className="normal-case text-mist/50">(bref paragraphe, supporte {"{Prénom}"})</span></label>
+          <label className="field-label">
+            Introduction <span className="normal-case text-mist/50">(supporte {"{{Prénom}}"})</span>
+          </label>
           <textarea rows={3} value={form.intro} onChange={(e) => set("intro", e.target.value)}
-            placeholder="Bonjour {Prénom}, voici votre récapitulatif mensuel…"
+            placeholder="Bonjour {{Prénom}}, votre accès est actif…"
             className="field-textarea" />
         </div>
 
         <div>
           <label className="field-label">Corps HTML <span className="normal-case text-mist/50">(HTML complet autorisé)</span></label>
           <HtmlToolbar onInsert={(s) => set("body_html", form.body_html + s)} />
-          <textarea rows={7} value={form.body_html} onChange={(e) => set("body_html", e.target.value)}
+          <textarea rows={6} value={form.body_html} onChange={(e) => set("body_html", e.target.value)}
             placeholder="<p>Vos <b>gains du mois</b> : …</p>"
             className="field-textarea font-mono text-[12.5px]" />
         </div>
 
         <div className="grid sm:grid-cols-2 gap-3">
           <Field label="Bouton CTA — Texte" value={form.cta_label} onChange={(v) => set("cta_label", v)} placeholder="Accéder au dashboard" />
-          <Field label="Bouton CTA — URL" value={form.cta_url} onChange={(v) => set("cta_url", v)} placeholder="https://invest.informateurcrypto.fr/dashboard" mono />
+          <Field label="Bouton CTA — URL"   value={form.cta_url}   onChange={(v) => set("cta_url", v)}   placeholder="https://invest.informateurcrypto.fr/dashboard" mono />
         </div>
 
         <div>
@@ -166,33 +199,62 @@ function TemplatesSection({ adminKey, templates, onReload }) {
             className="field-textarea" />
         </div>
 
-        <div className="flex items-center gap-3 pt-2">
+        <div className="flex flex-wrap items-center gap-3 pt-2">
           <button onClick={save} disabled={busy}
             className="btn-gold rounded-full px-7 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
             {busy ? "Enregistrement…" : "💾 Enregistrer"}
           </button>
-          <button onClick={() => setPreview((p) => !p)} className="btn-ghost rounded-full px-5 py-2.5 text-[13px]">
-            {preview ? "Masquer" : "👁 Aperçu"}
+          <button onClick={fetchPreview} disabled={previewBusy}
+            className="btn-ghost rounded-full px-5 py-2.5 text-[13px] disabled:opacity-60">
+            {previewBusy ? "Rendu…" : previewHtml !== null ? "✕ Masquer aperçu" : "👁 Aperçu réel"}
           </button>
           {msg && <span className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</span>}
         </div>
       </div>
 
-      {/* Panneau droit : aperçu + liste */}
+      {/* ── Panneau droit ── */}
       <div className="space-y-4 lg:sticky lg:top-24">
-        {/* Aperçu HTML */}
-        {preview && (
+
+        {/* Aperçu réel (HTML du serveur) */}
+        {previewHtml !== null && (
           <div className="rounded-2xl border hairline overflow-hidden">
-            <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 px-4 py-2 border-b hairline bg-ink-800/40">
-              Aperçu email
+            <div className="flex items-center justify-between px-4 py-2 border-b hairline bg-ink-800/40">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
+                Aperçu réel — rendu serveur
+              </span>
+              <span className="text-[10px] text-mist/40">Prénom = «&nbsp;Jean&nbsp;»</span>
             </div>
-            <iframe
-              srcDoc={previewHtml}
-              className="w-full h-[540px] border-0 bg-[#07080b]"
-              title="Aperçu email"
-            />
+            {previewHtml === "" ? (
+              <div className="h-48 flex items-center justify-center bg-[#07080b]">
+                <span className="text-mist/50 text-[13px] animate-pulse">Rendu en cours…</span>
+              </div>
+            ) : (
+              <iframe
+                srcDoc={previewHtml}
+                className="w-full border-0 bg-[#07080b]"
+                style={{ height: "580px" }}
+                title="Aperçu email"
+                sandbox="allow-same-origin"
+              />
+            )}
           </div>
         )}
+
+        {/* Import templates existants */}
+        <div className="rounded-2xl border gold-line bg-gold/[0.04] p-4">
+          <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-2">
+            Templates du site — import
+          </div>
+          <p className="text-[12.5px] text-mist/70 mb-3 leading-relaxed">
+            Importe les 7 templates existants du site (Bienvenue, VIP, Reset, Facture copy,
+            Positionnement, Relance J+3, Expiration J-7). Ignorés s'ils existent déjà.
+          </p>
+          <button onClick={seedTemplates} disabled={seedBusy}
+            className="btn-ghost rounded-full px-5 py-2 text-[12.5px] disabled:opacity-60">
+            {seedBusy ? "Import…" : "⬇ Importer les templates existants"}
+          </button>
+          {seedMsg && <p className="mt-2 text-[12px] text-pos">{seedMsg}</p>}
+        </div>
 
         {/* Liste des templates */}
         <div className="rounded-2xl border hairline bg-ink-800/40 p-5">
@@ -202,13 +264,16 @@ function TemplatesSection({ adminKey, templates, onReload }) {
           {!templates ? (
             <p className="text-[13px] text-mist/60">Chargement…</p>
           ) : templates.length === 0 ? (
-            <p className="text-[13px] text-mist/60">Aucun template. Créez-en un avec l'éditeur.</p>
+            <p className="text-[13px] text-mist/60">
+              Aucun template. Importez les templates existants ci-dessus ou créez-en un.
+            </p>
           ) : (
             <div className="space-y-2">
               {templates.map((t) => (
-                <div key={t.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors
-                  ${form.id === t.id ? "bg-gold/[0.06] gold-line" : "hairline bg-white/[0.01] hover:bg-white/[0.03]"}`}
-                  onClick={() => load(t)}>
+                <div key={t.id}
+                  onClick={() => load(t)}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors
+                    ${form.id === t.id ? "bg-gold/[0.06] gold-line" : "hairline bg-white/[0.01] hover:bg-white/[0.03]"}`}>
                   <div className="flex-1 min-w-0">
                     <div className="text-[13.5px] text-bone truncate">{t.name || "Sans titre"}</div>
                     <div className="text-[11px] text-mist/60 truncate">{t.subject || "—"}</div>
@@ -223,8 +288,8 @@ function TemplatesSection({ adminKey, templates, onReload }) {
         </div>
 
         <p className="text-[11.5px] text-mist/50 leading-relaxed">
-          {"{{Prénom}}"} est substitué par le prénom du destinataire dans le sujet, l'intro, le corps et l'URL du CTA.
-          Le gabarit HTML (fond sombre, accents or) est appliqué automatiquement.
+          {"{{Prénom}}"} est remplacé par le prénom réel dans l'intro, le corps, le sujet et l'URL du CTA.
+          L'aperçu utilise «&nbsp;Jean&nbsp;» comme prénom d'exemple.
         </p>
       </div>
     </div>
@@ -581,55 +646,3 @@ function HtmlToolbar({ onInsert }) {
   );
 }
 
-/* ─── Aperçu HTML (client-side, reproduit le gabarit mailer.py) ─────────── */
-function buildPreviewHtml({ name, intro, body_html, cta_label, cta_url, footnote }) {
-  const subst = (s) => (s || "").replace(/\{\{?Pr[eé]nom\}?\}/gi, "Jean");
-  const btn = cta_label && cta_url ? `
-    <tr><td align="center" style="padding:20px 0 8px;">
-      <a href="${subst(cta_url)}"
-         style="display:inline-block;background:linear-gradient(180deg,#e8ce8e,#c9a24b);
-                color:#15120a;text-decoration:none;font-weight:700;font-size:14.5px;
-                padding:14px 32px;border-radius:999px;">${cta_label}</a>
-    </td></tr>` : "";
-  const foot = footnote ? `<p style="margin:16px 0 0;color:#8a8f98;font-size:11.5px;line-height:1.7;">${subst(footnote)}</p>` : "";
-  const body = body_html ? `<div style="margin:14px 0;color:#b9bdc6;font-size:14px;line-height:1.75;">${subst(body_html)}</div>` : "";
-  const title = subst(name) || "Sans titre";
-  const introText = subst(intro);
-
-  return `<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8">
-<meta name="color-scheme" content="dark"></head>
-<body style="margin:0;padding:0;background:#07080b;font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#07080b;padding:24px 12px 32px;">
-  <tr><td align="center">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
-           style="max-width:520px;background:#0e1014;border:1px solid rgba(201,162,75,0.20);border-radius:20px;overflow:hidden;">
-      <tr><td style="height:3px;background:linear-gradient(90deg,#c9a24b,#e8ce8e,#c9a24b);"></td></tr>
-      <tr><td style="padding:24px 28px 10px;">
-        <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-          <td style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#e8ce8e,#c9a24b);color:#15120a;font-weight:800;font-size:15px;text-align:center;line-height:38px;">CI</td>
-          <td style="padding-left:11px;vertical-align:middle;">
-            <div style="color:#ECE9E1;font-size:14px;font-weight:600;">Club des Informateurs</div>
-            <div style="color:#c9a24b;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;">Pôle Invest</div>
-          </td>
-        </tr></table>
-      </td></tr>
-      <tr><td style="padding:6px 28px 28px;">
-        <div style="height:1px;background:rgba(255,255,255,0.06);margin-bottom:20px;"></div>
-        <h1 style="margin:0 0 12px;color:#ECE9E1;font-size:21px;font-weight:700;line-height:1.25;letter-spacing:-0.03em;">${title}</h1>
-        ${introText ? `<p style="margin:0 0 10px;color:#b9bdc6;font-size:14.5px;line-height:1.75;">${introText}</p>` : ""}
-        ${body}
-        <table role="presentation" cellpadding="0" cellspacing="0" width="100%">${btn}</table>
-        ${foot}
-      </td></tr>
-      <tr><td style="padding:16px 28px 20px;border-top:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.15);">
-        <p style="margin:0;color:#6f747e;font-size:11px;line-height:1.7;">
-          <strong style="color:#8a8f98;">Club des Informateurs · Pôle Invest</strong><br>
-          invest.informateurcrypto.fr<br><br>
-          Les investissements comportent un risque de perte en capital.
-        </p>
-      </td></tr>
-    </table>
-  </td></tr>
-</table>
-</body></html>`;
-}

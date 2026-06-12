@@ -6,7 +6,7 @@ import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
-import { Locked } from "@/components/dashboard/UnlockProvider";
+import { Locked, useUnlock } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import LiveTag from "@/components/dashboard/LiveTag";
 import {
@@ -162,10 +162,20 @@ const moLabel = (m) => { const [y, mo] = m.split("-"); return `${mo}/${y.slice(2
 // Le suivi Analytics démarre à juin 2026 (les mois antérieurs sont ignorés).
 const ANALYTICS_START_MONTH = "2026-06";
 
+// Données de démonstration (affichées quand le dashboard est verrouillé) — valeurs à
+// l'échelle interne (×100 à l'affichage). Pédagogiques, non contractuelles.
+const DEMO_ROWS = [
+  { month: "2026-04", spot: 1.9, stock: 0.8, margin: 0.5, perps: 1.3 },
+  { month: "2026-05", spot: 2.6, stock: 1.4, margin: -0.4, perps: 2.0 },
+  { month: "2026-06", spot: 3.2, stock: 1.7, margin: 0.9, perps: 2.6 },
+].map((r) => ({ ...r, total: r.spot + r.stock + r.margin + r.perps }));
+
 export function Analytics() {
+  const { locked } = useUnlock();
   const [rows, setRows] = useState(null);
 
   useEffect(() => {
+    if (locked) { setRows(DEMO_ROWS); return; }   // démo tant que verrouillé
     (async () => {
       const [sp, pp] = await Promise.all([
         fetch("/api/kraken/spot-monthly-pnl").then((r) => r.json()).catch(() => null),
@@ -181,12 +191,12 @@ export function Analytics() {
         .sort((a, b) => a.month.localeCompare(b.month));
       setRows(arr);
     })();
-  }, []);
+  }, [locked]);
 
   if (rows === null) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Analytics <LiveTag /></h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Performance INVEST <LiveTag /></h3>
         <div className="grid place-items-center gap-3 py-24 text-mist">
           <Spinner className="text-gold" /> <p className="text-[13px]">Calcul du PnL mensuel…</p>
         </div>
@@ -214,9 +224,49 @@ export function Analytics() {
     </>
   );
 
+  // PnL cumulé par catégorie (par « tableau »).
+  const sumCat = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
+  const CATS = [
+    { k: "spot", label: "Spot crypto" },
+    { k: "stock", label: "Actions US / ETF" },
+    { k: "margin", label: "Marge" },
+    { k: "perps", label: "Futures (perps)" },
+  ];
+
   return (
     <div>
-      <h3 className="font-display text-[18px] text-bone mb-4">Analytics — résultats master A <LiveTag /></h3>
+      <div className="flex items-center gap-2.5 flex-wrap mb-4">
+        <h3 className="font-display text-[18px] text-bone">Performance INVEST</h3>
+        <LiveTag />
+        {locked && (
+          <span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-300 border border-amber-500/40 bg-amber-500/10 rounded px-1.5 py-0.5">
+            données démo
+          </span>
+        )}
+      </div>
+
+      {locked && (
+        <div className="rounded-xl border gold-line bg-gold/[0.05] px-4 py-2.5 mb-5">
+          <p className="text-[12px] leading-relaxed text-mist">
+            <span className="text-gold">ⓘ</span> Aperçu avec des <span className="text-bone">données de démonstration</span>.
+            Déverrouillez votre accès pour afficher la performance réelle du compte.
+          </p>
+        </div>
+      )}
+
+      {/* PnL cumulé par catégorie (par tableau) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        {CATS.map((c) => {
+          const v = sumCat(c.k);
+          return (
+            <div key={c.k} className="rounded-2xl border hairline bg-ink-800/50 p-4">
+              <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">{c.label}</div>
+              <div className={`mt-1.5 font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
+              <div className={`text-[11px] ${signClass(v)}`}>{pctStr(v)}</div>
+            </div>
+          );
+        })}
+      </div>
 
       <div className="grid sm:grid-cols-3 gap-4 mb-5">
         <CopyKpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`}
@@ -564,9 +614,32 @@ export function Monitoring({ onGoCopy }) {
         <LiveTag />
       </div>
 
-      {/* Audios en premier */}
+      {/* CTA copy auto (remplace l'ancien titre redondant des audios) */}
+      <a
+        href="https://t.me/clubdesinformateurs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-5 rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 flex flex-wrap items-center gap-3 justify-between hover:border-gold/50 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+              <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <div className="font-display text-[15px] text-bone">Rejoindre le copy auto</div>
+            <div className="text-[12px] text-mist">Réplique automatiquement les trades de Julien — infos &amp; accès sur Telegram.</div>
+          </div>
+        </div>
+        <span className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold whitespace-nowrap">
+          Rejoindre <IconArrow className="h-4 w-4" />
+        </span>
+      </a>
+
+      {/* Audios (sans titre redondant) */}
       <div className="mb-5">
-        <AudioFeed />
+        <AudioFeed hideHeader />
       </div>
 
       {/* KPIs performance */}

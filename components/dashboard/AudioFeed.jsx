@@ -67,7 +67,7 @@ function AudioCard({ a, latest }) {
   );
 }
 
-export default function AudioFeed() {
+export default function AudioFeed({ hideHeader = false }) {
   const [audios, setAudios] = useState(null);
   const [err, setErr] = useState(null);
   const authed = typeof window !== "undefined" && !!getToken();
@@ -87,12 +87,16 @@ export default function AudioFeed() {
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-1">
-        <h3 className="font-display text-[18px] text-bone">Audios — Pôle Trading Julien</h3>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">live</span>
-        {authed && <button onClick={load} className="ml-auto text-[12px] text-mist hover:text-bone">↻</button>}
-      </div>
-      <p className="text-[13px] text-mist mb-4">Les 4 derniers points audio de Julien, à écouter directement ici.</p>
+      {!hideHeader && (
+        <>
+          <div className="flex items-center gap-2 mb-1">
+            <h3 className="font-display text-[18px] text-bone">Audios — Pôle Trading Julien</h3>
+            <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">live</span>
+            {authed && <button onClick={load} className="ml-auto text-[12px] text-mist hover:text-bone">↻</button>}
+          </div>
+          <p className="text-[13px] text-mist mb-4">Les 4 derniers points audio de Julien, à écouter directement ici.</p>
+        </>
+      )}
 
       {!authed ? (
         <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useDeferredValue } from "react";
 import { API_BASE } from "@/lib/site";
 
 /* ---------- API ---------- */
@@ -60,6 +60,9 @@ export default function TgPosts({ adminKey }) {
   const [testId, setTestId] = useState("");
   const [msg, setMsg] = useState(null);
   const [previewHtml, setPreviewHtml] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef(null);
 
   const reload = useCallback(async () => {
     const [t, s] = await Promise.all([
@@ -88,6 +91,29 @@ export default function TgPosts({ adminKey }) {
   function insertPrenom() {
     document.execCommand("insertText", false, "{prenom}");
     refreshPreview();
+  }
+
+  async function uploadFile(file) {
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) { setMsg({ ok: false, t: "Image trop lourde (max 10 Mo)." }); return; }
+    const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    if (!allowed.includes(file.type)) { setMsg({ ok: false, t: "Format non supporté. Utilisez JPG, PNG, GIF ou WebP." }); return; }
+    setUploading(true); setMsg({ ok: true, t: "Upload en cours…" });
+    const fd = new FormData();
+    fd.append("file", file);
+    try {
+      const r = await fetch(`${API_BASE}/api/admin/tg/upload?key=${encodeURIComponent(adminKey)}`, { method: "POST", body: fd });
+      const d = await r.json();
+      if (d.ok) { setPhoto(d.url); setMsg({ ok: true, t: `✓ Image uploadée (${Math.round(file.size / 1024)} Ko)` }); }
+      else setMsg({ ok: false, t: d.error || "Échec de l'upload." });
+    } catch (e) { setMsg({ ok: false, t: "Erreur réseau lors de l'upload." }); }
+    finally { setUploading(false); }
+  }
+
+  function handleDrop(e) {
+    e.preventDefault(); setDragOver(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) uploadFile(file);
   }
 
   function payload() {
@@ -189,11 +215,73 @@ export default function TgPosts({ adminKey }) {
             className="min-h-[140px] rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-3 text-bone text-[14px] leading-relaxed outline-none [&_a]:text-gold [&_a]:underline"
           />
 
-          {/* photo */}
+          {/* photo — upload ou URL */}
           <div className="mt-3">
-            <label className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Photo (URL, optionnel)</label>
-            <input value={photo} onChange={(e) => setPhoto(e.target.value)} placeholder="https://…/image.jpg"
-              className="mt-1 w-full rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-2 text-bone text-[13px] font-mono outline-none" />
+            <label className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 mb-1.5 block">
+              Photo <span className="normal-case text-mist/40">(optionnel — upload ou URL)</span>
+            </label>
+
+            {/* Zone drag & drop */}
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed cursor-pointer transition-colors
+                ${dragOver ? "border-gold/60 bg-gold/[0.05]" : "border-white/15 hover:border-gold/30 bg-ink-900/60"}`}
+              style={{ minHeight: photo ? "auto" : "90px" }}
+            >
+              {/* Preview de l'image sélectionnée */}
+              {photo ? (
+                <div className="relative w-full">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photo} alt="preview" onError={() => {}} className="w-full max-h-52 object-cover rounded-xl" />
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setPhoto(""); }}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-rose-500/80 transition-colors text-[14px]"
+                  >✕</button>
+                  {uploading && (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50">
+                      <span className="text-bone text-[13px]">Upload…</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="py-5 flex flex-col items-center gap-1.5 select-none">
+                  {uploading ? (
+                    <span className="text-[13px] text-mist animate-pulse">Upload en cours…</span>
+                  ) : (
+                    <>
+                      <span className="text-2xl">🖼️</span>
+                      <span className="text-[12.5px] text-mist/70">
+                        Glissez une image ou <span className="text-gold underline">cliquez pour choisir</span>
+                      </span>
+                      <span className="text-[11px] text-mist/40">JPG · PNG · GIF · WebP · max 10 Mo</span>
+                    </>
+                  )}
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                className="sr-only"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) uploadFile(f); e.target.value = ""; }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+
+            {/* Champ URL en fallback */}
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-[10.5px] text-mist/40 whitespace-nowrap">ou URL directe</span>
+              <input
+                value={photo}
+                onChange={(e) => setPhoto(e.target.value)}
+                placeholder="https://…/image.jpg"
+                className="flex-1 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-1.5 text-bone text-[12px] font-mono outline-none"
+              />
+            </div>
           </div>
 
           {/* boutons inline */}

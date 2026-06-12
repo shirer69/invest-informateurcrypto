@@ -65,14 +65,27 @@ export default function Dashboard() {
   // (`t.me/Clubdesinformateurs_bot/<app>?startapp=videos`). Ex. lien direct « Vidéos ».
   useEffect(() => {
     const VALID = new Set(nav.map((n) => n.id));
+    // Alias d'URL conviviaux → id réel de l'onglet
+    const ALIAS = {
+      futures: "monitoring",
+      invest: "analytics",
+      actions: "vip",
+      chat: "community",
+      facturation: "billing",
+      compte: "account",
+    };
+    const resolve = (v) => {
+      const k = (v || "").toLowerCase();
+      return ALIAS[k] || k;
+    };
     let target = "";
     try {
       const p = new URLSearchParams(window.location.search);
-      target = (p.get("tab") || "").toLowerCase();
+      target = resolve(p.get("tab") || "");
       if (!target) {
         const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
-        if (sp.startsWith("tab_")) target = sp.slice(4).toLowerCase();
-        else if (VALID.has(sp.toLowerCase())) target = sp.toLowerCase();
+        if (sp.startsWith("tab_")) target = resolve(sp.slice(4));
+        else target = resolve(sp);
       }
     } catch {}
     if (target && VALID.has(target)) setTab(target);

@@ -11,6 +11,7 @@ import FrenchFlag from "./FrenchFlag";
 import KrakenLogo from "./KrakenLogo";
 import HyperliquidLogo from "./HyperliquidLogo";
 import OkxLogo from "./OkxLogo";
+import Countdown from "./Countdown";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -73,10 +74,19 @@ export default function Hero() {
           </motion.p>
 
           <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.28, ease }}
+            className="mt-6"
+          >
+            <Countdown variant="hero" />
+          </motion.div>
+
+          <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.32, ease }}
-            className="mt-7"
+            transition={{ duration: 1, delay: 0.38, ease }}
+            className="mt-6"
           >
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
               {logged ? "Votre espace" : "Accès sur invitation"}

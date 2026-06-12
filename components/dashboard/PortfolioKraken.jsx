@@ -8,6 +8,7 @@ import LiveTag from "./LiveTag";
 import KrakenLogo from "@/components/KrakenLogo";
 import { IconArrow } from "@/components/Icons";
 import TrackRecord from "@/components/TrackRecord";
+import Countdown from "@/components/Countdown";
 
 // Barre d'accès au groupe VIP Telegram (grisée tant que le dashboard est verrouillé).
 function VipJoinBar() {
@@ -360,9 +361,6 @@ export default function PortfolioKraken() {
           {loading ? <Spinner size={13} /> : "↻"} {loading ? "chargement…" : "rafraîchir"}
         </button>
       </div>
-      <p className="mt-0.5 font-mono text-[11px] text-gold/80">
-        ⚠️ Démarrage du portefeuille INVEST — 16 juin 2026
-      </p>
     </div>
   );
 
@@ -372,6 +370,7 @@ export default function PortfolioKraken() {
     return (
       <div>
         {header}
+        {!TRACKING_STARTED && <Countdown variant="dashboard" />}
         <VipJoinBar />
         <div className="grid place-items-center gap-3 py-24 text-mist">
           <Spinner size={34} className="text-gold" />
@@ -384,6 +383,7 @@ export default function PortfolioKraken() {
   return (
     <div>
       {header}
+      {!TRACKING_STARTED && <Countdown variant="dashboard" />}
 
       <VipJoinBar />
 

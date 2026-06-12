@@ -10,7 +10,7 @@ import { Locked, useUnlock } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import LiveTag from "@/components/dashboard/LiveTag";
 import {
-  getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
+  getUser, getToken, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
   copyContract, copyContractSign, copySpotPlan, copyMarginPlan,
   poleTradingAudios, audioStreamUrl,
@@ -595,10 +595,24 @@ function Billing({ b }) {
 function LockedAudioPreview() {
   const { locked, openUnlock } = useUnlock();
   const [audios, setAudios] = useState(null);
+  const [retries, setRetries] = useState(0);
 
   useEffect(() => {
-    poleTradingAudios().then((r) => { if (r.ok) setAudios(r.audios); });
-  }, []);
+    // Retry tant qu'on n'a pas de token (race condition mini-app : token stocké juste avant le rendu)
+    const load = async () => {
+      const tok = getToken();
+      if (!tok) {
+        // Pas encore de token — réessaye dans 800ms (max 5 fois)
+        if (retries < 5) setTimeout(() => setRetries((n) => n + 1), 800);
+        return;
+      }
+      const r = await poleTradingAudios();
+      if (r.ok) setAudios(r.audios);
+      else if (r.audios) setAudios(r.audios); // [] si vide
+    };
+    load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [retries]);
 
   const preview = audios ? audios.slice(0, 2) : [];
 

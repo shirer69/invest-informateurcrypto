@@ -75,9 +75,9 @@ const CAT = {
 
 // Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
 const DISPLAY_MULT = 100;
-// Le suivi de performance démarre le 21 juin 2026 → on affiche 0,00 % jusqu'à cette date.
+// Le suivi de performance démarre le 16 juin 2026 → on affiche 0,00 % jusqu'à cette date.
 const TRACKING_STARTED = false;
-const TRACKING_START_LABEL = "21 juin 2026";
+const TRACKING_START_LABEL = "16 juin 2026";
 const fmtUsd = (x) =>
   x == null || isNaN(x)
     ? "—"
@@ -229,7 +229,7 @@ export default function PortfolioKraken() {
     return a && p ? `${a} · ${p}` : a || p;
   };
 
-  // P&L ABSOLU par actif (progression depuis le 21 juin), en % de la valeur TOTALE du compte.
+  // P&L ABSOLU par actif (progression depuis le 16 juin), en % de la valeur TOTALE du compte.
   // Tant que le suivi n'a pas démarré (TRACKING_STARTED=false) → 0.
   const spotAbs = (h) =>
     h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
@@ -291,13 +291,13 @@ export default function PortfolioKraken() {
     {
       label: "Gains réalisés",
       value: "—",
-      sub: "Suivi actif 21 juin",
+      sub: "Suivi actif 16 juin",
       cls: "text-mist/60",
     },
     {
       label: "Drawdown max",
       value: "—",
-      sub: "Suivi actif 21 juin",
+      sub: "Suivi actif 16 juin",
       cls: "text-mist/60",
     },
     {
@@ -368,7 +368,10 @@ export default function PortfolioKraken() {
         />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&L du compte {TRACKING_STARTED ? `· depuis le ${TRACKING_START_LABEL}` : `· départ le ${TRACKING_START_LABEL}`}
+            P&amp;L du compte{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
+          {!TRACKING_STARTED && (
+            <> · <span className="text-gold font-semibold">démarrage le {TRACKING_START_LABEL}</span></>
+          )}
           </div>
           <Locked>
           <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${

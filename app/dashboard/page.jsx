@@ -11,7 +11,7 @@ import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
 import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
-import { Intelligence, Analytics, CopyTrading, Monitoring } from "@/components/dashboard/Sections";
+import { Intelligence, Analytics, CopyTrading, Monitoring, XStocks } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -20,8 +20,8 @@ import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
   { id: "analytics", label: "Invest", icon: "📊" },
-  { id: "monitoring", label: "Trading", icon: "📡" },
-  { id: "vip", label: "Signaux", icon: "🔔" },
+  { id: "monitoring", label: "Futures", icon: "📡" },
+  { id: "vip", label: "Actions", icon: "📈" },
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
   { id: "videos", label: "Vidéos", icon: "🎬" },
@@ -190,26 +190,7 @@ export default function Dashboard() {
         <main className="min-w-0">
           {/* Portefeuille : chaque tableau est verrouillé individuellement (verrou interne) */}
           {tab === "portfolio" && <PortfolioKraken />}
-          {tab === "vip" && (
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h3 className="font-display text-[18px] text-bone">Signaux</h3>
-              </div>
-              <Locked label="Déverrouiller l'accès">
-                <VipFeed />
-              </Locked>
-              <div className="mt-4 rounded-2xl border gold-line bg-gold/[0.04] px-5 py-4">
-                <p className="text-[12.5px] leading-relaxed text-mist">
-                  <span className="text-gold font-semibold">🔑 Déverrouiller</span> pour accéder aux{" "}
-                  <span className="text-bone">signaux</span>,{" "}
-                  <span className="text-bone">analyses</span> et{" "}
-                  <span className="text-bone">audios temps réel</span> dans le groupe privé Telegram
-                  et via ce dashboard — ainsi qu'à la possibilité, à venir, d'activer le{" "}
-                  <span className="text-bone">copy auto</span> avec votre compte Kraken.
-                </p>
-              </div>
-            </div>
-          )}
+          {tab === "vip" && <XStocks />}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}
           {/* Logs : historique de tous les trades (verrou interne) */}

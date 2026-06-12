@@ -147,7 +147,7 @@ export default function Dashboard() {
         <div className="mx-auto max-w-[1280px] px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
           <a href="/" className="flex items-center gap-2.5 min-w-0">
             <span className="leading-tight min-w-0">
-              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Pôle Invest</span>
+              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Club des Informateurs</span>
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>
             </span>
           </a>

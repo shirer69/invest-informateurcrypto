@@ -64,13 +64,25 @@ export default function TgPosts({ adminKey }) {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
+  /* triggers */
+  const [triggers, setTriggers] = useState([]);
+  const [triggerMeta, setTriggerMeta] = useState([]);
+  const [trgEventId, setTrgEventId] = useState("");
+  const [trgTpl, setTrgTpl] = useState("");
+  const [trgCooldown, setTrgCooldown] = useState(24);
+  const [trgAud, setTrgAud] = useState("all");
+
   const reload = useCallback(async () => {
-    const [t, s] = await Promise.all([
+    const [t, s, tr, tm] = await Promise.all([
       aGet("/api/admin/tg/templates", adminKey),
       aGet("/api/admin/tg/schedules", adminKey),
+      aGet("/api/admin/tg/triggers", adminKey),
+      aGet("/api/admin/tg/triggers/meta", adminKey),
     ]);
     setTemplates(t.templates || []);
     setSchedules(s.schedules || []);
+    setTriggers(tr.triggers || []);
+    setTriggerMeta(tm.triggers || []);
   }, [adminKey]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -178,7 +190,33 @@ export default function TgPosts({ adminKey }) {
   async function toggleSchedule(id) { await aPost(`/api/admin/tg/schedules/${id}/toggle`, adminKey, {}); reload(); }
   async function delSchedule(id) { await aDel(`/api/admin/tg/schedules/${id}`, adminKey); reload(); }
 
+  /* triggers */
+  const selectedMeta = triggerMeta.find((m) => m.id === trgEventId);
+  const isBroadcast = selectedMeta?.broadcast ?? true;
+
+  async function addTrigger() {
+    if (!trgEventId) { setMsg({ ok: false, t: "Choisissez un événement déclencheur." }); return; }
+    if (!trgTpl) { setMsg({ ok: false, t: "Choisissez un template." }); return; }
+    const body = {
+      trigger_id: trgEventId,
+      template_id: Number(trgTpl),
+      cooldown_hours: isBroadcast ? Number(trgCooldown) : 0,
+      audience: isBroadcast ? trgAud : "user",
+    };
+    const r = await aPost("/api/admin/tg/triggers", adminKey, body);
+    if (r.ok) { setMsg({ ok: true, t: "Déclencheur créé." }); setTrgEventId(""); setTrgTpl(""); reload(); }
+    else setMsg({ ok: false, t: "Échec." });
+  }
+  async function toggleTrigger(id) { await aPost(`/api/admin/tg/triggers/${id}/toggle`, adminKey, {}); reload(); }
+  async function delTrigger(id) { await aDel(`/api/admin/tg/triggers/${id}`, adminKey); reload(); }
+  async function resetTrigger(id) {
+    await aPost(`/api/admin/tg/triggers/${id}/reset`, adminKey, {});
+    setMsg({ ok: true, t: "Cooldown réinitialisé — le prochain achat enverra le post." });
+    reload();
+  }
+
   const fmtNext = (s) => (!s ? "—" : new Date(s * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+  const fmtTs = (s) => (!s ? "jamais" : new Date(s * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
   const TBtn = ({ onClick, children, title }) => (
     <button type="button" onClick={onClick} title={title}
       className="h-8 min-w-8 px-2 rounded-lg border hairline bg-white/[0.02] text-bone hover:border-gold/50 text-[13px]">{children}</button>
@@ -362,6 +400,103 @@ export default function TgPosts({ adminKey }) {
             </div>
           </div>
           <p className="mt-2 text-[11px] text-mist/50">{"{prenom}"} est remplacé par le prénom réel de chaque destinataire (ici « Jean »).</p>
+        </div>
+
+        {/* déclencheurs (triggers) */}
+        <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] p-5">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-emerald-400/90">⚡ Déclencheurs automatiques</span>
+          </div>
+          <p className="text-[11.5px] text-mist/60 mb-3 leading-relaxed">
+            Envoie un post Telegram quand un événement se produit (nouvel achat du maître, inscription, déblocage…).
+          </p>
+          <div className="space-y-2">
+            <select value={trgEventId} onChange={(e) => { setTrgEventId(e.target.value); const m = triggerMeta.find(x => x.id === e.target.value); if (m) setTrgCooldown(m.default_cooldown ?? 24); }}
+              className="w-full rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
+              <option value="">— Événement déclencheur —</option>
+              {triggerMeta.map((m) => (
+                <option key={m.id} value={m.id}>{m.label}</option>
+              ))}
+            </select>
+            {trgEventId && (
+              <p className="text-[11.5px] text-mist/60 leading-relaxed">
+                {selectedMeta?.desc}
+                {selectedMeta?.broadcast && <span className="ml-1 text-gold/70">(broadcast)</span>}
+                {!selectedMeta?.broadcast && <span className="ml-1 text-sky-400/70">(individuel — envoyé au tg_id du membre)</span>}
+              </p>
+            )}
+            <select value={trgTpl} onChange={(e) => setTrgTpl(e.target.value)}
+              className="w-full rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
+              <option value="">— Template à envoyer —</option>
+              {templates.map((t) => <option key={t.id} value={t.id}>{t.name || `#${t.id}`}</option>)}
+            </select>
+            {isBroadcast && (
+              <div className="flex items-center gap-2">
+                <select value={trgAud} onChange={(e) => setTrgAud(e.target.value)}
+                  className="flex-1 rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
+                  {AUDIENCES.map((a) => <option key={a.id} value={a.id}>Audience : {a.label}</option>)}
+                </select>
+                <div className="flex items-center gap-1.5">
+                  <input type="number" min={0} value={trgCooldown} onChange={(e) => setTrgCooldown(e.target.value)}
+                    className="w-16 rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none" />
+                  <span className="text-[12px] text-mist whitespace-nowrap">h min entre envois</span>
+                </div>
+              </div>
+            )}
+            <button onClick={addTrigger}
+              className="w-full rounded-full px-5 py-2.5 text-[13px] font-semibold border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 transition-colors">
+              ⚡ Activer ce déclencheur
+            </button>
+          </div>
+
+          {triggers.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {triggers.map((tr) => {
+                const meta = triggerMeta.find((m) => m.id === tr.trigger_id);
+                const cooldownOk = !tr.cooldown_hours || !tr.last_fired ||
+                  (Date.now() / 1000 - tr.last_fired) >= tr.cooldown_hours * 3600;
+                return (
+                  <div key={tr.id} className="rounded-lg border hairline bg-ink-900/60 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-[13px] text-bone truncate">
+                          {meta?.label || tr.trigger_id}
+                          <span className="ml-1.5 text-mist/50 font-normal text-[11px]">→ {tr.template_name || `tpl #${tr.template_id}`}</span>
+                        </div>
+                        <div className="text-[11px] text-mist/60 mt-0.5">
+                          {meta?.broadcast
+                            ? <>
+                                {tr.cooldown_hours > 0
+                                  ? `cooldown ${tr.cooldown_hours} h · `
+                                  : ""}
+                                {cooldownOk
+                                  ? <span className="text-emerald-400">prêt</span>
+                                  : <span className="text-amber-400">cooldown en cours · dernier : {fmtTs(tr.last_fired)}</span>}
+                              </>
+                            : <span className="text-sky-400/70">individuel</span>
+                          }
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {meta?.broadcast && tr.last_fired && !cooldownOk && (
+                          <button onClick={() => resetTrigger(tr.id)}
+                            title="Réinitialiser le cooldown"
+                            className="text-[11px] text-amber-400 hover:text-amber-300 border border-amber-400/30 rounded-full px-2 py-0.5">
+                            reset
+                          </button>
+                        )}
+                        <button onClick={() => toggleTrigger(tr.id)}
+                          className={`text-[11px] rounded-full px-2 py-1 border ${tr.enabled ? "text-pos border-pos/40" : "text-mist/60 border-white/10"}`}>
+                          {tr.enabled ? "actif" : "off"}
+                        </button>
+                        <button onClick={() => delTrigger(tr.id)} className="text-mist hover:text-rose-400 text-[13px]">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* planification */}

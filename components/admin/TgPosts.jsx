@@ -52,7 +52,7 @@ export default function TgPosts({ adminKey }) {
   const editorRef = useRef(null);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState("");
-  const [buttons, setButtons] = useState([{ text: "", url: "http://t.me/Clubdesinformateurs_bot/unlock" }]);
+  const [buttons, setButtons] = useState([{ text: "", url: "https://t.me/Clubdesinformateurs_bot/unlock" }]);
   const [audience, setAudience] = useState("all");
   const [editingId, setEditingId] = useState(null);
   const [templates, setTemplates] = useState([]);
@@ -149,7 +149,7 @@ export default function TgPosts({ adminKey }) {
     setMsg(null);
   }
   function resetEditor() {
-    setEditingId(null); setName(""); setPhoto(""); setButtons([{ text: "", url: "http://t.me/Clubdesinformateurs_bot/unlock" }]);
+    setEditingId(null); setName(""); setPhoto(""); setButtons([{ text: "", url: "https://t.me/Clubdesinformateurs_bot/unlock" }]);
     if (editorRef.current) editorRef.current.innerHTML = "";
     setPreviewHtml("");
   }

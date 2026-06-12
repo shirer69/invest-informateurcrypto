@@ -191,7 +191,24 @@ export default function Dashboard() {
           {/* Portefeuille : chaque tableau est verrouillé individuellement (verrou interne) */}
           {tab === "portfolio" && <PortfolioKraken />}
           {tab === "vip" && (
-            <Locked><VipFeed /></Locked>
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <h3 className="font-display text-[18px] text-bone">Signaux</h3>
+              </div>
+              <Locked label="Déverrouiller l'accès">
+                <VipFeed />
+              </Locked>
+              <div className="mt-4 rounded-2xl border gold-line bg-gold/[0.04] px-5 py-4">
+                <p className="text-[12.5px] leading-relaxed text-mist">
+                  <span className="text-gold font-semibold">🔑 Déverrouiller</span> pour accéder aux{" "}
+                  <span className="text-bone">signaux</span>,{" "}
+                  <span className="text-bone">analyses</span> et{" "}
+                  <span className="text-bone">audios temps réel</span> dans le groupe privé Telegram
+                  et via ce dashboard — ainsi qu'à la possibilité, à venir, d'activer le{" "}
+                  <span className="text-bone">copy auto</span> avec votre compte Kraken.
+                </p>
+              </div>
+            </div>
           )}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}

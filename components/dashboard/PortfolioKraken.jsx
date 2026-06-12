@@ -274,6 +274,38 @@ export default function PortfolioKraken() {
   const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) + sumAbs(marginRows) + sumAbs(perps) : 0;
   const accountPnlPct = TRACKING_STARTED ? (total > 0 ? (accountAbs / total) * 100 : null) : 0;
 
+  // KPIs Spot (non réalisés = value − cost, basé sur les données Kraken en direct)
+  const unrealizedSpot = holdings
+    .filter((h) => h.kind === "crypto" || h.kind === "stock")
+    .reduce((s, h) => s + (h.cost != null && h.value != null ? h.value - h.cost : 0), 0);
+  const unrealizedSpotPct = total > 0 ? (unrealizedSpot / total) * 100 : null;
+  const spotKpis = [
+    {
+      label: "Gains non réalisés",
+      value: unrealizedSpot !== 0 ? `${unrealizedSpot >= 0 ? "+" : ""}${fmtUsd(unrealizedSpot)}` : "—",
+      sub: unrealizedSpotPct != null && unrealizedSpot !== 0 ? `${unrealizedSpotPct >= 0 ? "+" : ""}${unrealizedSpotPct.toFixed(2)} %` : null,
+      cls: unrealizedSpot >= 0 ? "text-emerald-400" : "text-rose-400",
+    },
+    {
+      label: "Gains réalisés",
+      value: "—",
+      sub: "Suivi actif 21 juin",
+      cls: "text-mist/60",
+    },
+    {
+      label: "Drawdown max",
+      value: "—",
+      sub: "Suivi actif 21 juin",
+      cls: "text-mist/60",
+    },
+    {
+      label: "Positions spot",
+      value: String(crypto.length + stocks.length),
+      sub: `${cash.length} cash · ${marginRows.length} margin`,
+      cls: "text-bone",
+    },
+  ];
+
   const header = (
     <div className="flex items-center gap-2 mb-4">
       <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
@@ -305,6 +337,17 @@ export default function PortfolioKraken() {
       {header}
 
       <VipJoinBar />
+
+      {/* KPIs Spot */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        {spotKpis.map(({ label, value, sub, cls }) => (
+          <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
+            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
+            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+          </div>
+        ))}
+      </div>
 
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>

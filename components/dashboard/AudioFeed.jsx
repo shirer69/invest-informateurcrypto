@@ -34,11 +34,8 @@ function AudioCard({ a, latest }) {
     <article className="rounded-2xl border hairline bg-ink-800/50 p-5">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
-              <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
-            </svg>
-          </span>
+          <img src="/julien.jpg" alt="Julien"
+               className="h-9 w-9 shrink-0 rounded-full border gold-line object-cover object-top" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-display text-[14.5px] text-bone">Point audio</span>

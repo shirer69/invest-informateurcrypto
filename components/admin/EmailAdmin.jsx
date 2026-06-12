@@ -617,6 +617,56 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    SECTION — Boîte de réception IMAP
    ═══════════════════════════════════════════════════════════════════════════ */
+
+/** Affiche un email HTML dans un iframe isolé qui s'auto-redimensionne au contenu. */
+function HtmlEmailFrame({ html }) {
+  const ref = useRef(null);
+
+  // Injecte le HTML via srcdoc et redimensionne l'iframe dès que le contenu est rendu
+  useEffect(() => {
+    const frame = ref.current;
+    if (!frame) return;
+
+    // Enveloppe le fragment HTML dans un document complet si nécessaire
+    const wrapped = html.trim().startsWith("<!") || html.trim().toLowerCase().startsWith("<html")
+      ? html
+      : `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+          body{margin:0;padding:16px;font-family:sans-serif;background:#fff;color:#111;word-break:break-word;}
+          img{max-width:100%;height:auto;}
+          a{color:#0066cc;}
+        </style></head><body>${html}</body></html>`;
+
+    // Écrit le document directement (plus fiable que srcDoc pour le resize)
+    frame.srcdoc = wrapped;
+
+    function resize() {
+      try {
+        const doc = frame.contentDocument || frame.contentWindow?.document;
+        if (!doc) return;
+        const h = doc.documentElement.scrollHeight || doc.body.scrollHeight;
+        if (h > 0) frame.style.height = h + "px";
+      } catch {}
+    }
+
+    frame.onload = () => {
+      resize();
+      // Re-check après 200ms (images chargées)
+      setTimeout(resize, 200);
+      setTimeout(resize, 800);
+    };
+  }, [html]);
+
+  return (
+    <iframe
+      ref={ref}
+      title="Corps email"
+      sandbox="allow-same-origin allow-scripts allow-popups"
+      className="w-full border-0 rounded-b-2xl bg-white"
+      style={{ minHeight: 200, height: 400, display: "block" }}
+    />
+  );
+}
+
 function parseDate(raw) {
   if (!raw) return "";
   try {
@@ -780,19 +830,13 @@ function InboxSection({ adminKey }) {
               </div>
 
               {/* Corps */}
-              <div className="p-5">
+              <div className={selected.is_html ? "" : "p-5"}>
                 {bodyLoading && (
-                  <div className="text-mist/50 text-[13px] animate-pulse">Chargement…</div>
+                  <div className="p-5 text-mist/50 text-[13px] animate-pulse">Chargement…</div>
                 )}
                 {!bodyLoading && selected.body != null && (
                   selected.is_html ? (
-                    <iframe
-                      srcDoc={selected.body}
-                      sandbox="allow-same-origin"
-                      className="w-full border-0 rounded-lg bg-white"
-                      style={{ minHeight: 320, height: 480 }}
-                      title="Corps email"
-                    />
+                    <HtmlEmailFrame html={selected.body} />
                   ) : (
                     <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-mist font-sans">
                       {selected.body}
@@ -800,7 +844,7 @@ function InboxSection({ adminKey }) {
                   )
                 )}
                 {!bodyLoading && selected.body == null && (
-                  <div className="text-mist/50 text-[13px]">Impossible de charger le corps.</div>
+                  <div className="p-5 text-mist/50 text-[13px]">Impossible de charger le corps.</div>
                 )}
               </div>
             </>

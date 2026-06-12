@@ -144,14 +144,16 @@ function TemplatesSection({ adminKey, templates, onReload }) {
     }
   }
 
-  async function seedTemplates() {
+  async function seedTemplates(force = false) {
     setSeedBusy(true); setSeedMsg(null);
-    const r = await aPost("/api/admin/mail/templates/seed", adminKey, {});
+    const r = await aPost("/api/admin/mail/templates/seed", adminKey, { force });
     setSeedBusy(false);
     if (r.ok) {
-      setSeedMsg(r.added?.length
-        ? `✓ ${r.added.length} template(s) importé(s) · ${r.skipped} déjà présent(s).`
-        : `Tous les templates sont déjà importés (${r.skipped} présents).`);
+      const parts = [];
+      if (r.added?.length)   parts.push(`${r.added.length} ajouté(s)`);
+      if (r.updated?.length) parts.push(`${r.updated.length} mis à jour`);
+      if (r.skipped)         parts.push(`${r.skipped} inchangé(s)`);
+      setSeedMsg("✓ " + (parts.join(" · ") || "Aucun changement."));
       onReload();
     } else setSeedMsg("Erreur d'import.");
   }
@@ -240,19 +242,25 @@ function TemplatesSection({ adminKey, templates, onReload }) {
           </div>
         )}
 
-        {/* Import templates existants */}
+        {/* Import / sync templates */}
         <div className="rounded-2xl border gold-line bg-gold/[0.04] p-4">
           <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-2">
-            Templates du site — import
+            Templates du site — synchronisation
           </div>
           <p className="text-[12.5px] text-mist/70 mb-3 leading-relaxed">
-            Importe les 7 templates existants du site (Bienvenue, VIP, Reset, Facture copy,
-            Positionnement, Relance J+3, Expiration J-7). Ignorés s'ils existent déjà.
+            7 templates intégrés au style Hyperliquid du site (Bienvenue, VIP, Reset,
+            Facture, Signal, Relance J+3, Expiration J-7) avec tables de données cyan.
           </p>
-          <button onClick={seedTemplates} disabled={seedBusy}
-            className="btn-ghost rounded-full px-5 py-2 text-[12.5px] disabled:opacity-60">
-            {seedBusy ? "Import…" : "⬇ Importer les templates existants"}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={() => seedTemplates(false)} disabled={seedBusy}
+              className="btn-ghost rounded-full px-5 py-2 text-[12.5px] disabled:opacity-60">
+              {seedBusy ? "…" : "⬇ Importer les nouveaux"}
+            </button>
+            <button onClick={() => seedTemplates(true)} disabled={seedBusy}
+              className="btn-ghost rounded-full px-5 py-2 text-[12.5px] disabled:opacity-60 border-gold/30">
+              {seedBusy ? "…" : "↺ Tout mettre à jour"}
+            </button>
+          </div>
           {seedMsg && <p className="mt-2 text-[12px] text-pos">{seedMsg}</p>}
         </div>
 

@@ -119,11 +119,19 @@ export default function Dashboard() {
   }
 
   if (!registered) {
+    // Utilisateur Telegram : il est déjà dans la mini-app, donc déjà invité.
+    // On saute le code d'invitation et on lui demande juste son email.
+    const isTgUser = emailLc.endsWith("@telegram.local");
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
-        <SignupGate onDone={() => setUser(getUser())} onLogin={() => setLoginOpen(true)} />
+        <SignupGate
+          onDone={() => setUser(getUser())}
+          onLogin={() => setLoginOpen(true)}
+          skipCode={isTgUser}
+          tgName={isTgUser ? (user?.name || "") : ""}
+        />
       </div>
     );
   }

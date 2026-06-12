@@ -72,17 +72,22 @@ export default function TgPosts({ adminKey }) {
   const [trgCooldown, setTrgCooldown] = useState(24);
   const [trgAud, setTrgAud] = useState("all");
 
+  /* send log */
+  const [sendLog, setSendLog] = useState([]);
+
   const reload = useCallback(async () => {
-    const [t, s, tr, tm] = await Promise.all([
+    const [t, s, tr, tm, sl] = await Promise.all([
       aGet("/api/admin/tg/templates", adminKey),
       aGet("/api/admin/tg/schedules", adminKey),
       aGet("/api/admin/tg/triggers", adminKey),
       aGet("/api/admin/tg/triggers/meta", adminKey),
+      aGet("/api/admin/tg/sendlog", adminKey),
     ]);
     setTemplates(t.templates || []);
     setSchedules(s.schedules || []);
     setTriggers(tr.triggers || []);
     setTriggerMeta(tm.triggers || []);
+    setSendLog(Array.isArray(sl) ? sl : []);
   }, [adminKey]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -160,7 +165,22 @@ export default function TgPosts({ adminKey }) {
     if (!p.text && !p.photo) { setMsg({ ok: false, t: "Le post est vide." }); return; }
     setMsg({ ok: true, t: "Envoi en cours…" });
     const r = await aPost("/api/admin/tg/send", adminKey, p);
-    setMsg(r.ok ? { ok: true, t: `Envoi lancé à ${r.reachable} destinataire(s).` } : { ok: false, t: "Échec de l'envoi." });
+    if (r.ok) {
+      setMsg({ ok: true, t: `✓ Envoi lancé — ${r.reachable} destinataire(s) ciblé(s). Les stats réelles s'affichent dans l'historique ci-dessous.` });
+      // Rafraîchir le log après un délai pour capturer les stats (envoi asynchrone)
+      setTimeout(() => reload(), 8000);
+      setTimeout(() => reload(), 20000);
+    } else {
+      setMsg({ ok: false, t: "Échec de l'envoi." });
+    }
+  }
+
+  async function retractSend(logId) {
+    if (!confirm("Supprimer ce message de tous les DMs Telegram ? Cette action est irréversible.")) return;
+    setMsg({ ok: true, t: "Rétractation en cours…" });
+    const r = await aPost(`/api/admin/tg/sendlog/${logId}/retract`, adminKey, {});
+    if (r.ok) { setMsg({ ok: true, t: `✓ Message supprimé de ${r.deleted} DM(s)${r.failed ? ` (${r.failed} échec(s))` : ""}.` }); reload(); }
+    else setMsg({ ok: false, t: r.error === "already_retracted" ? "Déjà rétracté." : "Échec de la rétractation." });
   }
   async function sendTest() {
     if (!testId.trim()) { setMsg({ ok: false, t: "Indiquez un tg_id de test." }); return; }
@@ -491,6 +511,55 @@ export default function TgPosts({ adminKey }) {
                         </button>
                         <button onClick={() => delTrigger(tr.id)} className="text-mist hover:text-rose-400 text-[13px]">✕</button>
                       </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* historique envois */}
+        <div className="rounded-2xl border border-sky-500/30 bg-sky-500/[0.04] p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-sky-400/90">📊 Historique des envois</span>
+            <button onClick={reload} className="text-[11px] text-mist hover:text-bone">↻ Actualiser</button>
+          </div>
+          {sendLog.length === 0 ? (
+            <p className="text-[12.5px] text-mist/60">Aucun envoi pour l'instant.</p>
+          ) : (
+            <div className="space-y-2">
+              {sendLog.map((s) => {
+                const sending = s.total > 0 && s.sent + s.failed === 0;
+                const rate = s.total > 0 && !sending ? Math.round((s.sent / s.total) * 100) : null;
+                return (
+                  <div key={s.id} className={`rounded-lg border px-3 py-2 ${s.retracted ? "border-white/5 opacity-50" : "border-white/10 bg-ink-900/40"}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[12.5px] text-bone truncate">{s.text_preview || "—"}</div>
+                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-mist/60">
+                          <span>{new Date(s.created_at * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
+                          <span>·</span>
+                          <span>{s.audience}</span>
+                          {sending ? (
+                            <span className="text-amber-400 animate-pulse">envoi en cours…</span>
+                          ) : (
+                            <>
+                              <span className="text-emerald-400">✓ {s.sent} envoyé{s.sent > 1 ? "s" : ""}</span>
+                              {s.failed > 0 && <span className="text-rose-400">✗ {s.failed} échoué{s.failed > 1 ? "s" : ""}</span>}
+                              {rate !== null && <span className="text-sky-400">{rate}%</span>}
+                            </>
+                          )}
+                          {s.retracted && <span className="text-mist/40 italic">rétracté</span>}
+                        </div>
+                      </div>
+                      {!s.retracted && !sending && (
+                        <button onClick={() => retractSend(s.id)}
+                          title="Supprimer ce message de tous les DMs"
+                          className="shrink-0 text-[11px] border border-rose-500/40 text-rose-400 hover:bg-rose-500/10 rounded-full px-2 py-0.5 transition-colors">
+                          retirer
+                        </button>
+                      )}
                     </div>
                   </div>
                 );

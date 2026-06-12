@@ -13,6 +13,7 @@ import {
   getUser, copyState, copySaveKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
   copyContract, copyContractSign, copySpotPlan, copyMarginPlan,
+  poleTradingAudios, audioStreamUrl,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 
@@ -590,6 +591,106 @@ function Billing({ b }) {
   );
 }
 
+/* Aperçu flou des 2 derniers vocaux + overlay unlock */
+function LockedAudioPreview() {
+  const { locked, openUnlock } = useUnlock();
+  const [audios, setAudios] = useState(null);
+
+  useEffect(() => {
+    poleTradingAudios().then((r) => { if (r.ok) setAudios(r.audios); });
+  }, []);
+
+  const preview = audios ? audios.slice(0, 2) : [];
+
+  function relTime(iso) {
+    if (!iso) return "";
+    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return "à l'instant";
+    if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
+    if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
+    const d = Math.floor(s / 86400); return d === 1 ? "hier" : `il y a ${d} j`;
+  }
+  function dateLabel(iso) {
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return ""; }
+  }
+  function dur(sec) {
+    if (!sec && sec !== 0) return ""; const m = Math.floor(sec / 60), s = sec % 60;
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  if (!locked) {
+    // déverrouillé → AudioFeed normal
+    return <AudioFeed hideHeader />;
+  }
+
+  return (
+    <div className="relative rounded-2xl overflow-hidden">
+      {/* Cartes en fond floutées */}
+      <div className="pointer-events-none select-none" aria-hidden>
+        {audios === null ? (
+          <div className="space-y-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="rounded-2xl border hairline bg-ink-800/50 p-5 blur-[3px] opacity-60">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
+                    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                      <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
+                    </svg>
+                  </span>
+                  <div className="h-3 w-32 rounded bg-white/10" />
+                </div>
+                <div className="mt-3 h-10 rounded-lg bg-white/5" />
+              </div>
+            ))}
+          </div>
+        ) : preview.length === 0 ? (
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5 blur-[3px] opacity-40 text-[13px] text-mist">
+            Aucun audio récent.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {preview.map((a, i) => (
+              <div key={a.id} className={`rounded-2xl border hairline bg-ink-800/50 p-5 blur-[3px] ${i === 0 ? "opacity-75" : "opacity-45"}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
+                      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round">
+                        <path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 11v2" />
+                      </svg>
+                    </span>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-display text-[14.5px] text-bone">Point audio</span>
+                        {i === 0 && <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>}
+                        {a.duration != null && <span className="font-mono text-[10.5px] text-mist/60">{dur(a.duration)}</span>}
+                      </div>
+                      <div className="font-mono text-[10.5px] text-mist/70">{dateLabel(a.date)} · {relTime(a.date)}</div>
+                    </div>
+                  </div>
+                </div>
+                {a.caption && <p className="mt-3 text-[13.5px] leading-relaxed text-slate-200 line-clamp-2">{a.caption}</p>}
+                <div className="mt-3 h-10 w-full rounded-lg bg-white/10" />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Overlay unlock */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-ink-900/60 backdrop-blur-[2px]">
+        <button
+          onClick={openUnlock}
+          className="btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold shadow-lg"
+        >
+          🔓 Déverrouiller le monitoring
+        </button>
+        <p className="text-[11.5px] text-mist/70">Accède aux audios en temps réel de Julien</p>
+      </div>
+    </div>
+  );
+}
+
 /* ---------------- Futures (ex-Monitoring) : audios + KPIs + positions en direct ---------------- */
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
@@ -667,11 +768,9 @@ export function Monitoring({ onGoCopy }) {
         </span>
       </a>
 
-      {/* Audios — verrouillés */}
+      {/* Audios — aperçu flou si verrouillé, feed complet si déverrouillé */}
       <div className="mb-5">
-        <Locked label="Déverrouiller le monitoring">
-          <AudioFeed />
-        </Locked>
+        <LockedAudioPreview />
       </div>
 
       {/* KPIs performance */}

@@ -7,6 +7,7 @@ import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
 import KrakenLogo from "@/components/KrakenLogo";
 import { IconArrow } from "@/components/Icons";
+import TrackRecord from "@/components/TrackRecord";
 
 // Barre d'accès au groupe VIP Telegram (grisée tant que le dashboard est verrouillé).
 function VipJoinBar() {
@@ -141,6 +142,7 @@ function Section({ title, dot, children }) {
 
 
 export default function PortfolioKraken() {
+  const { locked } = useUnlock();
   const [loading, setLoading] = useState(true);
   const [spot, setSpot] = useState(null);
   const [fut, setFut] = useState(null);
@@ -338,16 +340,22 @@ export default function PortfolioKraken() {
 
       <VipJoinBar />
 
-      {/* KPIs Spot */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-        {spotKpis.map(({ label, value, sub, cls }) => (
-          <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
-            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
-            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
-          </div>
-        ))}
-      </div>
+      {/* Courbe equity (dashboard verrouillé) ou KPIs Spot en direct (déverrouillé) */}
+      {locked ? (
+        <div className="mb-5">
+          <TrackRecord />
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          {spotKpis.map(({ label, value, sub, cls }) => (
+            <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
+              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
+              <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+              {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>

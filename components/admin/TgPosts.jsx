@@ -237,6 +237,15 @@ export default function TgPosts({ adminKey }) {
 
   const fmtNext = (s) => (!s ? "—" : new Date(s * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
   const fmtTs = (s) => (!s ? "jamais" : new Date(s * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }));
+
+  const [copied, setCopied] = useState(null);
+  function copyHtml(t) {
+    const html = t.text || "";
+    navigator.clipboard.writeText(html).then(() => {
+      setCopied(t.id);
+      setTimeout(() => setCopied(null), 1500);
+    });
+  }
   const TBtn = ({ onClick, children, title }) => (
     <button type="button" onClick={onClick} title={title}
       className="h-8 min-w-8 px-2 rounded-lg border hairline bg-white/[0.02] text-bone hover:border-gold/50 text-[13px]">{children}</button>
@@ -386,11 +395,19 @@ export default function TgPosts({ adminKey }) {
             <div className="space-y-2">
               {templates.map((t) => (
                 <div key={t.id} className="flex items-center justify-between gap-3 rounded-lg border hairline bg-white/[0.015] px-3 py-2">
-                  <button onClick={() => loadTemplate(t)} className="text-left min-w-0">
+                  <button onClick={() => loadTemplate(t)} className="text-left min-w-0 flex-1">
                     <div className="text-[13.5px] text-bone truncate">{t.name || "Sans titre"}</div>
                     <div className="text-[11px] text-mist/60 truncate">{(t.text || "").replace(/<[^>]+>/g, "").slice(0, 60) || (t.photo ? "📷 photo" : "—")}</div>
                   </button>
-                  <button onClick={() => delTemplate(t.id)} className="text-mist hover:text-rose-400 text-[13px]">✕</button>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => copyHtml(t)}
+                      title="Copier le HTML"
+                      className={`text-[11px] rounded-lg border px-2 py-1 transition-colors ${copied === t.id ? "border-emerald-500/50 text-emerald-400" : "border-white/10 text-mist hover:border-gold/40 hover:text-gold"}`}>
+                      {copied === t.id ? "✓ copié" : "</> HTML"}
+                    </button>
+                    <button onClick={() => delTemplate(t.id)} className="text-mist hover:text-rose-400 text-[13px]">✕</button>
+                  </div>
                 </div>
               ))}
             </div>

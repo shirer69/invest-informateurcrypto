@@ -191,6 +191,18 @@ function LastInvestment() {
   const fmtUsd  = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const up      = pnlAbs == null || pnlAbs >= 0;
 
+  const fmtEntryDate = (ts) => {
+    if (!ts) return null;
+    try {
+      const d = new Date(ts * 1000);
+      return d.toLocaleString("fr-FR", {
+        day: "2-digit", month: "short", year: "numeric",
+        hour: "2-digit", minute: "2-digit",
+      });
+    } catch { return null; }
+  };
+  const entryDate = fmtEntryDate(item.entry_ts);
+
   return (
     <div className="rounded-2xl border hairline bg-ink-800/40 px-5 py-3.5 mb-5 flex flex-wrap items-center gap-x-6 gap-y-2">
       {/* label */}
@@ -203,6 +215,13 @@ function LastInvestment() {
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
         <span className="font-display text-[15px] text-bone">{item.symbol}</span>
       </div>
+      {/* date d'achat */}
+      {entryDate && (
+        <div className="flex items-center gap-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Acheté le</span>
+          <span className="font-mono text-[12px] text-bone">{entryDate}</span>
+        </div>
+      )}
       {/* prix d'entrée */}
       <div className="flex items-center gap-1.5">
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Prix d'entrée</span>

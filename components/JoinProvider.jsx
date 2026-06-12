@@ -148,15 +148,9 @@ export default function JoinProvider({ children }) {
 
     // Création de compte serveur (prénom + email + mot de passe). L'accès au contenu
     // reste verrouillé dans le dashboard tant qu'il n'est pas débloqué (IIBAN ou 239 $).
-    let r = await apiSignup({ email: mail, password: pwd, name: fn });
-    if (!r.ok && r.error === "email_exists") {
-      r = await apiLogin({ email: mail, password: pwd });
-      if (!r.ok) {
-        setSignupErr("Ce compte existe déjà. Mot de passe incorrect.");
-        return;
-      }
-    } else if (!r.ok) {
-      setSignupErr("Création du compte impossible. Réessayez.");
+    const r = await apiSignup({ email: mail, password: pwd, name: fn });
+    if (!r.ok) {
+      setSignupErr(r.error === "invalid_credentials" ? "Mot de passe incorrect." : "Connexion impossible. Réessayez.");
       return;
     }
 

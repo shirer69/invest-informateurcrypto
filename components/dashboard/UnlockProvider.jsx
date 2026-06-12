@@ -98,11 +98,12 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) { setSuErr("Adresse e-mail invalide."); return; }
     if (suPwd.length < 6) { setSuErr("Mot de passe : 6 caractères minimum."); return; }
     setSuErr(""); setSuBusy(true);
-    let r = await apiSignup({ email: mail, password: suPwd, name: fn });
-    if (!r.ok && r.error === "email_exists") {
-      r = await apiLogin({ email: mail, password: suPwd });
-      if (!r.ok) { setSuBusy(false); setSuErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
-    } else if (!r.ok) { setSuBusy(false); setSuErr("Création du compte impossible. Réessayez."); return; }
+    const r = await apiSignup({ email: mail, password: suPwd, name: fn });
+    if (!r.ok) {
+      setSuBusy(false);
+      setSuErr(r.error === "invalid_credentials" ? "Mot de passe incorrect." : "Connexion impossible. Réessayez.");
+      return;
+    }
     setSuBusy(false);
     setStep("options"); // → étape Kraken / IIBAN / abonnement
   }

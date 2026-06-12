@@ -53,12 +53,11 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))   { setErr("Adresse e-mail invalide."); return; }
     if (pwd.length < 6)                              { setErr("Mot de passe : 6 caractères minimum."); return; }
     setErr(""); setBusy(true);
-    let r = await apiSignup({ email: mail, password: pwd, name: fn });
-    if (!r.ok && r.error === "email_exists") {
-      r = await apiLogin({ email: mail, password: pwd });
-      if (!r.ok) { setBusy(false); setErr("Ce compte existe déjà. Mot de passe incorrect."); return; }
-    } else if (!r.ok) {
-      setBusy(false); setErr("Création du compte impossible. Réessayez."); return;
+    const r = await apiSignup({ email: mail, password: pwd, name: fn });
+    if (!r.ok) {
+      setBusy(false);
+      setErr(r.error === "invalid_credentials" ? "Mot de passe incorrect." : "Connexion impossible. Réessayez.");
+      return;
     }
     setBusy(false);
     onDone && onDone();

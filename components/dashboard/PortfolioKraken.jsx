@@ -64,6 +64,41 @@ function VipJoinBar() {
   );
 }
 
+// Icônes SVG par catégorie
+const ICONS = {
+  crypto: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9 8h4.5a2 2 0 0 1 0 4H9m0 0h5a2 2 0 0 1 0 4H9M9 8V6m0 2v8m0 0v2m3-10V6m0 10v2" />
+    </svg>
+  ),
+  stock: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 17 8 12 12 16 17 9 21 13" />
+      <line x1="3" y1="21" x2="21" y2="21" />
+      <line x1="3" y1="3" x2="3" y2="21" />
+    </svg>
+  ),
+  margin: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 16V8m0 8-3-3m3 3 3-3M17 8v8m0-8 3 3m-3-3-3 3" />
+      <line x1="12" y1="4" x2="12" y2="20" strokeDasharray="2 2" strokeWidth="1.2" />
+    </svg>
+  ),
+  perps: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  ),
+  cash: (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="3" />
+      <path d="M6 12h.01M18 12h.01" />
+    </svg>
+  ),
+};
+
 // Couleurs par catégorie (identification rapide)
 const CAT = {
   crypto: { label: "Spot crypto", color: "#C9A24B" },
@@ -128,11 +163,17 @@ function Table({ rows, cols, mobileMax }) {
   );
 }
 
-function Section({ title, dot, badge, children }) {
+function Section({ title, dot, icon, badge, children }) {
   return (
     <div className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden">
       <div className="px-5 py-3 border-b hairline flex items-center gap-2">
-        {dot && <span className="h-2 w-2 rounded-full" style={{ background: dot }} />}
+        {icon && (
+          <span className="grid place-items-center h-6 w-6 shrink-0 rounded-lg"
+                style={{ background: dot ? `${dot}22` : "rgba(255,255,255,0.05)", color: dot || "currentColor" }}>
+            {icon}
+          </span>
+        )}
+        {!icon && dot && <span className="h-2 w-2 rounded-full shrink-0" style={{ background: dot }} />}
         <span className="font-display text-[15px] text-bone">{title}</span>
         {badge}
       </div>
@@ -155,10 +196,10 @@ export default function PortfolioKraken() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // 1) Spot d'abord : débloque le hero / le P&L dès que possible.
+    // 1) Spot d'abord : affiche le contenu dès le retour (même si erreur).
     const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
     setSpot(s);
-    if (s && s.ok) setFirstDone(true);
+    setFirstDone(true); // toujours sortir du spinner après le 1er appel
 
     // 2) Le reste (futures, marge, tickers) en arrière-plan, sans bloquer l'affichage.
     const [f, fp, mp, tk, ma] = await Promise.all([
@@ -430,7 +471,7 @@ export default function PortfolioKraken() {
 
       {/* Tables par catégorie */}
       <div className="space-y-5">
-        <Section title="Spot crypto" dot={CAT.crypto.color}>
+        <Section title="Spot crypto" dot={CAT.crypto.color} icon={ICONS.crypto}>
           <Table rows={crypto} mobileMax={3} cols={[
             { k: "symbol", h: "Actif" },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px(r.cur) },
@@ -443,6 +484,7 @@ export default function PortfolioKraken() {
         <Section
           title="Actions / ETF tokenisés"
           dot={CAT.stock.color}
+          icon={ICONS.stock}
           badge={<span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-400/90 border border-amber-500/30 rounded px-1.5 py-0.5">démo</span>}
         >
           <Table rows={stocks} cols={[
@@ -457,7 +499,7 @@ export default function PortfolioKraken() {
           </p>
         </Section>
 
-        <Section title="Positions sur marge" dot={CAT.margin.color}>
+        <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
           <Table rows={marginRows} cols={[
             { k: "pair", h: "Paire" },
             { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
@@ -472,14 +514,14 @@ export default function PortfolioKraken() {
           ]} />
         </Section>
 
-        <Section title="Futures crypto (perps)" dot={CAT.perps.color}>
+        <Section title="Futures crypto (perps)" dot={CAT.perps.color} icon={ICONS.perps}>
           {/* Même source et même affichage que l'onglet Futures */}
           <div className="p-1.5">
             <RealFuturesPositions />
           </div>
         </Section>
 
-        <Section title="Cash & stablecoins" dot={CAT.cash.color}>
+        <Section title="Cash & stablecoins" dot={CAT.cash.color} icon={ICONS.cash}>
           <Table rows={cash} cols={[
             { k: "symbol", h: "Devise" },
             { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },

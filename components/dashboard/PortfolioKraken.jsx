@@ -351,13 +351,18 @@ export default function PortfolioKraken() {
   ];
 
   const header = (
-    <div className="flex items-center gap-2 mb-4">
-      <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
-      <LiveTag />
-      <button onClick={load} disabled={loading}
-        className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
-        {loading ? <Spinner size={13} /> : "↻"} {loading ? "chargement…" : "rafraîchir"}
-      </button>
+    <div className="mb-4">
+      <div className="flex items-center gap-2">
+        <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
+        <LiveTag />
+        <button onClick={load} disabled={loading}
+          className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
+          {loading ? <Spinner size={13} /> : "↻"} {loading ? "chargement…" : "rafraîchir"}
+        </button>
+      </div>
+      <p className="mt-0.5 font-mono text-[11px] text-gold/80">
+        Démarrage du portefeuille INVEST — 16 juin 2026
+      </p>
     </div>
   );
 
@@ -410,12 +415,12 @@ export default function PortfolioKraken() {
         />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&amp;L du compte{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
+            P&amp;L compte INVEST{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
           {!TRACKING_STARTED && (
             <> · <span className="text-gold font-semibold">démarrage le {TRACKING_START_LABEL}</span></>
           )}
           </div>
-          <Locked>
+          <Locked label="Obtenir les calls">
           <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${
             accountPnlPct == null ? "text-bone" : accountPnlPct >= 0 ? "text-emerald-400" : "text-rose-400"
           }`}>

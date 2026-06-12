@@ -29,6 +29,7 @@ const Disclaimer = ({ children }) => (
 
 /* ---------------- Vue d'ensemble ---------------- */
 export function Overview({ tgLink }) {
+  const { locked } = useUnlock();
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -50,11 +51,13 @@ export function Overview({ tgLink }) {
         ))}
       </div>
 
-      <div className="mt-5 grid lg:grid-cols-[1.6fr_1fr] gap-5 items-start">
-        <div>
-          <h3 className="mb-3 font-display text-[17px] text-bone">Courbe de performance</h3>
-          <TrackRecord />
-        </div>
+      <div className={`mt-5 gap-5 items-start ${locked ? "grid lg:grid-cols-[1.6fr_1fr]" : ""}`}>
+        {locked && (
+          <div>
+            <h3 className="mb-3 font-display text-[17px] text-bone">Courbe de performance</h3>
+            <TrackRecord />
+          </div>
+        )}
         <div className="relative rounded-2xl border gold-line overflow-hidden p-6 flex flex-col justify-between min-h-[220px]">
           <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
                style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }} />

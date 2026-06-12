@@ -28,6 +28,21 @@ export function UnlockProvider({ children }) {
     refresh();
   }, [refresh]);
 
+  // Ouverture automatique de la modal de déblocage (étape Kraken) quand on arrive
+  // via le lien mini-app `t.me/Clubdesinformateurs_bot/invest` (start_param "invest")
+  // ou via l'URL `/dashboard?unlock=1` (ou ?startapp=invest).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let wanted = false;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("unlock") === "1" || p.get("startapp") === "invest") wanted = true;
+      const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param;
+      if (sp === "invest" || sp === "unlock") wanted = true;
+    } catch {}
+    if (wanted) setOpen(true);
+  }, []);
+
   const openUnlock = useCallback(() => setOpen(true), []);
   // Débloque le contenu en arrière-plan ; le modal reste ouvert pour afficher le lien VIP.
   const onUnlocked = useCallback(() => { setLocked(false); }, []);

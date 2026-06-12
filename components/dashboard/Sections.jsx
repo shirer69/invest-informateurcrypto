@@ -679,9 +679,9 @@ function LockedAudioPreview() {
     return <AudioFeed hideHeader />;
   }
 
-  // Verrouillé : dernier vocal écoutable librement, les suivants floutés + overlay
-  const latest = audios ? audios[0] : null;
-  const rest = audios ? audios.slice(1, 3) : [];
+  // Verrouillé : 2 derniers vocaux écoutables librement, les suivants floutés + overlay
+  const latestTwo = audios ? audios.slice(0, 2) : [];
+  const rest = audios ? audios.slice(2, 4) : [];
 
   function AudioCardPreview({ a, i }) {
     return (
@@ -710,9 +710,13 @@ function LockedAudioPreview() {
 
   return (
     <div className="space-y-3">
-      {/* Dernier vocal — pleinement accessible */}
-      {latest ? (
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      {/* 2 derniers vocaux — pleinement accessibles */}
+      {audios === null ? (
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-5 text-[13px] text-mist/60">Chargement…</div>
+      ) : latestTwo.length === 0 ? (
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-5 text-[13px] text-mist/60">Aucun audio récent.</div>
+      ) : latestTwo.map((a, idx) => (
+        <div key={a.id} className="rounded-2xl border hairline bg-ink-800/50 p-5">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 min-w-0">
               <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border gold-line text-gold">
@@ -723,23 +727,19 @@ function LockedAudioPreview() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="font-display text-[14.5px] text-bone">Point audio</span>
-                  <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>
-                  {latest.duration != null && <span className="font-mono text-[10.5px] text-mist/60">{dur(latest.duration)}</span>}
+                  {idx === 0 && <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>}
+                  {a.duration != null && <span className="font-mono text-[10.5px] text-mist/60">{dur(a.duration)}</span>}
                 </div>
-                <div className="font-mono text-[10.5px] text-mist/70">{dateLabel(latest.date)} · <span className="text-gold/90">{relTime(latest.date)}</span></div>
+                <div className="font-mono text-[10.5px] text-mist/70">{dateLabel(a.date)} · <span className={idx === 0 ? "text-gold/90" : ""}>{relTime(a.date)}</span></div>
               </div>
             </div>
           </div>
-          {latest.caption && <p className="mt-3 text-[13.5px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words">{latest.caption}</p>}
+          {a.caption && <p className="mt-3 text-[13.5px] leading-relaxed text-slate-200 whitespace-pre-wrap break-words">{a.caption}</p>}
           <audio controls preload="none" className="mt-3 w-full" style={{ height: 40 }}>
-            <source src={audioStreamUrl(latest.id)} type={latest.mime || "audio/ogg"} />
+            <source src={audioStreamUrl(a.id)} type={a.mime || "audio/ogg"} />
           </audio>
         </div>
-      ) : audios === null ? (
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5 text-[13px] text-mist/60">Chargement…</div>
-      ) : (
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5 text-[13px] text-mist/60">Aucun audio récent.</div>
-      )}
+      ))}
 
       {/* Audios suivants — floutés + overlay unlock */}
       {rest.length > 0 && (

@@ -19,11 +19,11 @@ import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
+  { id: "analytics", label: "Invest", icon: "📊" },
+  { id: "monitoring", label: "Futures", icon: "📡" },
   { id: "vip", label: "Signaux", icon: "🔔" },
-  { id: "monitoring", label: "Pôle Trading", icon: "📡" },
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
-  { id: "analytics", label: "Analytics", icon: "📈" },
   { id: "videos", label: "Vidéos", icon: "🎬" },
   { id: "community", label: "Chat", icon: "💬" },
   { id: "copy", label: "Copy-trading", icon: "🔁", badge: "Soon" },
@@ -35,7 +35,7 @@ const NAV = [
 const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
 
 // Onglets principaux de la barre du bas (mobile) — les autres sont sous « Plus ».
-const PRIMARY_TABS = ["portfolio", "vip", "monitoring", "logs"];
+const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "vip"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);

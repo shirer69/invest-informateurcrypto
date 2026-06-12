@@ -5,6 +5,7 @@ import TrackRecord from "@/components/TrackRecord";
 import { IconArrow } from "@/components/Icons";
 import Chat from "@/components/dashboard/Chat";
 import VipFeed from "@/components/dashboard/VipFeed";
+import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import LiveTag from "@/components/dashboard/LiveTag";
@@ -509,11 +510,11 @@ function Billing({ b }) {
   );
 }
 
-/* ---------------- Monitoring - Pôle Trading : audios + positions Futures réel (master A) ---------------- */
+/* ---------------- Futures (ex-Monitoring) : audios + KPIs + positions en direct ---------------- */
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
-  const [acct, setAcct] = useState(null); // {ok, data} compte futures
-  const [fills, setFills] = useState(null); // historique des positions (fills)
+  const [acct, setAcct] = useState(null);
+  const [fills, setFills] = useState(null);
 
   useEffect(() => {
     setUser(getUser());
@@ -529,18 +530,20 @@ export function Monitoring({ onGoCopy }) {
     return () => clearInterval(id);
   }, []);
 
-  // Gains du wallet Futures (échelle ×100). Compte inactif → null.
   const flex = acct?.data?.accounts?.flex || {};
   const walletValue = flex.portfolioValue ?? flex.balanceValue ?? null;
   const walletPnl = flex.pnl ?? flex.unrealizedFunding ?? null;
   const acctInactive = acct && acct.ok === false && /inactive/i.test(acct.error || "");
-  const fillRows = (fills?.trades || []).slice(0, 25);
-  const dUsd = (x) => (x == null ? "—" : "$" + Number(x * 100).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const fillRows = (fills?.trades || []).slice(0, 50);
+  const MULT = 100;
+  const dUsd = (x) => (x == null ? "—" : "$" + Number(x * MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const dUsdSigned = (x) => x == null ? "—" : `${x >= 0 ? "+" : ""}${dUsd(x)}`;
+  const dPct = (x, ref) => (!x || !ref || ref === 0) ? "—" : `${x >= 0 ? "+" : ""}${((x / ref) * 100).toFixed(2)} %`;
 
   if (!user) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Monitoring — Pôle Trading</h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Futures — Pôle Trading</h3>
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
           Connecte-toi pour suivre l'activité du trader en direct.
         </div>
@@ -550,64 +553,90 @@ export function Monitoring({ onGoCopy }) {
 
   return (
     <div>
+      {/* Titre */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h3 className="font-display text-[18px] text-bone">Monitoring — Pôle Trading</h3>
+        <div>
+          <h3 className="font-display text-[18px] text-bone">Futures — Pôle Trading</h3>
+          <p className="text-[11.5px] text-mist/70 mt-0.5">
+            Swing trading · faible levier · margin &amp; perps Kraken
+          </p>
+        </div>
         <LiveTag />
       </div>
 
-      {/* Gains du wallet Futures (master A) */}
-      <div className="relative rounded-2xl border gold-line bg-ink-800/40 p-5 mb-5 overflow-hidden">
-        <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
-             style={{ background: "radial-gradient(circle, rgba(46,230,168,0.14), transparent 70%)" }} />
-        <div className="relative">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Gains du wallet Futures (Julien)</span>
-          {acctInactive ? (
-            <p className="mt-2 text-[13px] text-amber-100/90">Compte Futures non encore activé — les gains s'afficheront dès l'activation.</p>
-          ) : (
-            <div className="mt-2 flex flex-wrap items-end gap-x-8 gap-y-2">
-              <div>
-                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Valeur du wallet</div>
-                <div className="font-display text-[26px] text-bone">{dUsd(walletValue)}</div>
-              </div>
-              <div>
-                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">PnL latent</div>
-                <div className={`font-display text-[22px] ${walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400"}`}>
-                  {walletPnl == null ? "—" : `${walletPnl >= 0 ? "+" : ""}${dUsd(walletPnl)}`}
-                </div>
-              </div>
-            </div>
-          )}
-          <button onClick={() => onGoCopy && onGoCopy()}
-            className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold">
-            ⇄ Activer le copy auto
-          </button>
-        </div>
+      {/* Audios en premier */}
+      <div className="mb-5">
+        <AudioFeed />
       </div>
 
-      {/* Positions du compte Futures réel (lecture seule) — master A */}
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      {/* KPIs performance */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        {[
+          {
+            label: "Gains non réalisés",
+            value: walletPnl != null ? dUsdSigned(walletPnl) : "—",
+            sub: walletPnl != null && walletValue ? dPct(walletPnl, walletValue) : null,
+            cls: walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400",
+          },
+          {
+            label: "Gains réalisés",
+            value: "—",
+            sub: "Suivi actif 21 juin",
+            cls: "text-mist/60",
+          },
+          {
+            label: "Drawdown max",
+            value: "—",
+            sub: "Suivi actif 21 juin",
+            cls: "text-mist/60",
+          },
+          {
+            label: "Wallet Futures",
+            value: walletValue != null ? dUsd(walletValue) : "—",
+            sub: acctInactive ? "Non activé" : `${fillRows.length} op.`,
+            cls: "text-bone",
+          },
+        ].map(({ label, value, sub, cls }) => (
+          <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
+            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
+            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+          </div>
+        ))}
+      </div>
+
+      {/* Bouton copy auto — visible et prominent */}
+      <button
+        onClick={() => onGoCopy && onGoCopy()}
+        className="btn-gold w-full mb-5 inline-flex items-center justify-center gap-2 rounded-2xl px-6 py-4 text-[15px] font-semibold"
+      >
+        ⇄ Activer le copy auto sur mon compte Kraken
+      </button>
+
+      {/* Positions Futures en direct */}
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-5 mb-5">
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-          Positions Futures en direct
+          Positions en direct
         </span>
         <div className="mt-3">
           <RealFuturesPositions />
         </div>
       </div>
 
-      {/* Historique des positions (fills Futures) */}
-      <div className="mt-5 rounded-2xl border hairline bg-ink-800/50 p-5">
+      {/* Historique des opérations */}
+      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-          Historique des positions Futures
+          Historique des positions
         </span>
         {fills === null ? (
           <div className="mt-3 text-[13px] text-mist/60">Chargement…</div>
         ) : fillRows.length === 0 ? (
           <div className="mt-3 text-[13px] text-mist/60">
-            {acctInactive ? "Compte Futures non activé — aucun historique pour l'instant." : "Aucune opération Futures pour l'instant."}
+            {acctInactive ? "Compte Futures non activé — aucun historique pour l'instant." : "Aucune opération pour l'instant."}
           </div>
         ) : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[520px] text-[13px] font-mono">
+            <table className="w-full min-w-[480px] text-[13px] font-mono">
               <thead>
                 <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
                   <th className="py-2 pr-4">Date</th>
@@ -637,8 +666,8 @@ export function Monitoring({ onGoCopy }) {
       </div>
 
       <Disclaimer>
-        Suivi informatif des positions du compte Futures (lecture seule). Ne constitue pas un
-        conseil en investissement.
+        Swing trading faible levier, sur marge et/ou perps Kraken. Suivi en lecture seule — ne
+        constitue pas un conseil en investissement.
       </Disclaimer>
     </div>
   );

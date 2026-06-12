@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { API_BASE } from "@/lib/site";
+import TgPosts from "@/components/admin/TgPosts";
 
 const KEYK = "pi_admin_key";
 
@@ -46,6 +47,7 @@ const TABS = [
   { id: "members", label: "Membres (CRM)" },
   { id: "deposits", label: "Dépôts & activation" },
   { id: "codes", label: "Codes d'invitation" },
+  { id: "posts", label: "Posts Telegram" },
   { id: "copy", label: "Copy Auto" },
 ];
 
@@ -143,6 +145,7 @@ export default function Admin() {
         {tab === "members" && <Members members={members} adminKey={key} />}
         {tab === "deposits" && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
         {tab === "codes" && <Codes adminKey={key} />}
+        {tab === "posts" && <TgPosts adminKey={key} />}
         {tab === "copy" && <CopyAuto adminKey={key} />}
       </div>
     </div>

@@ -61,6 +61,23 @@ export default function Dashboard() {
     if (!inTg) setBooted(true);
   }, []);
 
+  // Onglet initial via lien (`?tab=videos`) ou via le start_param de la mini-app
+  // (`t.me/Clubdesinformateurs_bot/<app>?startapp=videos`). Ex. lien direct « Vidéos ».
+  useEffect(() => {
+    const VALID = new Set(nav.map((n) => n.id));
+    let target = "";
+    try {
+      const p = new URLSearchParams(window.location.search);
+      target = (p.get("tab") || "").toLowerCase();
+      if (!target) {
+        const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
+        if (sp.startsWith("tab_")) target = sp.slice(4).toLowerCase();
+        else if (VALID.has(sp.toLowerCase())) target = sp.toLowerCase();
+      }
+    } catch {}
+    if (target && VALID.has(target)) setTab(target);
+  }, []);
+
   // Nettoie le param ?code= si présent (le code est entrée seule, pas accès).
   useEffect(() => {
     try {

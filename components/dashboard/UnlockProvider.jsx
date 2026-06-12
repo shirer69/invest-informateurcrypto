@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
-import { KRAKEN_URL, TELEGRAM_URL } from "@/lib/site";
+import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
 
 const Ctx = createContext({ locked: true, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
@@ -125,9 +125,19 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
 
   async function verify(e) {
     e.preventDefault();
-    if (uid.trim().replace(/\s+/g, "").length < 4) { setState("notfound"); return; }
+    const trimmed = uid.trim().replace(/\s+/g, "");
+    if (trimmed.length < 4) { setState("notfound"); return; }
     setState("checking");
-    const r = await apiAccessIiban(uid.trim());
+
+    // Vérification publique d'abord (sans auth) pour détecter les IIBAN pending.
+    try {
+      const chk = await fetch(`${API_BASE}/api/access/iiban/check?uid=${encodeURIComponent(trimmed)}`, { cache: "no-store" }).then((r) => r.json());
+      if (chk.uid_status === "pending") { setState("pending"); return; }
+      if (chk.uid_status === "notfound" || chk.uid_status === "invalid") { setState("notfound"); return; }
+    } catch {}
+
+    // IIBAN actif → appel authentifié pour attribuer l'accès.
+    const r = await apiAccessIiban(trimmed);
     if (r.ok) { onUnlocked(); setDone({ invite: r.tg_invite }); return; }
     if (r.status === 403) setState(r.uid_status === "pending" ? "pending" : "notfound");
     else setState("error");

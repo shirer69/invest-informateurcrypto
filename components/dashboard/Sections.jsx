@@ -164,7 +164,7 @@ export function Intelligence() {
 /* ---------------- Dernier investissement (bloc commun Invest + Actions) ---------------- */
 const DISPLAY_MULT = 100;
 
-function LastInvestment() {
+function LastInvestment({ kinds }) {
   const [item, setItem] = useState(null);
 
   useEffect(() => {
@@ -172,14 +172,14 @@ function LastInvestment() {
       .then((r) => r.json())
       .then((d) => {
         if (!d.ok || !d.holdings) return;
-        // Sélectionne le holding non-cash avec la valeur la plus élevée
+        // Filtre par kind puis trie par entry_ts desc (achat le plus récent)
         const best = d.holdings
-          .filter((h) => h.kind !== "cash" && h.value > 0 && h.baseline)
-          .sort((a, b) => b.value - a.value)[0];
+          .filter((h) => kinds.includes(h.kind) && h.value > 0 && h.baseline)
+          .sort((a, b) => (b.entry_ts || 0) - (a.entry_ts || 0))[0];
         if (best) setItem(best);
       })
       .catch(() => {});
-  }, []);
+  }, [kinds]);
 
   if (!item) return null;
 
@@ -361,7 +361,7 @@ export function Analytics() {
 
   return (
     <div>
-      <LastInvestment />
+      <LastInvestment kinds={["crypto", "margin"]} />
       <div className="flex items-center gap-2.5 flex-wrap mb-4">
         <h3 className="font-display text-[18px] text-bone">Performance INVEST</h3>
         <LiveTag />
@@ -1747,7 +1747,7 @@ export function XStocks() {
 
   return (
     <div>
-      <LastInvestment />
+      <LastInvestment kinds={["stock"]} />
       {/* Titre */}
       <div className="mb-5">
         <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisés)</span></h3>

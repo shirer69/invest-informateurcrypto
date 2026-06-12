@@ -231,10 +231,43 @@ export function Analytics() {
   // PnL cumulé par catégorie (par « tableau »).
   const sumCat = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
   const CATS = [
-    { k: "spot", label: "Spot crypto" },
-    { k: "stock", label: "Actions US / ETF" },
-    { k: "margin", label: "Marge" },
-    { k: "perps", label: "Futures (perps)" },
+    {
+      k: "spot", label: "Spot crypto", color: "#C9A24B",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9m0-5v8m0-5h5.5a2.5 2.5 0 0 1 0 5H9" />
+          <line x1="10" y1="6" x2="10" y2="8" /><line x1="10" y1="16" x2="10" y2="18" />
+        </svg>
+      ),
+    },
+    {
+      k: "stock", label: "Actions US / ETF", color: "#7C5CFC",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="3 17 8 12 12 16 17 9 21 13" />
+          <line x1="3" y1="20" x2="21" y2="20" />
+          <line x1="21" y1="9" x2="21" y2="13" />
+        </svg>
+      ),
+    },
+    {
+      k: "margin", label: "Marge", color: "#5BA8FF",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M7 16V8m0 8-3-3m3 3 3-3M17 8v8m0-8 3 3m-3-3-3 3" />
+          <line x1="3" y1="12" x2="21" y2="12" strokeOpacity="0.3" />
+        </svg>
+      ),
+    },
+    {
+      k: "perps", label: "Futures (perps)", color: "#19C37D",
+      icon: (
+        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
@@ -264,8 +297,14 @@ export function Analytics() {
           const v = sumCat(c.k);
           return (
             <div key={c.k} className="rounded-2xl border hairline bg-ink-800/50 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">{c.label}</div>
-              <div className={`mt-1.5 font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="grid place-items-center h-7 w-7 shrink-0 rounded-lg"
+                      style={{ background: `${c.color}22`, color: c.color }}>
+                  {c.icon}
+                </span>
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 leading-tight">{c.label}</div>
+              </div>
+              <div className={`font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
               <div className={`text-[11px] ${signClass(v)}`}>{pctStr(v)}</div>
             </div>
           );

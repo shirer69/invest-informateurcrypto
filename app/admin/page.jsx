@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { API_BASE } from "@/lib/site";
 import TgPosts from "@/components/admin/TgPosts";
+import EmailAdmin from "@/components/admin/EmailAdmin";
 
 const KEYK = "pi_admin_key";
 
@@ -44,11 +45,12 @@ async function adminPost(path, key, body) {
 
 const TABS = [
   { id: "overview", label: "Vue d'ensemble" },
-  { id: "members", label: "Membres (CRM)" },
+  { id: "members",  label: "Membres (CRM)" },
   { id: "deposits", label: "Dépôts & activation" },
-  { id: "codes", label: "Codes d'invitation" },
-  { id: "posts", label: "Posts Telegram" },
-  { id: "copy", label: "Copy Auto" },
+  { id: "codes",    label: "Codes d'invitation" },
+  { id: "posts",    label: "📨 Posts Telegram" },
+  { id: "emails",   label: "📧 Emails" },
+  { id: "copy",     label: "Copy Auto" },
 ];
 
 export default function Admin() {
@@ -141,12 +143,13 @@ export default function Admin() {
           ))}
         </nav>
 
-        {tab === "overview" && <Overview ov={ov} />}
-        {tab === "members" && <Members members={members} adminKey={key} />}
-        {tab === "deposits" && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
-        {tab === "codes" && <Codes adminKey={key} />}
-        {tab === "posts" && <TgPosts adminKey={key} />}
-        {tab === "copy" && <CopyAuto adminKey={key} />}
+        {tab === "overview"  && <Overview ov={ov} />}
+        {tab === "members"   && <Members members={members} adminKey={key} />}
+        {tab === "deposits"  && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
+        {tab === "codes"     && <Codes adminKey={key} />}
+        {tab === "posts"     && <TgPosts adminKey={key} />}
+        {tab === "emails"    && <EmailAdmin adminKey={key} />}
+        {tab === "copy"      && <CopyAuto adminKey={key} />}
       </div>
     </div>
   );

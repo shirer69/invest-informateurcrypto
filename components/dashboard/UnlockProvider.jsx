@@ -232,7 +232,6 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
             {[
               { n: "1", t: "Créer un compte Kraken", d: "via notre lien partenaire", href: KRAKEN_URL, cta: "Ouvrir Kraken" },
               { n: "2", t: "Déposer au moins 5 $", d: "pour activer l'attribution de votre compte" },
-              { n: "3", t: "Ouvrir une position en perpétuels (futures)", d: "même minime — puis la refermer : c'est ce qui finalise votre accès" },
             ].map((s) => (
               <li key={s.n} className="flex gap-3">
                 <span className="grid place-items-center h-6 w-6 shrink-0 rounded-full border gold-line text-gold font-mono text-[11px]">{s.n}</span>

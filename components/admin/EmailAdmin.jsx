@@ -33,16 +33,17 @@ const AUDIENCES = [
 
 /* ─── Sous-onglets ────────────────────────────────────────────────────────── */
 const MAIL_TABS = [
-  { id: "templates",  label: "📄 Templates" },
-  { id: "campaigns",  label: "📤 Campagnes" },
-  { id: "automations",label: "⚙️ Automatisations" },
+  { id: "inbox",       label: "📥 Boîte mail" },
+  { id: "templates",   label: "📄 Templates" },
+  { id: "campaigns",   label: "📤 Campagnes" },
+  { id: "automations", label: "⚙️ Automatisations" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
    Composant racine EmailAdmin
    ═══════════════════════════════════════════════════════════════════════════ */
 export default function EmailAdmin({ adminKey }) {
-  const [sub, setSub] = useState("templates");
+  const [sub, setSub] = useState("inbox");
   const [templates, setTemplates] = useState(null);
   const [campaigns, setCampaigns] = useState(null);
   const [automations, setAutomations] = useState(null);
@@ -79,6 +80,7 @@ export default function EmailAdmin({ adminKey }) {
         </button>
       </div>
 
+      {sub === "inbox"       && <InboxSection adminKey={adminKey} />}
       {sub === "templates"   && <TemplatesSection adminKey={adminKey} templates={templates} onReload={reload} />}
       {sub === "campaigns"   && <CampaignsSection adminKey={adminKey} templates={templates} campaigns={campaigns} onReload={reload} />}
       {sub === "automations" && <AutomationsSection adminKey={adminKey} templates={templates} automations={automations} onReload={reload} />}
@@ -608,6 +610,203 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
         Les autres triggers (<b>J+1, J+3, Expiration J-7</b>) nécessitent un cron VPS — à ajouter dans pm2/crontab si besoin.
         Le délai est appliqué côté serveur uniquement si implémenté dans le moteur.
       </p>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION — Boîte de réception IMAP
+   ═══════════════════════════════════════════════════════════════════════════ */
+function parseDate(raw) {
+  if (!raw) return "";
+  try {
+    const d = new Date(raw);
+    if (isNaN(d)) return raw;
+    const now = new Date();
+    const today = now.toDateString() === d.toDateString();
+    return today
+      ? d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+      : d.toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  } catch { return raw; }
+}
+
+function InboxSection({ adminKey }) {
+  const [list, setList]       = useState(null);   // [{id, subject, from_, date, unread}]
+  const [total, setTotal]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [selected, setSelected] = useState(null); // {id, subject, from_, to, date, body, is_html}
+  const [bodyLoading, setBodyLoading] = useState(false);
+  const [search, setSearch]   = useState("");
+  const [deleting, setDeleting] = useState(null);
+
+  async function loadList() {
+    setLoading(true);
+    try {
+      const r = await aGet("/api/admin/mail/inbox?limit=60", adminKey);
+      if (r.ok) { setList(r.emails || []); setTotal(r.total); }
+      else setList([]);
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => { loadList(); }, [adminKey]); // eslint-disable-line
+
+  async function openMsg(item) {
+    if (selected?.id === item.id) { setSelected(null); return; }
+    setBodyLoading(true);
+    setSelected({ ...item, body: null });
+    const r = await aGet(`/api/admin/mail/inbox/${item.id}`, adminKey);
+    setBodyLoading(false);
+    if (r.ok) {
+      setSelected(r);
+      // Mark as read in local list
+      setList((prev) => prev.map((m) => m.id === item.id ? { ...m, unread: false } : m));
+    }
+  }
+
+  async function deleteMsg(e, id) {
+    e.stopPropagation();
+    if (!confirm("Supprimer cet email ?")) return;
+    setDeleting(id);
+    await aDel(`/api/admin/mail/inbox/${id}`, adminKey);
+    setDeleting(null);
+    setList((prev) => prev.filter((m) => m.id !== id));
+    if (selected?.id === id) setSelected(null);
+  }
+
+  const filtered = (list || []).filter((m) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (m.subject || "").toLowerCase().includes(q) || (m.from_ || "").toLowerCase().includes(q);
+  });
+
+  const unreadCount = (list || []).filter((m) => m.unread).length;
+
+  return (
+    <div>
+      {/* Barre d'outils */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
+            contact@informateurcrypto.fr
+          </span>
+          {total !== null && (
+            <span className="font-mono text-[10px] text-mist/40">({total} total)</span>
+          )}
+          {unreadCount > 0 && (
+            <span className="grid place-items-center h-5 min-w-[20px] rounded-full bg-gold/20 border gold-line font-mono text-[10px] text-gold px-1.5">
+              {unreadCount} non lu{unreadCount > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Rechercher…"
+          className="flex-1 min-w-[180px] max-w-xs rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2 text-bone placeholder:text-mist/40 text-[13px] outline-none"
+        />
+        <button onClick={loadList} disabled={loading}
+          className="ml-auto btn-ghost rounded-full px-4 py-2 text-[12.5px] disabled:opacity-50">
+          {loading ? "…" : "↻ Actualiser"}
+        </button>
+      </div>
+
+      <div className="grid lg:grid-cols-[1fr_1.6fr] gap-4 items-start">
+        {/* Liste */}
+        <div className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden">
+          {loading && !list && (
+            <div className="flex items-center justify-center h-40 text-mist/50 text-[13px] animate-pulse">
+              Connexion IMAP…
+            </div>
+          )}
+          {list && filtered.length === 0 && (
+            <div className="flex items-center justify-center h-32 text-mist/50 text-[13px]">
+              {search ? "Aucun résultat" : "Boîte vide"}
+            </div>
+          )}
+          {filtered.map((m) => (
+            <div
+              key={m.id}
+              onClick={() => openMsg(m)}
+              className={`flex items-start gap-3 px-4 py-3.5 border-b hairline last:border-0 cursor-pointer transition-colors
+                ${selected?.id === m.id ? "bg-gold/[0.07] border-l-2 border-l-gold/50" : "hover:bg-white/[0.02] border-l-2 border-l-transparent"}`}
+            >
+              {/* Indicateur non lu */}
+              <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${m.unread ? "bg-gold" : "bg-transparent"}`} />
+              <div className="flex-1 min-w-0">
+                <div className={`text-[13.5px] truncate ${m.unread ? "text-bone font-semibold" : "text-mist/80"}`}>
+                  {m.subject || "(sans objet)"}
+                </div>
+                <div className="text-[11.5px] text-mist/50 truncate mt-0.5">{m.from_}</div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="font-mono text-[10.5px] text-mist/40 whitespace-nowrap">
+                  {parseDate(m.date)}
+                </span>
+                <button
+                  onClick={(e) => deleteMsg(e, m.id)}
+                  disabled={deleting === m.id}
+                  className="text-mist/30 hover:text-rose-400 transition-colors text-[13px] disabled:opacity-40"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Corps du message */}
+        <div className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden sticky top-24">
+          {!selected && (
+            <div className="flex items-center justify-center h-64 text-mist/40 text-[13px]">
+              Sélectionnez un email
+            </div>
+          )}
+          {selected && (
+            <>
+              {/* En-tête du message */}
+              <div className="px-5 py-4 border-b hairline space-y-1.5">
+                <h3 className="font-display text-[16px] text-bone leading-snug">
+                  {selected.subject || "(sans objet)"}
+                </h3>
+                <div className="text-[12px] text-mist/70">
+                  <span className="text-mist/50">De : </span>{selected.from_}
+                </div>
+                {selected.to && (
+                  <div className="text-[12px] text-mist/70">
+                    <span className="text-mist/50">À : </span>{selected.to}
+                  </div>
+                )}
+                <div className="font-mono text-[10.5px] text-mist/40">{selected.date}</div>
+              </div>
+
+              {/* Corps */}
+              <div className="p-5">
+                {bodyLoading && (
+                  <div className="text-mist/50 text-[13px] animate-pulse">Chargement…</div>
+                )}
+                {!bodyLoading && selected.body != null && (
+                  selected.is_html ? (
+                    <iframe
+                      srcDoc={selected.body}
+                      sandbox="allow-same-origin"
+                      className="w-full border-0 rounded-lg bg-white"
+                      style={{ minHeight: 320, height: 480 }}
+                      title="Corps email"
+                    />
+                  ) : (
+                    <pre className="whitespace-pre-wrap text-[13px] leading-relaxed text-mist font-sans">
+                      {selected.body}
+                    </pre>
+                  )
+                )}
+                {!bodyLoading && selected.body == null && (
+                  <div className="text-mist/50 text-[13px]">Impossible de charger le corps.</div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

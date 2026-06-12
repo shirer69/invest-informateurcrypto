@@ -361,7 +361,7 @@ export default function PortfolioKraken() {
         </button>
       </div>
       <p className="mt-0.5 font-mono text-[11px] text-gold/80">
-        Démarrage du portefeuille INVEST — 16 juin 2026
+        ⚠️ Démarrage du portefeuille INVEST — 16 juin 2026
       </p>
     </div>
   );

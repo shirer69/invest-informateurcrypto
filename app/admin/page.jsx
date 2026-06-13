@@ -138,7 +138,7 @@ export default function Admin() {
       </header>
 
       <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6">
-        <nav className="flex gap-1.5 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="flex gap-1.5 overflow-x-auto pb-3 flex-wrap">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)}
               className={`rounded-xl px-4 py-2.5 text-[14px] whitespace-nowrap transition-colors ${

@@ -82,7 +82,13 @@ export default function Chat({ me }) {
                 </span>
                 {m.ts && <span className="text-[10.5px] text-mist/40 font-mono">{fmtTs(m.ts)}</span>}
               </div>
-              <p className="text-[13.5px] leading-snug text-mist mt-0.5">{m.text}</p>
+              <p className="text-[13.5px] leading-snug text-mist mt-0.5">
+                {m.text.split(/(https?:\/\/[^\s]+)/g).map((part, j) =>
+                  /^https?:\/\//.test(part)
+                    ? <a key={j} href={part} target="_blank" rel="noopener noreferrer" className="text-gold underline underline-offset-2 break-all hover:opacity-80">{part}</a>
+                    : part
+                )}
+              </p>
             </div>
           );
         })}

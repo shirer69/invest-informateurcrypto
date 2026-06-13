@@ -917,7 +917,7 @@ function LockedAudioPreview() {
 /* ---------------- Futures (ex-Monitoring) : audios + KPIs + positions en direct ---------------- */
 const _JULIEN_URL =
   "https://firestore.googleapis.com/v1/projects/julien-5d7a1/databases/(default)/documents" +
-  "/artifacts/julien-5d7a1/public/data/challenge_trades?pageSize=200" +
+  "/artifacts/julien-5d7a1/public/data/trades?pageSize=200" +
   "&key=AIzaSyDCanWsUeiWoLB2vU8C98OKmjaaNzBcUtA";
 
 function _fsVal(field) {
@@ -949,13 +949,19 @@ export function Monitoring({ onGoCopy }) {
     const fetchJulien = async () => {
       try {
         const d = await fetch(_JULIEN_URL).then((r) => r.json());
+        const parsePnl = (x) => {
+          if (x == null) return 0;
+          if (typeof x === "number") return x;
+          const s = String(x).replace(",", ".").replace(/[^-+\d.]/g, "");
+          return parseFloat(s) || 0;
+        };
         const docs = (d.documents || [])
           .map((doc) => {
             const f = doc.fields || {};
             return {
               asset:     _fsVal(f.asset),
               type:      _fsVal(f.type),
-              pnlUsd:    parseFloat(_fsVal(f.pnlUsd) ?? 0),
+              pnlUsd:    parsePnl(_fsVal(f.pnlUsd)),
               pnlPct:    _fsVal(f.pnlPct),
               timestamp: parseInt(_fsVal(f.timestamp) ?? 0),
               screenshot: _fsVal(f.screenshot) || "",
@@ -1058,7 +1064,7 @@ export function Monitoring({ onGoCopy }) {
             cls: walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Gains réalisés (challenge)",
+            label: "Gains réalisés (copy)",
             value: julienTrades === null ? "…" : dUsdJ(jTotalPnl),
             sub: julienTrades === null ? null : `${jTrades.length} trades`,
             cls: julienTrades === null ? "text-mist/40" : jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
@@ -1088,7 +1094,7 @@ export function Monitoring({ onGoCopy }) {
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
         <div className="flex items-center justify-between mb-1">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-            Historique des trades (challenge)
+            Historique des trades (copy)
           </span>
           {julienTrades !== null && (
             <span className="font-mono text-[10px] text-mist/40">

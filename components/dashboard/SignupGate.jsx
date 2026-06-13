@@ -180,15 +180,6 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
                 {!busy && <IconArrow className="h-4 w-4" />}
               </button>
 
-              {skipCode && (
-                <button
-                  type="button"
-                  onClick={onDone}
-                  className="mt-3 w-full text-center text-[12px] text-mist/50 hover:text-mist transition-colors"
-                >
-                  Passer pour l'instant
-                </button>
-              )}
             </form>
           )}
         </div>

@@ -118,7 +118,14 @@ export default function Dashboard() {
         document.documentElement.classList.add("in-telegram");
         if (!getToken() && tg.initData) {
           apiTelegramAuth(tg.initData).then((r) => {
-            if (r.ok) setUser(r.user);
+            if (r.ok) {
+              setUser(r.user);
+              // Marque les nouveaux utilisateurs TG pour exiger le code d'invitation
+              try {
+                if (r.user?.is_new) sessionStorage.setItem("pi_tg_is_new", "1");
+                else sessionStorage.removeItem("pi_tg_is_new");
+              } catch {}
+            }
             setBooted(true);
           });
         } else {

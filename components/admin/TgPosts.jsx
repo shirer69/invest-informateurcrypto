@@ -400,8 +400,9 @@ export default function TgPosts({ adminKey }) {
           {/* audience + actions */}
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <select value={audience} onChange={(e) => setAudience(e.target.value)}
-              className="rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
-              {AUDIENCES.map((a) => <option key={a.id} value={a.id}>{a.label}</option>)}
+              style={{ background: "#1a1f2e", color: "#e5dfc8" }}
+              className="rounded-lg border border-white/10 px-3 py-2 text-[13px] outline-none">
+              {AUDIENCES.map((a) => <option key={a.id} value={a.id} style={{ background: "#1a1f2e", color: "#e5dfc8" }}>{a.label}</option>)}
             </select>
             <button onClick={saveTemplate} className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">💾 Template</button>
             <button onClick={sendNow} className="btn-gold rounded-full px-5 py-2 text-[12.5px] font-semibold">Envoyer maintenant</button>

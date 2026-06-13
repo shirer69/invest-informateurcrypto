@@ -336,7 +336,6 @@ function Members({ members, adminKey }) {
   return (
     <div>
       <BroadcastPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} total={members.length} />
-      <SendCodesPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} />
 
       {/* Onglets filtre */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -615,6 +614,7 @@ function Codes({ adminKey }) {
 
   return (
     <div>
+      <SendCodesPanel adminKey={adminKey} />
       <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5 max-w-2xl">
         <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">Créer un code d'invitation</div>
         <p className="text-[12.5px] text-mist mb-3">Code nommé multi-usage : durée d'accès + nombre d'utilisations max (1 par personne).</p>

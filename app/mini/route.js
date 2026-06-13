@@ -9,7 +9,7 @@ export const revalidate = 0;
 export async function GET() {
   const build = (process.env.VERCEL_GIT_COMMIT_SHA || String(Date.now())).slice(0, 8);
   const res = NextResponse.redirect(
-    `https://invest.informateurcrypto.fr/?b=${build}`,
+    `https://invest.informateurcrypto.fr/dashboard?b=${build}`,
     { status: 307 }
   );
   res.headers.set("Cache-Control", "no-store, no-cache, max-age=0, must-revalidate");

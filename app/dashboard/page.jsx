@@ -19,8 +19,8 @@ import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
-  { id: "analytics", label: "INVEST", icon: "📊" },
-  { id: "monitoring", label: "TRADING", icon: "⚡" },
+  { id: "analytics", label: "Invest", icon: "📊" },
+  { id: "monitoring", label: "Trading", icon: "⚡" },
   { id: "audio", label: "Monitoring", icon: "📡" },
   { id: "vip", label: "Actions", icon: "📈" },
   { id: "logs", label: "Logs", icon: "🧾" },

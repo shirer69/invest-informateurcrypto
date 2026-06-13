@@ -164,7 +164,7 @@ export default function Dashboard() {
         <SignupGate
           onDone={() => setUser(getUser())}
           onLogin={() => setLoginOpen(true)}
-          skipCode={isTgUser || isDirect}
+          skipCode={isDirect}
           tgName={isTgUser ? (user?.name || "") : ""}
         />
       </div>

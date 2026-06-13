@@ -1798,6 +1798,17 @@ function XStocksPie({ data }) {
   );
 }
 
+const XSTOCKS_DEMO = [
+  { ticker: "NVDA",  name: "NVIDIA Corporation",    sector: "Tech",    color: "#19C37D", qty: 12.5,  price: 134.20, mktVal: 1677.50, costVal: 980.00,  pnlAbs: 697.50,  pnlPct: 71.17 },
+  { ticker: "AAPL",  name: "Apple Inc.",            sector: "Tech",    color: "#5BA8FF", qty: 30.0,  price: 213.40, mktVal: 6402.00, costVal: 5100.00, pnlAbs: 1302.00, pnlPct: 25.53 },
+  { ticker: "MSFT",  name: "Microsoft Corporation", sector: "Tech",    color: "#7C5CFC", qty: 10.0,  price: 448.60, mktVal: 4486.00, costVal: 3800.00, pnlAbs: 686.00,  pnlPct: 18.05 },
+  { ticker: "TSLA",  name: "Tesla Inc.",            sector: "Conso.",  color: "#e879f9", qty: 20.0,  price: 246.80, mktVal: 4936.00, costVal: 5400.00, pnlAbs: -464.00, pnlPct: -8.59 },
+  { ticker: "META",  name: "Meta Platforms",        sector: "Tech",    color: "#fb7185", qty: 8.0,   price: 618.30, mktVal: 4946.40, costVal: 3900.00, pnlAbs: 1046.40, pnlPct: 26.83 },
+  { ticker: "PLTR",  name: "Palantir Technologies", sector: "Tech",    color: "#10b981", qty: 50.0,  price: 127.60, mktVal: 6380.00, costVal: 4200.00, pnlAbs: 2180.00, pnlPct: 51.90 },
+  { ticker: "COIN",  name: "Coinbase Global",       sector: "Finance", color: "#a78bfa", qty: 15.0,  price: 298.40, mktVal: 4476.00, costVal: 3600.00, pnlAbs: 876.00,  pnlPct: 24.33 },
+  { ticker: "SPY",   name: "SPDR S&P 500 ETF",     sector: "ETF",     color: "#34d399", qty: 18.0,  price: 586.20, mktVal: 10551.60,costVal: 9100.00, pnlAbs: 1451.60, pnlPct: 15.95 },
+];
+
 export function XStocks() {
   const { locked } = useUnlock();
   const [raw, setRaw] = useState(null);
@@ -1822,8 +1833,9 @@ export function XStocks() {
   const signedPct = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)} %`;
   const signCls = (v) => v >= 0 ? "text-emerald-400" : "text-rose-400";
 
-  // Build holdings from real API data
+  // Build holdings — démo si verrouillé, réel sinon
   const holdings = (() => {
+    if (locked) return XSTOCKS_DEMO;
     if (!raw?.ok || !raw?.holdings) return [];
     return raw.holdings
       .filter((h) => h.kind === "stock")

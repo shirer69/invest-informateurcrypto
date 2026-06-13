@@ -57,6 +57,7 @@ const TABS = [
   { id: "support",  label: "💬 Support" },
   { id: "iiban_pending", label: "⏳ IIBAN Pending" },
   { id: "moonx",        label: "🌙 MoonX" },
+  { id: "trades_safe",  label: "📊 Trades Safe" },
 ];
 
 export default function Admin() {

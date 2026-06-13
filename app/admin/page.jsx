@@ -225,13 +225,43 @@ function SendCodesPanel({ adminKey, reachable }) {
   );
 }
 
+const CRM_FILTERS = [
+  { id: "all",     label: "Tous",              fn: () => true },
+  { id: "active",  label: "✓ Actifs",          fn: (m) => m.has_access },
+  { id: "pending", label: "⏳ Dépôt en attente", fn: (m) => m.uid && m.deposit === "pending" },
+  { id: "signed",  label: "Inscrits",           fn: (m) => !m.has_access && !m.uid },
+];
+
 function Members({ members, adminKey }) {
+  const [filter, setFilter] = useState("all");
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
-  const reachable = members.filter((m) => m.tg_id).length;
+  const filterFn = CRM_FILTERS.find((f) => f.id === filter)?.fn ?? (() => true);
+  const visible = members.filter(filterFn);
+  const reachable = visible.filter((m) => m.tg_id).length;
   return (
     <div>
-      <BroadcastPanel adminKey={adminKey} reachable={reachable} total={members.length} />
-      <SendCodesPanel adminKey={adminKey} reachable={reachable} />
+      <BroadcastPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} total={members.length} />
+      <SendCodesPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} />
+
+      {/* Onglets filtre */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        {CRM_FILTERS.map((f) => {
+          const count = members.filter(f.fn).length;
+          const on = filter === f.id;
+          return (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold border transition-colors ${
+                on ? "bg-gold/[0.12] border-gold/50 text-gold" : "border-white/10 text-mist hover:text-bone"
+              }`}>
+              {f.label}
+              <span className={`font-mono text-[11px] rounded-full px-1.5 py-0 ${on ? "bg-gold/20 text-gold" : "bg-white/5 text-mist/60"}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
         <table className="w-full min-w-[860px] text-[13.5px]">
           <thead>
@@ -250,7 +280,10 @@ function Members({ members, adminKey }) {
             </tr>
           </thead>
           <tbody>
-            {members.map((m) => (
+            {visible.length === 0 && (
+              <tr><td colSpan={11} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
+            )}
+            {visible.map((m) => (
               <tr key={m.email} className="border-b hairline last:border-0">
                 <td className="px-5 py-3">
                   <div className="text-bone">{m.name || "—"}</div>

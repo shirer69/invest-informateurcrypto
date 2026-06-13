@@ -996,6 +996,24 @@ export function Monitoring({ onGoCopy }) {
   const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;
   const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
+  // Total % = somme des pnlPct individuels
+  const parsePct = (s) => { if (!s) return null; const m = String(s).replace(",", ".").match(/[-+]?[\d.]+/); return m ? parseFloat(m[0]) : null; };
+  const jTotalPct = jTrades.length > 0 ? jTrades.reduce((s, t) => s + (parsePct(t.pnlPct) ?? 0), 0) : null;
+
+  // Drawdown max sur courbe d'équité cumulée (trades triés par timestamp croissant)
+  const jDrawdown = (() => {
+    if (jTrades.length === 0) return null;
+    const sorted = [...jTrades].sort((a, b) => a.timestamp - b.timestamp);
+    let equity = 0, peak = 0, maxDd = 0;
+    for (const t of sorted) {
+      equity += t.pnlUsd || 0;
+      if (equity > peak) peak = equity;
+      const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
+      if (dd > maxDd) maxDd = dd;
+    }
+    return maxDd;
+  })();
+
   const FuturesCTAs = () => (
     <div className="mb-5">
       <a
@@ -1058,28 +1076,28 @@ export function Monitoring({ onGoCopy }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
           {
-            label: "Gains non réalisés",
-            value: walletPnl != null ? dUsdSigned(walletPnl) : "—",
-            sub: walletPnl != null && walletValue ? dPct(walletPnl, walletValue) : null,
-            cls: walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400",
-          },
-          {
-            label: "Gains réalisés (copy)",
+            label: "Gains réalisés",
             value: julienTrades === null ? "…" : dUsdJ(jTotalPnl),
             sub: julienTrades === null ? null : `${jTrades.length} trades`,
             cls: julienTrades === null ? "text-mist/40" : jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
+            label: "Total %",
+            value: jTotalPct === null ? (julienTrades === null ? "…" : "—") : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(1)} %`,
+            sub: null,
+            cls: jTotalPct === null ? "text-mist/40" : jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
+          },
+          {
             label: "Taux de réussite",
             value: jWinRate === null ? (julienTrades === null ? "…" : "—") : `${jWinRate} %`,
-            sub: jWins > 0 ? `${jWins} gagnants / ${jTrades.length - jWins} perdants` : null,
+            sub: jWins > 0 ? `${jWins}W / ${jTrades.length - jWins}L` : null,
             cls: jWinRate == null ? "text-mist/40" : jWinRate >= 50 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Wallet Futures",
-            value: walletValue != null ? dUsd(walletValue) : "—",
-            sub: acctInactive ? "Non activé" : `${fillRows.length} op.`,
-            cls: "text-bone",
+            label: "Drawdown max",
+            value: jDrawdown === null ? (julienTrades === null ? "…" : "—") : `-${jDrawdown.toFixed(1)} %`,
+            sub: null,
+            cls: jDrawdown === null ? "text-mist/40" : "text-rose-400",
           },
         ].map(({ label, value, sub, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">

@@ -10,10 +10,29 @@ function fmtTs(ts) {
   });
 }
 
+const STATUS_MAP = {
+  active:          { label: "Membre actif",               cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+  pending_trade:   { label: "Dépôt reçu — first trade manquant", cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+  pending_grant:   { label: "IIBAN actif — accès non accordé",   cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
+  pending_deposit: { label: "IIBAN saisi — dépôt en attente",    cls: "bg-sky-500/15 text-sky-300 border-sky-500/30" },
+  no_iiban:        { label: "Inscrit — pas de IIBAN",            cls: "bg-white/5 text-mist/60 border-white/10" },
+  unknown:         { label: "Inconnu",                           cls: "bg-white/5 text-mist/40 border-white/10" },
+};
+
+function MemberBadge({ status }) {
+  const s = STATUS_MAP[status] || STATUS_MAP.unknown;
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-mono ${s.cls}`}>
+      {s.label}
+    </span>
+  );
+}
+
 export default function SupportAdmin({ adminKey }) {
   const [convs, setConvs]       = useState([]);
   const [selected, setSelected] = useState(null); // email
   const [thread, setThread]     = useState([]);
+  const [profile, setProfile]   = useState(null);
   const [reply, setReply]       = useState("");
   const [sending, setSending]   = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -41,7 +60,7 @@ export default function SupportAdmin({ adminKey }) {
       const d = await r.json();
       if (d.ok) {
         setThread(d.messages || []);
-        // Met à jour le count unread dans la liste
+        setProfile(d.profile || null);
         setConvs((prev) => prev.map((c) => c.email === email ? { ...c, unread: 0 } : c));
       }
     } catch {}
@@ -70,6 +89,7 @@ export default function SupportAdmin({ adminKey }) {
   function selectConv(email) {
     setSelected(email);
     setThread([]);
+    setProfile(null);
     setReply("");
     fetchThread(email);
   }
@@ -148,7 +168,12 @@ export default function SupportAdmin({ adminKey }) {
                 {c.preview_from_admin ? <span className="text-gold/70">Vous: </span> : ""}
                 {c.preview}
               </div>
-              <div className="text-[10px] text-mist/40 mt-1">{fmtTs(c.last_ts)}</div>
+              <div className="flex items-center justify-between gap-2 mt-1">
+                <span className={`text-[9.5px] font-mono px-1.5 py-0.5 rounded-full border ${(STATUS_MAP[c.member_status] || STATUS_MAP.unknown).cls}`}>
+                  {(STATUS_MAP[c.member_status] || STATUS_MAP.unknown).label}
+                </span>
+                <span className="text-[10px] text-mist/40 shrink-0">{fmtTs(c.last_ts)}</span>
+              </div>
             </button>
           ))}
         </div>
@@ -164,20 +189,46 @@ export default function SupportAdmin({ adminKey }) {
         ) : (
           <>
             {/* Thread header */}
-            <div className="flex items-center justify-between px-5 py-3 border-b hairline">
-              <div>
-                <div className="font-semibold text-bone text-[14px]">
-                  {convs.find((c) => c.email === selected)?.name || selected}
+            <div className="px-5 py-3 border-b hairline space-y-2">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-semibold text-bone text-[14px]">
+                    {convs.find((c) => c.email === selected)?.name || selected}
+                  </div>
+                  <div className="text-[11px] text-mist/50 break-all">{selected}</div>
                 </div>
-                <div className="text-[11px] text-mist/50">{selected}</div>
+                <button
+                  onClick={deleteConv}
+                  disabled={deleting}
+                  className="text-[11.5px] text-rose-400/70 hover:text-rose-400 transition-colors disabled:opacity-40 shrink-0"
+                >
+                  {deleting ? "Suppression…" : "Supprimer"}
+                </button>
               </div>
-              <button
-                onClick={deleteConv}
-                disabled={deleting}
-                className="text-[11.5px] text-rose-400/70 hover:text-rose-400 transition-colors disabled:opacity-40"
-              >
-                {deleting ? "Suppression…" : "Supprimer"}
-              </button>
+              {/* Infos membre */}
+              <div className="flex flex-wrap items-center gap-2">
+                {profile && <MemberBadge status={profile.member_status} />}
+                {profile?.uid && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-mist/70">
+                    IIBAN <span className="text-bone">{profile.uid}</span>
+                  </span>
+                )}
+                {!profile?.uid && (
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-mist/40">
+                    Pas de IIBAN
+                  </span>
+                )}
+                {profile?.tg_id && (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-mist/70">
+                    TG <span className="text-bone">{profile.tg_id}</span>
+                  </span>
+                )}
+                {!profile?.tg_id && (
+                  <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] font-mono text-mist/40">
+                    Pas de TG ID
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Messages */}

@@ -178,6 +178,7 @@ export default function Admin() {
         {tab === "support"      && <SupportAdmin adminKey={key} />}
         {tab === "iiban_pending" && <IibanPendingAdmin adminKey={key} />}
         {tab === "moonx"         && <MoonXAdmin adminKey={key} />}
+        {tab === "trades_safe"   && <TradesSafe adminKey={key} />}
       </div>
     </div>
   );
@@ -853,3 +854,139 @@ function CopyAuto({ adminKey }) {
   );
 }
 
+function TradesSafe({ adminKey }) {
+  const [trades, setTrades]   = useState(null);
+  const [positions, setPos]   = useState(null);
+  const [wallet, setWallet]   = useState(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState(null);
+
+  const load = useCallback(async () => {
+    const [t, p, w] = await Promise.all([
+      adminGet("/api/julien/trades", adminKey),
+      adminGet("/api/julien/positions", adminKey),
+      adminGet("/api/julien/wallet", adminKey),
+    ]);
+    if (t?.ok) setTrades(t.trades);
+    if (p?.ok) setPos(p.positions);
+    if (w?.ok) setWallet(w);
+  }, [adminKey]);
+
+  useEffect(() => { load(); }, [load]);
+
+  async function sync() {
+    setSyncing(true); setSyncMsg(null);
+    const r = await adminPost("/api/admin/julien/sync", adminKey, {});
+    setSyncing(false);
+    if (r?.ok) setSyncMsg({ ok: true, t: `✓ ${r.new} nouveau(x) trade(s) importé(s).` });
+    else setSyncMsg({ ok: false, t: r?.error || "Erreur sync." });
+    load();
+  }
+
+  const usd2 = (n) => n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
+  const totalPnl = trades ? trades.reduce((s, t) => s + (t.pnl_usd || 0), 0) : null;
+
+  return (
+    <div>
+      <div className="grid sm:grid-cols-3 gap-4 mb-6">
+        <KPI label="Solde MoonX Forex" value={wallet ? usd2(wallet.balance) : "…"} accent="text-gold-grad" />
+        <KPI label="Équité" value={wallet ? usd2(wallet.equity) : "…"} />
+        <KPI label="Marge libre" value={wallet ? usd2(wallet.freeMargin) : "…"} accent="text-pos" />
+      </div>
+
+      <div className="mb-6">
+        <h3 className="font-display text-[16px] text-bone mb-3">Positions ouvertes</h3>
+        {!positions ? <p className="text-mist text-[13px]">Chargement…</p> : positions.length === 0 ? (
+          <p className="text-mist/60 text-[13px]">Aucune position ouverte actuellement.</p>
+        ) : (
+          <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+            <table className="w-full min-w-[700px] text-[13px]">
+              <thead>
+                <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+                  <th className="px-4 py-2.5">Paire</th>
+                  <th className="px-4 py-2.5">Sens</th>
+                  <th className="px-4 py-2.5">Entrée</th>
+                  <th className="px-4 py-2.5">Prix actuel</th>
+                  <th className="px-4 py-2.5 text-right">PnL</th>
+                  <th className="px-4 py-2.5">Lots</th>
+                </tr>
+              </thead>
+              <tbody>
+                {positions.map((p) => (
+                  <tr key={p._id} className="border-b hairline last:border-0">
+                    <td className="px-4 py-2.5 font-mono text-bone">{p.symbol || p.pairId}</td>
+                    <td className="px-4 py-2.5"><span className={p.side === "buy" ? "text-pos" : "text-neg"}>{p.side === "buy" ? "LONG" : "SHORT"}</span></td>
+                    <td className="px-4 py-2.5 font-mono text-mist">{p.entryPrice}</td>
+                    <td className="px-4 py-2.5 font-mono text-mist">{p.currentPrice || "—"}</td>
+                    <td className={`px-4 py-2.5 text-right font-mono ${(p.pnl ?? 0) >= 0 ? "text-pos" : "text-neg"}`}>
+                      {p.pnl != null ? `${p.pnl >= 0 ? "+" : ""}${Number(p.pnl).toFixed(2)} $` : "—"}
+                    </td>
+                    <td className="px-4 py-2.5 font-mono text-mist">{p.lots}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div>
+          <h3 className="font-display text-[16px] text-bone">Trades clôturés</h3>
+          {totalPnl != null && (
+            <span className={`text-[12px] font-mono ${totalPnl >= 0 ? "text-pos" : "text-neg"}`}>
+              PnL total : {totalPnl >= 0 ? "+" : ""}{totalPnl.toFixed(2)} $
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          {syncMsg && <span className={`text-[12px] ${syncMsg.ok ? "text-pos" : "text-flag"}`}>{syncMsg.t}</span>}
+          <button onClick={sync} disabled={syncing}
+            className="btn-gold rounded-full px-4 py-2 text-[12.5px] font-semibold disabled:opacity-60">
+            {syncing ? "Sync…" : "↻ Sync MoonX"}
+          </button>
+          <button onClick={load} className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">↻</button>
+        </div>
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+        <table className="w-full min-w-[800px] text-[13px]">
+          <thead>
+            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+              <th className="px-4 py-2.5">Date clôture</th>
+              <th className="px-4 py-2.5">Asset</th>
+              <th className="px-4 py-2.5">Sens</th>
+              <th className="px-4 py-2.5">Entrée</th>
+              <th className="px-4 py-2.5">Sortie</th>
+              <th className="px-4 py-2.5 text-right">PnL $</th>
+              <th className="px-4 py-2.5">Lots</th>
+              <th className="px-4 py-2.5">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!trades && <tr><td colSpan={8} className="px-4 py-5 text-mist/50 text-center">Chargement…</td></tr>}
+            {trades && trades.length === 0 && <tr><td colSpan={8} className="px-4 py-5 text-mist/50 text-center">Aucun trade. Cliquez « Sync MoonX ».</td></tr>}
+            {trades && trades.map((t) => (
+              <tr key={t.id} className="border-b hairline last:border-0">
+                <td className="px-4 py-2.5 font-mono text-mist">{fmtDate(t.created_at)}</td>
+                <td className="px-4 py-2.5 font-mono text-bone">{t.asset}</td>
+                <td className="px-4 py-2.5"><span className={t.direction === "LONG" ? "text-pos" : "text-neg"}>{t.direction}</span></td>
+                <td className="px-4 py-2.5 font-mono text-mist">{t.entry_price ?? "—"}</td>
+                <td className="px-4 py-2.5 font-mono text-mist">{t.exit_price ?? "—"}</td>
+                <td className={`px-4 py-2.5 text-right font-mono ${(t.pnl_usd ?? 0) >= 0 ? "text-pos" : "text-neg"}`}>
+                  {t.pnl_usd != null ? `${t.pnl_usd >= 0 ? "+" : ""}${Number(t.pnl_usd).toFixed(2)} $` : "—"}
+                </td>
+                <td className="px-4 py-2.5 font-mono text-mist">{t.lots ?? "—"}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`font-mono text-[10px] uppercase rounded px-1.5 py-0.5 border ${t.moonx_id ? "text-info border-info/30" : "text-mist/50 border-white/10"}`}>
+                    {t.moonx_id ? "moonx" : "manuel"}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}

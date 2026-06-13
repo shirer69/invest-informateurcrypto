@@ -69,12 +69,18 @@ export default function Chat({ me }) {
         )}
         {msgs.map((m, i) => {
           const mine = me && m.name === me;
+          const fmtTs = (ts) => {
+            if (!ts) return null;
+            const d = new Date(ts * 1000);
+            return d.toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+          };
           return (
             <div key={i} className="flex flex-col">
               <div className="flex items-baseline gap-2">
                 <span className={`text-[12.5px] font-semibold ${mine ? "text-gold" : "text-bone"}`}>
                   {m.name}
                 </span>
+                {m.ts && <span className="text-[10.5px] text-mist/40 font-mono">{fmtTs(m.ts)}</span>}
               </div>
               <p className="text-[13.5px] leading-snug text-mist mt-0.5">{m.text}</p>
             </div>

@@ -38,7 +38,7 @@ function VipJoinBar() {
         <div className="min-w-0">
           <div className="font-display text-[15px] text-bone">Groupe VIP Telegram</div>
           <div className="text-[12px] text-mist">
-            {locked ? "Débloquez votre accès pour rejoindre le canal privé." : "Votre accès est actif — rejoignez le canal privé."}
+            {locked ? "Débloquez votre accès pour rejoindre le canal privé et obtenir les calls/signaux." : "Votre accès est actif — rejoignez le canal privé."}
           </div>
         </div>
       </div>

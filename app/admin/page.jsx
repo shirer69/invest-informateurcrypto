@@ -69,14 +69,17 @@ export default function Admin() {
   const [ov, setOv] = useState(null);
   const [members, setMembers] = useState(null);
   const [iiban, setIiban] = useState(null);
+  const [revenue, setRevenue] = useState(null);
 
   const loadAll = useCallback(async (k) => {
-    const [o, m, l] = await Promise.all([
+    const [o, m, l, rev] = await Promise.all([
       adminGet("/api/admin/overview", k),
       adminGet("/api/admin/members", k),
       adminGet("/api/admin/list?key=" + encodeURIComponent(k), k),
+      adminGet("/api/admin/revenue", k),
     ]);
     setOv(o); setMembers(m?.members || []); setIiban(l?.items || []);
+    if (rev?.ok) setRevenue(rev);
   }, []);
 
   useEffect(() => {
@@ -129,7 +132,23 @@ export default function Admin() {
               <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">Pôle Invest</span>
             </span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
+            {revenue && (
+              <div className="hidden sm:flex items-center gap-3 text-right">
+                <div className="text-right leading-tight">
+                  <div className="font-mono text-[11px] text-mist/60 uppercase tracking-widest">Revenus estimés</div>
+                  <div className="font-display text-[18px] text-gold font-semibold">
+                    {revenue.total_usd.toLocaleString("fr-FR", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}
+                  </div>
+                </div>
+                <div className="text-right leading-tight border-l hairline pl-3">
+                  <div className="font-mono text-[10px] text-mist/50 uppercase">Kraken ({revenue.active_members} membres)</div>
+                  <div className="text-[13px] text-bone">{revenue.kraken_usd.toLocaleString("fr-FR", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</div>
+                  <div className="font-mono text-[10px] text-mist/50 uppercase mt-0.5">MoonX next payment</div>
+                  <div className="text-[13px] text-bone">{revenue.moonx_usd.toLocaleString("fr-FR", { style: "currency", currency: "USD", maximumFractionDigits: 0 })}</div>
+                </div>
+              </div>
+            )}
             <button onClick={() => loadAll(key)} className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">↻ Rafraîchir</button>
             <button onClick={() => { sessionStorage.removeItem(KEYK); setAuthed(false); }}
                     className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">Quitter</button>

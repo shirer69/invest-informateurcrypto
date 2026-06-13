@@ -97,20 +97,53 @@ function TemplatesSection({ adminKey, templates, onReload }) {
   const [form, setForm]           = useState(emptyTpl());
   const [msg,  setMsg]            = useState(null);
   const [busy, setBusy]           = useState(false);
-  const [previewHtml, setPreviewHtml] = useState(null);   // null = masqué, "" = chargement, string = HTML
+  const [previewHtml, setPreviewHtml] = useState("");
   const [previewBusy, setPreviewBusy] = useState(false);
   const [seedBusy, setSeedBusy]   = useState(false);
   const [seedMsg,  setSeedMsg]    = useState(null);
+  const previewTimerRef = useRef(null);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  async function fetchPreview(overrideForm) {
+    setPreviewBusy(true); setPreviewHtml("");
+    try {
+      const r = await fetch(`${API_BASE}/api/admin/mail/preview`, {
+        method: "POST",
+        headers: hdr(adminKey),
+        body: JSON.stringify(overrideForm || form),
+      });
+      const html = await r.text();
+      setPreviewHtml(html);
+    } catch {
+      setPreviewHtml("<p style='color:#ff6b6b;padding:20px'>Erreur de rendu</p>");
+    } finally {
+      setPreviewBusy(false);
+    }
+  }
+
+  useEffect(() => {
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    previewTimerRef.current = setTimeout(() => fetchPreview(), 800);
+    return () => clearTimeout(previewTimerRef.current);
+  }, [form, adminKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   function load(t) {
-    setForm({ id: t.id, name: t.name || "", title: t.title || "", subject: t.subject || "", intro: t.intro || "",
-              body_html: t.body_html || "", cta_label: t.cta_label || "", cta_url: t.cta_url || "", footnote: t.footnote || "" });
-    setMsg(null); setPreviewHtml(null);
+    const next = { id: t.id, name: t.name || "", title: t.title || "", subject: t.subject || "", intro: t.intro || "",
+                   body_html: t.body_html || "", cta_label: t.cta_label || "", cta_url: t.cta_url || "", footnote: t.footnote || "" };
+    setForm(next);
+    setMsg(null);
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    fetchPreview(next);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function reset() { setForm(emptyTpl()); setMsg(null); setPreviewHtml(null); }
+  function reset() {
+    const next = emptyTpl();
+    setForm(next);
+    setMsg(null);
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    fetchPreview(next);
+  }
 
   async function save() {
     if (!form.name.trim()) { setMsg({ ok: false, t: "Donnez un nom au template." }); return; }
@@ -126,24 +159,6 @@ function TemplatesSection({ adminKey, templates, onReload }) {
     await aDel(`/api/admin/mail/templates/${id}`, adminKey);
     if (form.id === id) reset();
     onReload();
-  }
-
-  async function fetchPreview() {
-    if (previewHtml !== null) { setPreviewHtml(null); return; }   // toggle off
-    setPreviewBusy(true); setPreviewHtml("");
-    try {
-      const r = await fetch(`${API_BASE}/api/admin/mail/preview`, {
-        method: "POST",
-        headers: hdr(adminKey),
-        body: JSON.stringify(form),
-      });
-      const html = await r.text();
-      setPreviewHtml(html);
-    } catch {
-      setPreviewHtml("<p style='color:#ff6b6b;padding:20px'>Erreur de rendu</p>");
-    } finally {
-      setPreviewBusy(false);
-    }
   }
 
   async function seedTemplates(force = false) {
@@ -209,9 +224,9 @@ function TemplatesSection({ adminKey, templates, onReload }) {
             className="btn-gold rounded-full px-7 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
             {busy ? "Enregistrement…" : "💾 Enregistrer"}
           </button>
-          <button onClick={fetchPreview} disabled={previewBusy}
+          <button onClick={() => fetchPreview()} disabled={previewBusy}
             className="btn-ghost rounded-full px-5 py-2.5 text-[13px] disabled:opacity-60">
-            {previewBusy ? "Rendu…" : previewHtml !== null ? "✕ Masquer aperçu" : "👁 Aperçu réel"}
+            {previewBusy ? "Rendu…" : "↻ Rafraîchir"}
           </button>
           {msg && <span className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</span>}
         </div>
@@ -221,29 +236,29 @@ function TemplatesSection({ adminKey, templates, onReload }) {
       <div className="space-y-4 lg:sticky lg:top-24">
 
         {/* Aperçu réel (HTML du serveur) */}
-        {previewHtml !== null && (
-          <div className="rounded-2xl border hairline overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 border-b hairline bg-ink-800/40">
-              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
-                Aperçu réel — rendu serveur
-              </span>
-              <span className="text-[10px] text-mist/40">Prénom = «&nbsp;Jean&nbsp;»</span>
-            </div>
-            {previewHtml === "" ? (
-              <div className="h-48 flex items-center justify-center bg-[#07080b]">
-                <span className="text-mist/50 text-[13px] animate-pulse">Rendu en cours…</span>
-              </div>
-            ) : (
-              <iframe
-                srcDoc={previewHtml}
-                className="w-full border-0 bg-[#07080b]"
-                style={{ height: "580px" }}
-                title="Aperçu email"
-                sandbox="allow-same-origin"
-              />
-            )}
+        <div className="rounded-2xl border hairline overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 border-b hairline bg-ink-800/40">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
+              Aperçu réel — rendu serveur
+            </span>
+            <span className="text-[10px] text-mist/40">
+              {previewBusy ? "Actualisation…" : "Prénom = « Jean »"}
+            </span>
           </div>
-        )}
+          {previewHtml === "" ? (
+            <div className="h-48 flex items-center justify-center bg-[#07080b]">
+              <span className="text-mist/50 text-[13px] animate-pulse">Rendu en cours…</span>
+            </div>
+          ) : (
+            <iframe
+              srcDoc={previewHtml}
+              className="w-full border-0 bg-[#07080b]"
+              style={{ height: "580px" }}
+              title="Aperçu email"
+              sandbox="allow-same-origin"
+            />
+          )}
+        </div>
 
         {/* Import / sync templates */}
         <div className="rounded-2xl border gold-line bg-gold/[0.04] p-4">

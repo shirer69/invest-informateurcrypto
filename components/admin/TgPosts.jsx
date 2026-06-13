@@ -39,7 +39,14 @@ function serialize(node) {
   return out;
 }
 const tgToHtml = (t) => (t || "").replace(/\n/g, "<br>");
-const sample = (t) => (t || "").replace(/\{pr[ée]nom\}|\{PRENOM\}|\{first_name\}/gi, "Jean");
+const SAMPLE_VARS = {
+  prenom: "Jean", PRENOM: "Jean", first_name: "Jean",
+  emoji: "🟢", direction: "LONG", asset: "BTC/USD", leverage: "10",
+  result: "✅", pnl_usd: "+142.50", pnl_pct: "+14.25%",
+  entry_price: "65 000", exit_price: "66 450",
+  amount: "1 000 $", comment_line: "",
+};
+const sample = (t) => (t || "").replace(/\{(\w+)\}/g, (_, k) => SAMPLE_VARS[k] ?? `{${k}}`);
 
 const AUDIENCES = [
   { id: "all", label: "Tous (DMs)" },

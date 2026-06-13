@@ -297,10 +297,19 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
               value={uid}
               onChange={(e) => { setUid(e.target.value); if (state !== "checking") setState("idle"); }}
               placeholder="UID Kraken (identifiant IIBAN)"
-              className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 font-mono text-[13px] outline-none"
+              disabled={state === "checking"}
+              className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 font-mono text-[13px] outline-none disabled:opacity-60"
             />
-            <button disabled={state === "checking"} className="btn-gold rounded-lg px-4 text-[13px] font-semibold disabled:opacity-60">
-              {state === "checking" ? "…" : "Valider"}
+            <button disabled={state === "checking"} className="btn-gold rounded-lg px-4 text-[13px] font-semibold disabled:opacity-60 flex items-center gap-2 min-w-[80px] justify-center">
+              {state === "checking" ? (
+                <>
+                  <svg className="animate-spin h-3.5 w-3.5 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Vérif…
+                </>
+              ) : "Valider"}
             </button>
           </form>
           {state === "pending" && (

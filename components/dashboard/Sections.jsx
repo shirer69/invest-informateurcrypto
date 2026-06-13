@@ -945,13 +945,12 @@ export function Monitoring({ onGoCopy }) {
   const dPct = (x, ref) => (!x || !ref || ref === 0) ? "—" : `${x >= 0 ? "+" : ""}${((x / ref) * 100).toFixed(2)} %`;
 
   const FuturesCTAs = () => (
-    <div className="flex flex-col sm:flex-row gap-3 mb-5">
-      {/* CTA 1 — Copy auto */}
+    <div className="mb-5">
       <a
         href="https://t.me/clubdesinformateurs"
         target="_blank"
         rel="noopener noreferrer"
-        className="flex-1 rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 flex items-center gap-3 justify-between hover:border-gold/50 transition-colors"
+        className="flex items-center gap-3 justify-between rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 hover:border-gold/50 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
           <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
@@ -960,34 +959,12 @@ export function Monitoring({ onGoCopy }) {
             </svg>
           </span>
           <div className="min-w-0">
-            <div className="font-display text-[15px] text-bone">Rejoindre le copy auto</div>
-            <div className="text-[12px] text-mist">Réplique automatiquement les trades de Julien.</div>
+            <div className="font-display text-[15px] text-bone">Rejoindre le copy auto & obtenir les signaux</div>
+            <div className="text-[12px] text-mist">Réplique les trades de Julien automatiquement — ou reçois ses signaux en temps réel.</div>
           </div>
         </div>
         <span className="btn-gold inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold whitespace-nowrap shrink-0">
           Rejoindre <IconArrow className="h-3.5 w-3.5" />
-        </span>
-      </a>
-      {/* CTA 2 — Signaux */}
-      <a
-        href="https://t.me/Clubdesinformateurs_bot/unlock"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex-1 rounded-2xl border hairline bg-ink-800/40 p-4 flex items-center gap-3 justify-between hover:border-gold/30 transition-colors"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border hairline text-mist/70">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
-            </svg>
-          </span>
-          <div className="min-w-0">
-            <div className="font-display text-[15px] text-bone">Obtenir les signaux</div>
-            <div className="text-[12px] text-mist">Accès aux alertes et signaux trading en temps réel.</div>
-          </div>
-        </div>
-        <span className="inline-flex items-center gap-2 rounded-full border hairline px-4 py-2 text-[12px] font-semibold text-bone whitespace-nowrap shrink-0">
-          Accès <IconArrow className="h-3.5 w-3.5" />
         </span>
       </a>
     </div>
@@ -1772,19 +1749,32 @@ function Field({ label, value, onChange, step }) {
   );
 }
 
-/* ================== XStocks — Actions tokenisés (démo) ================== */
+/* ================== XStocks — Actions tokenisés (données réelles compte maître A) ================== */
 
-const XSTOCKS_DEMO = [
-  { ticker: "NVDA",  name: "NVIDIA Corporation",   sector: "Tech",         qty: 4.2,   price: 1124.50, cost: 875.00,  color: "#19C37D" },
-  { ticker: "AAPL",  name: "Apple Inc.",            sector: "Tech",         qty: 8.0,   price: 213.80,  cost: 178.40,  color: "#5BA8FF" },
-  { ticker: "MSFT",  name: "Microsoft Corporation", sector: "Tech",         qty: 3.5,   price: 432.60,  cost: 390.00,  color: "#7C5CFC" },
-  { ticker: "GOOGL", name: "Alphabet Inc. Cl A",    sector: "Tech",         qty: 5.0,   price: 185.40,  cost: 161.00,  color: "#C9A24B" },
-  { ticker: "META",  name: "Meta Platforms",        sector: "Tech",         qty: 2.0,   price: 622.30,  cost: 510.00,  color: "#fb7185" },
-  { ticker: "AMZN",  name: "Amazon.com Inc.",       sector: "Conso.",       qty: 6.0,   price: 228.90,  cost: 195.00,  color: "#f97316" },
-  { ticker: "TSLA",  name: "Tesla Inc.",            sector: "Conso.",       qty: 3.0,   price: 248.70,  cost: 310.00,  color: "#e879f9" },
-];
-
-const SECTOR_COLORS = { "Tech": "#7C5CFC", "Conso.": "#f97316" };
+const TICKER_META = {
+  AAPL:  { name: "Apple Inc.",            sector: "Tech",    color: "#5BA8FF" },
+  NVDA:  { name: "NVIDIA Corporation",    sector: "Tech",    color: "#19C37D" },
+  MSFT:  { name: "Microsoft Corporation", sector: "Tech",    color: "#7C5CFC" },
+  GOOGL: { name: "Alphabet Inc. Cl A",    sector: "Tech",    color: "#C9A24B" },
+  GOOG:  { name: "Alphabet Inc. Cl C",    sector: "Tech",    color: "#D4B44B" },
+  META:  { name: "Meta Platforms",        sector: "Tech",    color: "#fb7185" },
+  AMZN:  { name: "Amazon.com Inc.",       sector: "Conso.",  color: "#f97316" },
+  TSLA:  { name: "Tesla Inc.",            sector: "Conso.",  color: "#e879f9" },
+  NFLX:  { name: "Netflix Inc.",          sector: "Tech",    color: "#ef4444" },
+  AMD:   { name: "Advanced Micro Devices",sector: "Tech",    color: "#22d3ee" },
+  COIN:  { name: "Coinbase Global",       sector: "Finance", color: "#a78bfa" },
+  MSTR:  { name: "MicroStrategy",         sector: "Finance", color: "#f59e0b" },
+  PLTR:  { name: "Palantir Technologies", sector: "Tech",    color: "#10b981" },
+  INTC:  { name: "Intel Corporation",     sector: "Tech",    color: "#6366f1" },
+  DIS:   { name: "The Walt Disney Co.",   sector: "Conso.",  color: "#ec4899" },
+  BABA:  { name: "Alibaba Group",         sector: "Tech",    color: "#f97316" },
+  ABNB:  { name: "Airbnb Inc.",           sector: "Conso.",  color: "#fb923c" },
+  MCD:   { name: "McDonald's Corp.",      sector: "Conso.",  color: "#fbbf24" },
+  SPY:   { name: "SPDR S&P 500 ETF",     sector: "ETF",     color: "#34d399" },
+  QQQ:   { name: "Invesco QQQ Trust",    sector: "ETF",     color: "#60a5fa" },
+};
+const SECTOR_COLORS = { "Tech": "#7C5CFC", "Conso.": "#f97316", "Finance": "#f59e0b", "ETF": "#34d399" };
+const TICKER_COLORS_FALLBACK = ["#19C37D","#5BA8FF","#7C5CFC","#C9A24B","#fb7185","#f97316","#e879f9","#22d3ee","#a78bfa","#ef4444"];
 
 function XStocksPie({ data }) {
   const size = 120; const cx = size / 2; const cy = size / 2; const rad = size / 2 - 4;
@@ -1810,55 +1800,92 @@ function XStocksPie({ data }) {
 
 export function XStocks() {
   const { locked } = useUnlock();
-  // Calculs à partir des données démo
-  const holdings = XSTOCKS_DEMO.map((s) => {
-    const mktVal = s.qty * s.price;
-    const costVal = s.qty * s.cost;
-    const pnlAbs = mktVal - costVal;
-    const pnlPct = costVal > 0 ? ((mktVal - costVal) / costVal) * 100 : 0;
-    return { ...s, mktVal, costVal, pnlAbs, pnlPct };
-  });
-  const totalMkt = holdings.reduce((s, h) => s + h.mktVal, 0);
-  const totalCost = holdings.reduce((s, h) => s + h.costVal, 0);
-  const totalPnl = totalMkt - totalCost;
-  const totalPnlPct = totalCost > 0 ? (totalPnl / totalCost) * 100 : 0;
+  const [raw, setRaw] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  // Répartition sectorielle
-  const sectors = {};
-  holdings.forEach((h) => {
-    const key = h.sector;
-    if (!sectors[key]) sectors[key] = { label: key, value: 0, color: SECTOR_COLORS[key] || "#C9A24B" };
-    sectors[key].value += h.mktVal;
-  });
-  const sectorList = Object.values(sectors);
-
-  // Répartition par ticker (pour pie)
-  const tickerData = holdings.map((h) => ({ label: h.ticker, value: h.mktVal, color: h.color }));
+  useEffect(() => {
+    if (locked) return;
+    setLoading(true);
+    fetch("https://api.informateurcrypto.fr/api/kraken/spot-portfolio", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => { setRaw(d); setLoading(false); })
+      .catch(() => setLoading(false));
+    const id = setInterval(() => {
+      fetch("https://api.informateurcrypto.fr/api/kraken/spot-portfolio", { cache: "no-store" })
+        .then((r) => r.json()).then(setRaw).catch(() => {});
+    }, 120_000);
+    return () => clearInterval(id);
+  }, [locked]);
 
   const fmtUsd = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const signed = (v) => `${v >= 0 ? "+" : "−"}${fmtUsd(v)}`;
   const signedPct = (v) => `${v >= 0 ? "+" : ""}${v.toFixed(2)} %`;
   const signCls = (v) => v >= 0 ? "text-emerald-400" : "text-rose-400";
 
+  // Build holdings from real API data
+  const holdings = (() => {
+    if (!raw?.ok || !raw?.holdings) return [];
+    return raw.holdings
+      .filter((h) => h.kind === "stock")
+      .map((h, i) => {
+        const meta = TICKER_META[h.symbol] || {};
+        const mktVal = h.value ?? 0;
+        const costVal = h.cost ?? 0;
+        const pnlAbs = costVal > 0 ? mktVal - costVal : null;
+        const pnlPct = costVal > 0 ? ((mktVal - costVal) / costVal) * 100 : null;
+        return {
+          ticker:  h.symbol,
+          name:    meta.name || h.symbol,
+          sector:  meta.sector || "Autre",
+          color:   meta.color || TICKER_COLORS_FALLBACK[i % TICKER_COLORS_FALLBACK.length],
+          qty:     h.amount,
+          price:   h.price ?? 0,
+          mktVal,
+          costVal,
+          pnlAbs,
+          pnlPct,
+        };
+      })
+      .filter((h) => h.mktVal > 0.5);
+  })();
+
+  const totalMkt  = holdings.reduce((s, h) => s + h.mktVal, 0);
+  const totalCost = holdings.reduce((s, h) => s + h.costVal, 0);
+  const totalPnl  = totalCost > 0 ? totalMkt - totalCost : null;
+  const totalPnlPct = totalCost > 0 ? ((totalMkt - totalCost) / totalCost) * 100 : null;
+
+  const sectors = {};
+  holdings.forEach((h) => {
+    if (!sectors[h.sector]) sectors[h.sector] = { label: h.sector, value: 0, color: SECTOR_COLORS[h.sector] || "#C9A24B" };
+    sectors[h.sector].value += h.mktVal;
+  });
+  const sectorList = Object.values(sectors);
+  const tickerData = holdings.map((h) => ({ label: h.ticker, value: h.mktVal, color: h.color }));
+
   return (
     <div>
       <LastInvestment kinds={["stock"]} />
       <Locked label="Déverrouiller pour voir les Actions">
       {/* Titre */}
-      <div className="mb-5">
-        <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisés)</span></h3>
-        <p className="text-[11.5px] text-mist/60 mt-1">
-          Portefeuille d'actions tokenisées — exposition directe sur actions US via Kraken xStocks
-        </p>
+      <div className="mb-5 flex items-start justify-between gap-3 flex-wrap">
+        <div>
+          <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisées)</span></h3>
+          <p className="text-[11.5px] text-mist/60 mt-1">
+            Portefeuille réel du compte maître A — exposition directe sur actions US via Kraken xStocks
+          </p>
+        </div>
+        {loading && <span className="text-[11px] text-mist/50 mt-1">Chargement…</span>}
+        {!loading && raw?.ok && <span className="text-[10px] font-mono text-emerald-400/70 mt-1">● Live</span>}
+        {!loading && raw && !raw.ok && <span className="text-[10px] font-mono text-rose-400/70 mt-1">⚠ Indisponible</span>}
       </div>
 
       {/* Hero KPIs */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: "Valeur totale",       value: fmtUsd(totalMkt),         cls: "text-bone" },
-          { label: "P&L non réalisé",     value: signed(totalPnl),         cls: signCls(totalPnl) },
-          { label: "Performance",         value: signedPct(totalPnlPct),   cls: signCls(totalPnlPct) },
-          { label: "Positions",           value: `${holdings.length}`,      cls: "text-bone" },
+          { label: "Valeur totale",   value: totalMkt > 0 ? fmtUsd(totalMkt) : "—",                                   cls: "text-bone" },
+          { label: "P&L non réalisé", value: totalPnl != null ? signed(totalPnl) : "—",                               cls: totalPnl != null ? signCls(totalPnl) : "text-mist/60" },
+          { label: "Performance",     value: totalPnlPct != null ? signedPct(totalPnlPct) : "—",                       cls: totalPnlPct != null ? signCls(totalPnlPct) : "text-mist/60" },
+          { label: "Positions",       value: loading ? "…" : `${holdings.length}`,                                     cls: "text-bone" },
         ].map(({ label, value, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
@@ -1867,100 +1894,120 @@ export function XStocks() {
         ))}
       </div>
 
-      {/* Répartition portefeuille */}
-      <div className="grid sm:grid-cols-2 gap-4 mb-5">
-        {/* Pie par ticker */}
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition par action</span>
-          <div className="flex items-center gap-5 mt-4">
-            <XStocksPie data={tickerData} />
-            <div className="space-y-1.5 flex-1 min-w-0">
-              {holdings.map((h) => (
-                <div key={h.ticker} className="flex items-center justify-between gap-2 text-[11.5px]">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="h-2 w-2 rounded-full shrink-0" style={{ background: h.color }} />
-                    <span className="font-mono text-bone">{h.ticker}</span>
-                  </div>
-                  <span className="font-mono text-mist/70 tabular-nums">
-                    {((h.mktVal / totalMkt) * 100).toFixed(1)} %
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Pie sectoriel */}
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition sectorielle</span>
-          <div className="flex items-center gap-5 mt-4">
-            <XStocksPie data={sectorList} />
-            <div className="space-y-3 flex-1 min-w-0">
-              {sectorList.map((s) => (
-                <div key={s.label}>
-                  <div className="flex items-center justify-between text-[12px] mb-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
-                      <span className="text-bone">{s.label}</span>
+      {holdings.length > 0 && (
+        <>
+        {/* Répartition portefeuille */}
+        <div className="grid sm:grid-cols-2 gap-4 mb-5">
+          {/* Pie par ticker */}
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition par action</span>
+            <div className="flex items-center gap-5 mt-4">
+              <XStocksPie data={tickerData} />
+              <div className="space-y-1.5 flex-1 min-w-0">
+                {holdings.map((h) => (
+                  <div key={h.ticker} className="flex items-center justify-between gap-2 text-[11.5px]">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="h-2 w-2 rounded-full shrink-0" style={{ background: h.color }} />
+                      <span className="font-mono text-bone">{h.ticker}</span>
                     </div>
                     <span className="font-mono text-mist/70 tabular-nums">
-                      {((s.value / totalMkt) * 100).toFixed(1)} %
+                      {totalMkt > 0 ? ((h.mktVal / totalMkt) * 100).toFixed(1) : "0.0"} %
                     </span>
                   </div>
-                  <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${(s.value / totalMkt) * 100}%`, background: s.color }} />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Pie sectoriel */}
+          <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition sectorielle</span>
+            <div className="flex items-center gap-5 mt-4">
+              <XStocksPie data={sectorList} />
+              <div className="space-y-3 flex-1 min-w-0">
+                {sectorList.map((s) => (
+                  <div key={s.label}>
+                    <div className="flex items-center justify-between text-[12px] mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
+                        <span className="text-bone">{s.label}</span>
+                      </div>
+                      <span className="font-mono text-mist/70 tabular-nums">
+                        {totalMkt > 0 ? ((s.value / totalMkt) * 100).toFixed(1) : "0.0"} %
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-white/[0.07] overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${totalMkt > 0 ? (s.value / totalMkt) * 100 : 0}%`, background: s.color }} />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Tableau des positions */}
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions en portefeuille</span>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[520px] text-[13px] font-mono">
-            <thead>
-              <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
-                <th className="py-2 pr-4">Ticker</th>
-                <th className="py-2 pr-4 hidden sm:table-cell">Nom</th>
-                <th className="py-2 pr-4 hidden sm:table-cell">Secteur</th>
-                <th className="py-2 pr-4 text-right">Qté</th>
-                <th className="py-2 pr-4 text-right">Prix</th>
-                <th className="py-2 pr-4 text-right">Valeur</th>
-                <th className="py-2 text-right">P&amp;L</th>
-              </tr>
-            </thead>
-            <tbody>
-              {holdings.map((h) => (
-                <tr key={h.ticker} className="border-b hairline last:border-0">
-                  <td className="py-2.5 pr-4">
-                    <span className="font-semibold text-bone">{h.ticker}</span>
-                  </td>
-                  <td className="py-2.5 pr-4 text-mist/70 hidden sm:table-cell text-[12px]">{h.name}</td>
-                  <td className="py-2.5 pr-4 hidden sm:table-cell">
-                    <span className="rounded-md px-1.5 py-0.5 text-[10px]"
-                      style={{ background: (SECTOR_COLORS[h.sector] || "#C9A24B") + "22", color: SECTOR_COLORS[h.sector] || "#C9A24B" }}>
-                      {h.sector}
-                    </span>
-                  </td>
-                  <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{h.qty.toFixed(2)}</td>
-                  <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{fmtUsd(h.price)}</td>
-                  <td className="py-2.5 pr-4 text-right text-bone tabular-nums">{fmtUsd(h.mktVal)}</td>
-                  <td className={`py-2.5 text-right tabular-nums ${signCls(h.pnlPct)}`}>
-                    {signedPct(h.pnlPct)}
-                  </td>
+        {/* Tableau des positions */}
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions en portefeuille</span>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[520px] text-[13px] font-mono">
+              <thead>
+                <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                  <th className="py-2 pr-4">Ticker</th>
+                  <th className="py-2 pr-4 hidden sm:table-cell">Nom</th>
+                  <th className="py-2 pr-4 hidden sm:table-cell">Secteur</th>
+                  <th className="py-2 pr-4 text-right">Qté</th>
+                  <th className="py-2 pr-4 text-right">Prix</th>
+                  <th className="py-2 pr-4 text-right">Valeur</th>
+                  <th className="py-2 text-right">P&amp;L</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {holdings.map((h) => (
+                  <tr key={h.ticker} className="border-b hairline last:border-0">
+                    <td className="py-2.5 pr-4">
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full shrink-0" style={{ background: h.color }} />
+                        <span className="font-semibold text-bone">{h.ticker}</span>
+                      </div>
+                    </td>
+                    <td className="py-2.5 pr-4 text-mist/70 hidden sm:table-cell text-[12px]">{h.name}</td>
+                    <td className="py-2.5 pr-4 hidden sm:table-cell">
+                      <span className="rounded-md px-1.5 py-0.5 text-[10px]"
+                        style={{ background: (SECTOR_COLORS[h.sector] || "#C9A24B") + "22", color: SECTOR_COLORS[h.sector] || "#C9A24B" }}>
+                        {h.sector}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{h.qty.toFixed(4)}</td>
+                    <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{h.price > 0 ? fmtUsd(h.price) : "—"}</td>
+                    <td className="py-2.5 pr-4 text-right text-bone tabular-nums">{fmtUsd(h.mktVal)}</td>
+                    <td className={`py-2.5 text-right tabular-nums ${h.pnlPct != null ? signCls(h.pnlPct) : "text-mist/40"}`}>
+                      {h.pnlPct != null ? signedPct(h.pnlPct) : "—"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-[11px] text-mist/40">
+            Données en direct du compte maître A — rafraîchissement toutes les 2 min. P&amp;L calculé depuis le 1er juin 2026.
+          </p>
         </div>
-        <p className="mt-3 text-[11px] text-mist/40">
-          * Données de démonstration — les valeurs seront remplacées par les données réelles du compte maître.
-        </p>
-      </div>
+        </>
+      )}
+
+      {!loading && holdings.length === 0 && raw?.ok && (
+        <div className="rounded-2xl border hairline bg-ink-800/40 p-8 text-center text-[13px] text-mist/60">
+          Aucune position xStocks ouverte actuellement.
+        </div>
+      )}
+
+      {loading && holdings.length === 0 && (
+        <div className="rounded-2xl border hairline bg-ink-800/40 p-8 text-center text-[13px] text-mist/60">
+          Chargement des positions…
+        </div>
+      )}
+
       </Locked>
     </div>
   );

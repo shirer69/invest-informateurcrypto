@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { API_BASE } from "@/lib/site";
 import TgPosts from "@/components/admin/TgPosts";
 import EmailAdmin from "@/components/admin/EmailAdmin";
+import SupportAdmin from "@/components/admin/SupportAdmin";
 
 const KEYK = "pi_admin_key";
 
@@ -51,6 +52,7 @@ const TABS = [
   { id: "posts",    label: "📨 Posts Telegram" },
   { id: "emails",   label: "📧 Emails" },
   { id: "copy",     label: "Copy Auto" },
+  { id: "support",  label: "💬 Support" },
 ];
 
 export default function Admin() {
@@ -150,6 +152,7 @@ export default function Admin() {
         {tab === "posts"     && <TgPosts adminKey={key} />}
         {tab === "emails"    && <EmailAdmin adminKey={key} />}
         {tab === "copy"      && <CopyAuto adminKey={key} />}
+        {tab === "support"   && <SupportAdmin adminKey={key} />}
       </div>
     </div>
   );

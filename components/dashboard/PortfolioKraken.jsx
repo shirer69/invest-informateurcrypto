@@ -525,7 +525,6 @@ export default function PortfolioKraken() {
         </Section>
 
         <Section title="Futures crypto (perps)" dot={CAT.perps.color} icon={ICONS.perps}>
-          {/* Même source et même affichage que l'onglet Futures */}
           <div className="p-1.5">
             <RealFuturesPositions />
           </div>

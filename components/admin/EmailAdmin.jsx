@@ -91,7 +91,7 @@ export default function EmailAdmin({ adminKey }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    SECTION — Templates
    ═══════════════════════════════════════════════════════════════════════════ */
-const emptyTpl = () => ({ id: null, name: "", subject: "", intro: "", body_html: "", cta_label: "", cta_url: "", footnote: "" });
+const emptyTpl = () => ({ id: null, name: "", title: "", subject: "", intro: "", body_html: "", cta_label: "", cta_url: "", footnote: "" });
 
 function TemplatesSection({ adminKey, templates, onReload }) {
   const [form, setForm]           = useState(emptyTpl());
@@ -105,7 +105,7 @@ function TemplatesSection({ adminKey, templates, onReload }) {
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   function load(t) {
-    setForm({ id: t.id, name: t.name || "", subject: t.subject || "", intro: t.intro || "",
+    setForm({ id: t.id, name: t.name || "", title: t.title || "", subject: t.subject || "", intro: t.intro || "",
               body_html: t.body_html || "", cta_label: t.cta_label || "", cta_url: t.cta_url || "", footnote: t.footnote || "" });
     setMsg(null); setPreviewHtml(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -172,6 +172,7 @@ function TemplatesSection({ adminKey, templates, onReload }) {
         </div>
 
         <Field label="Nom interne" value={form.name} onChange={(v) => set("name", v)} placeholder="Ex : Bienvenue membres" />
+        <Field label="Titre affiché dans l'email" value={form.title} onChange={(v) => set("title", v)} placeholder="Ex : Bienvenue sur le Pôle Invest, {{Prénom}} !" />
         <Field label="Sujet de l'email" value={form.subject} onChange={(v) => set("subject", v)} placeholder="Ex : Bienvenue sur le Pôle Invest 👋" />
 
         <div>
@@ -314,17 +315,21 @@ function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
   const [busy, setBusy]     = useState(false);
   const [msg,  setMsg]      = useState(null);
   const [confirm, setConfirm] = useState(false);
+  const sendingRef = useRef(false);
 
   const selTpl = (templates || []).find((t) => String(t.id) === String(form.template_id));
 
   async function send() {
     if (!form.template_id) { setMsg({ ok: false, t: "Sélectionnez un template." }); return; }
+    if (sendingRef.current) return;
+    sendingRef.current = true;
     setConfirm(false); setBusy(true); setMsg({ ok: true, t: "Envoi en cours… (peut prendre quelques instants)" });
     const r = await aPost("/api/admin/mail/campaigns", adminKey, {
       template_id: Number(form.template_id),
       audience: form.audience,
       subject: form.subject.trim() || null,
     });
+    sendingRef.current = false;
     setBusy(false);
     if (r.ok) {
       setMsg({ ok: true, t: `✓ Envoyé : ${r.sent} · Échecs : ${r.failed} · Cible : ${r.reachable}` });
@@ -403,31 +408,51 @@ function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
       {/* Historique */}
       <div className="rounded-2xl border hairline bg-ink-800/40 p-5">
         <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70 mb-3">
-          Historique des campagnes
+          Historique des envois
         </div>
         {!campaigns ? (
           <p className="text-[13px] text-mist/60">Chargement…</p>
         ) : campaigns.length === 0 ? (
-          <p className="text-[13px] text-mist/60">Aucune campagne envoyée pour l'instant.</p>
+          <p className="text-[13px] text-mist/60">Aucun envoi pour l'instant.</p>
         ) : (
           <div className="space-y-2">
-            {campaigns.map((c) => (
-              <div key={c.id} className="rounded-xl border hairline bg-white/[0.015] px-4 py-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="text-[13.5px] text-bone">{c.template_name || `Template #${c.template_id}`}</div>
-                    <div className="text-[11px] text-mist/60 mt-0.5">
-                      {c.subject_override || "—"} · Audience : {AUDIENCES.find((a) => a.id === c.audience)?.label || c.audience}
+            {campaigns.map((c) => {
+              const isTrigger = c.source && c.source !== "manual";
+              const triggerLabel = isTrigger ? c.source.replace("trigger:", "") : null;
+              const isIndividual = isTrigger && !AUDIENCES.find((a) => a.id === c.audience);
+              return (
+                <div key={c.id} className="rounded-xl border hairline bg-white/[0.015] px-4 py-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[13.5px] text-bone">{c.template_name || `Template #${c.template_id}`}</span>
+                        {isTrigger ? (
+                          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                            ⚡ {triggerLabel}
+                          </span>
+                        ) : (
+                          <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/[0.04] text-mist/60 border border-white/10">
+                            manuel
+                          </span>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-mist/60 mt-0.5">
+                        {isIndividual
+                          ? <span className="text-sky-400/80">→ {c.audience}</span>
+                          : <>{AUDIENCES.find((a) => a.id === c.audience)?.label || c.audience || "—"}</>
+                        }
+                        {c.subject_override && <> · <span className="italic">{c.subject_override}</span></>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-[12px] text-pos">✓ {c.count_sent}</div>
+                      {c.count_failed > 0 && <div className="text-[11px] text-flag">✗ {c.count_failed}</div>}
                     </div>
                   </div>
-                  <div className="text-right shrink-0">
-                    <div className="text-[12px] text-pos">✓ {c.count_sent} envoyé(s)</div>
-                    {c.count_failed > 0 && <div className="text-[11px] text-flag">{c.count_failed} échec(s)</div>}
-                  </div>
+                  <div className="mt-1 font-mono text-[10px] text-mist/40">{fmtDate(c.sent_at)}</div>
                 </div>
-                <div className="mt-1 font-mono text-[10px] text-mist/40">{fmtDate(c.sent_at)}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

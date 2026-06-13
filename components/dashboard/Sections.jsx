@@ -915,10 +915,24 @@ function LockedAudioPreview() {
 }
 
 /* ---------------- Futures (ex-Monitoring) : audios + KPIs + positions en direct ---------------- */
+const _JULIEN_URL =
+  "https://firestore.googleapis.com/v1/projects/julien-5d7a1/databases/(default)/documents" +
+  "/artifacts/julien-5d7a1/public/data/challenge_trades?pageSize=200" +
+  "&key=AIzaSyDCanWsUeiWoLB2vU8C98OKmjaaNzBcUtA";
+
+function _fsVal(field) {
+  if (!field) return null;
+  if ("stringValue"  in field) return field.stringValue;
+  if ("doubleValue"  in field) return field.doubleValue;
+  if ("integerValue" in field) return field.integerValue;
+  return null;
+}
+
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
   const [acct, setAcct] = useState(null);
   const [fills, setFills] = useState(null);
+  const [julienTrades, setJulienTrades] = useState(null);
 
   useEffect(() => {
     setUser(getUser());
@@ -931,7 +945,32 @@ export function Monitoring({ onGoCopy }) {
     };
     tick();
     const id = setInterval(tick, 10000);
-    return () => clearInterval(id);
+
+    const fetchJulien = async () => {
+      try {
+        const d = await fetch(_JULIEN_URL).then((r) => r.json());
+        const docs = (d.documents || [])
+          .map((doc) => {
+            const f = doc.fields || {};
+            return {
+              asset:     _fsVal(f.asset),
+              type:      _fsVal(f.type),
+              pnlUsd:    parseFloat(_fsVal(f.pnlUsd) ?? 0),
+              pnlPct:    _fsVal(f.pnlPct),
+              timestamp: parseInt(_fsVal(f.timestamp) ?? 0),
+              screenshot: _fsVal(f.screenshot) || "",
+            };
+          })
+          .sort((a, b) => b.timestamp - a.timestamp);
+        setJulienTrades(docs);
+      } catch {
+        setJulienTrades([]);
+      }
+    };
+    fetchJulien();
+    const jId = setInterval(fetchJulien, 60000);
+
+    return () => { clearInterval(id); clearInterval(jId); };
   }, []);
 
   const flex = acct?.data?.accounts?.flex || {};
@@ -943,6 +982,13 @@ export function Monitoring({ onGoCopy }) {
   const dUsd = (x) => (x == null ? "—" : "$" + Number(x * MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
   const dUsdSigned = (x) => x == null ? "—" : `${x >= 0 ? "+" : ""}${dUsd(x)}`;
   const dPct = (x, ref) => (!x || !ref || ref === 0) ? "—" : `${x >= 0 ? "+" : ""}${((x / ref) * 100).toFixed(2)} %`;
+
+  // Stats julien
+  const jTrades = julienTrades || [];
+  const jTotalPnl = jTrades.reduce((s, t) => s + (t.pnlUsd || 0), 0);
+  const jWins = jTrades.filter((t) => (t.pnlUsd || 0) > 0).length;
+  const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;
+  const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
   const FuturesCTAs = () => (
     <div className="mb-5">
@@ -1012,16 +1058,16 @@ export function Monitoring({ onGoCopy }) {
             cls: walletPnl == null ? "text-bone" : walletPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Gains réalisés",
-            value: "—",
-            sub: "Suivi actif 16 juin",
-            cls: "text-mist/60",
+            label: "Gains réalisés (challenge)",
+            value: julienTrades === null ? "…" : dUsdJ(jTotalPnl),
+            sub: julienTrades === null ? null : `${jTrades.length} trades`,
+            cls: julienTrades === null ? "text-mist/40" : jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Drawdown max",
-            value: "—",
-            sub: "Suivi actif 16 juin",
-            cls: "text-mist/60",
+            label: "Taux de réussite",
+            value: jWinRate === null ? (julienTrades === null ? "…" : "—") : `${jWinRate} %`,
+            sub: jWins > 0 ? `${jWins} gagnants / ${jTrades.length - jWins} perdants` : null,
+            cls: jWinRate == null ? "text-mist/40" : jWinRate >= 50 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Wallet Futures",
@@ -1038,39 +1084,53 @@ export function Monitoring({ onGoCopy }) {
         ))}
       </div>
 
-      {/* Historique des opérations */}
+      {/* Historique des trades — données julien.informateurcrypto.fr */}
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-          Historique des positions
-        </span>
-        {fills === null ? (
+        <div className="flex items-center justify-between mb-1">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+            Historique des trades (challenge)
+          </span>
+          {julienTrades !== null && (
+            <span className="font-mono text-[10px] text-mist/40">
+              {jTrades.length} op. · source : julien.informateurcrypto.fr
+            </span>
+          )}
+        </div>
+        {julienTrades === null ? (
           <div className="mt-3 text-[13px] text-mist/60">Chargement…</div>
-        ) : fillRows.length === 0 ? (
-          <div className="mt-3 text-[13px] text-mist/60">
-            {acctInactive ? "Compte Futures non activé — aucun historique pour l'instant." : "Aucune opération pour l'instant."}
-          </div>
+        ) : jTrades.length === 0 ? (
+          <div className="mt-3 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[480px] text-[13px] font-mono">
+            <table className="w-full min-w-[420px] text-[13px] font-mono">
               <thead>
                 <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
                   <th className="py-2 pr-4">Date</th>
                   <th className="py-2 pr-4">Marché</th>
                   <th className="py-2 pr-4">Sens</th>
-                  <th className="py-2 pr-4 text-right">Prix</th>
-                  <th className="py-2 text-right">Volume</th>
+                  <th className="py-2 pr-4 text-right">PnL ($)</th>
+                  <th className="py-2 text-right">PnL (%)</th>
                 </tr>
               </thead>
               <tbody>
-                {fillRows.map((t, i) => {
-                  const buy = (t.side || "").startsWith("b");
+                {jTrades.map((t, i) => {
+                  const isLong = (t.type || "").toUpperCase() === "LONG";
+                  const win = (t.pnlUsd || 0) >= 0;
                   return (
                     <tr key={i} className="border-b hairline last:border-0">
-                      <td className="py-2 pr-4 text-mist text-[12px]">{t.ts ? new Date(t.ts * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}</td>
-                      <td className="py-2 pr-4 text-bone">{t.market}</td>
-                      <td className={`py-2 pr-4 ${buy ? "text-emerald-400" : "text-rose-400"}`}>{buy ? "Achat" : "Vente"}</td>
-                      <td className="py-2 pr-4 text-right text-mist">{t.price ?? "—"}</td>
-                      <td className="py-2 text-right text-mist">{t.vol ?? "—"}</td>
+                      <td className="py-2 pr-4 text-mist text-[12px]">
+                        {t.timestamp ? new Date(t.timestamp).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                      </td>
+                      <td className="py-2 pr-4 text-bone">{t.asset || "—"}</td>
+                      <td className={`py-2 pr-4 ${isLong ? "text-emerald-400" : "text-rose-400"}`}>
+                        {isLong ? "Long" : "Short"}
+                      </td>
+                      <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
+                        {(t.pnlUsd >= 0 ? "+" : "") + t.pnlUsd.toFixed(2)}
+                      </td>
+                      <td className={`py-2 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
+                        {t.pnlPct || "—"}
+                      </td>
                     </tr>
                   );
                 })}

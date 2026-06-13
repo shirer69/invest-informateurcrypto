@@ -75,6 +75,9 @@ export default function TgPosts({ adminKey }) {
   /* send log */
   const [sendLog, setSendLog] = useState([]);
 
+  /* seed */
+  const [seedMsg, setSeedMsg] = useState(null);
+
   const reload = useCallback(async () => {
     const [t, s, tr, tm, sl] = await Promise.all([
       aGet("/api/admin/tg/templates", adminKey),
@@ -192,6 +195,20 @@ export default function TgPosts({ adminKey }) {
     await aDel(`/api/admin/tg/templates/${id}`, adminKey);
     if (editingId === id) resetEditor();
     reload();
+  }
+
+  async function seedTemplates(force) {
+    setSeedMsg({ ok: true, t: "Import en cours…" });
+    const r = await aPost("/api/admin/tg/templates/seed", adminKey, { force });
+    if (r.ok) {
+      const added = r.added?.length ?? 0;
+      const updated = r.updated?.length ?? 0;
+      const sk = r.skipped ?? 0;
+      setSeedMsg({ ok: true, t: `${added} ajouté(s) · ${updated} mis à jour · ${sk} inchangé(s)` });
+      reload();
+    } else {
+      setSeedMsg({ ok: false, t: "Échec de l'import." });
+    }
   }
 
   /* schedules */
@@ -386,6 +403,27 @@ export default function TgPosts({ adminKey }) {
           </div>
         </div>
 
+        {/* templates système */}
+        <div className="rounded-2xl border border-amber-500/30 bg-amber-500/[0.03] p-5">
+          <div className="font-mono text-[10px] uppercase tracking-widest2 text-amber-400/80 mb-1">Templates système</div>
+          <p className="text-[11.5px] text-mist/60 mb-3 leading-relaxed">
+            Templates pré-configurés pour les triggers automatiques (IIBAN pending, etc.).
+          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <button onClick={() => seedTemplates(false)}
+              className="rounded-full px-4 py-1.5 text-[12px] border border-amber-500/40 text-amber-300 hover:bg-amber-500/10 transition-colors">
+              ⬇ Importer les nouveaux
+            </button>
+            <button onClick={() => seedTemplates(true)}
+              className="rounded-full px-4 py-1.5 text-[12px] border border-white/10 text-mist hover:text-bone transition-colors">
+              ↺ Tout mettre à jour
+            </button>
+          </div>
+          {seedMsg && (
+            <p className={`mt-2 text-[12px] ${seedMsg.ok ? "text-pos" : "text-flag"}`}>{seedMsg.t}</p>
+          )}
+        </div>
+
         {/* templates list */}
         <div className="rounded-2xl border hairline bg-ink-800/40 p-5">
           <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70 mb-3">Templates enregistrés</div>
@@ -549,15 +587,31 @@ export default function TgPosts({ adminKey }) {
               {sendLog.map((s) => {
                 const sending = s.total > 0 && s.sent + s.failed === 0;
                 const rate = s.total > 0 && !sending ? Math.round((s.sent / s.total) * 100) : null;
+                const isTrigger = s.source && s.source !== "manual" && s.source !== "schedule";
+                const isSchedule = s.source === "schedule";
+                const triggerLabel = isTrigger ? s.source.replace("trigger:", "") : null;
+                const isIndividual = isTrigger && s.total === 1;
                 return (
                   <div key={s.id} className={`rounded-lg border px-3 py-2 ${s.retracted ? "border-white/5 opacity-50" : "border-white/10 bg-ink-900/40"}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <div className="text-[12.5px] text-bone truncate">{s.text_preview || "—"}</div>
-                        <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-mist/60">
+                        <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                          <span className="text-[12.5px] text-bone truncate">{s.text_preview || "—"}</span>
+                          {isTrigger && (
+                            <span className="shrink-0 font-mono text-[9.5px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                              ⚡ {triggerLabel}
+                            </span>
+                          )}
+                          {isSchedule && (
+                            <span className="shrink-0 font-mono text-[9.5px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                              🕐 planifié
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-mist/60">
                           <span>{new Date(s.created_at * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span>
                           <span>·</span>
-                          <span>{s.audience}</span>
+                          <span className={isIndividual ? "text-sky-400/80" : ""}>{s.audience}</span>
                           {sending ? (
                             <span className="text-amber-400 animate-pulse">envoi en cours…</span>
                           ) : (

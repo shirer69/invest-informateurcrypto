@@ -933,88 +933,15 @@ export function MonitoringAudio() {
 }
 
 /* ---------------- Futures : KPIs copy + historique des trades ---------------- */
-const _JULIEN_URL =
-  "https://firestore.googleapis.com/v1/projects/julien-5d7a1/databases/(default)/documents" +
-  "/artifacts/julien-5d7a1/public/data/trades?pageSize=200" +
-  "&key=AIzaSyDCanWsUeiWoLB2vU8C98OKmjaaNzBcUtA";
-
-function _fsVal(field) {
-  if (!field) return null;
-  if ("stringValue"  in field) return field.stringValue;
-  if ("doubleValue"  in field) return field.doubleValue;
-  if ("integerValue" in field) return field.integerValue;
-  return null;
-}
+export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"pnlPct":"+94.8%","timestamp":1780195228728},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":242.0,"pnlPct":"+38.7%","timestamp":1780067899526},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":219.4,"pnlPct":"+17.6%","timestamp":1780064282553},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":124.9,"pnlPct":"+10.0%","timestamp":1779895625818},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-245.3,"pnlPct":"-19.6%","timestamp":1779893241766},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":61.8,"pnlPct":"+4.9%","timestamp":1779879256419},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-414.0,"pnlPct":"-16.6%","timestamp":1779875700000},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-106.7,"pnlPct":"-4.3%","timestamp":1779825169905},{"asset":"TONUSDT","type":"LONG","pnlUsd":-1596.6,"pnlPct":"-63.9%","timestamp":1779825153357},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-45.5,"pnlPct":"-3.6%","timestamp":1779825129345},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":113.8,"pnlPct":"+9.1%","timestamp":1779824107027},{"asset":"TAOUSDT","type":"LONG","pnlUsd":270.0,"pnlPct":"+21.6%","timestamp":1779824096343},{"asset":"ONDOUSDT","type":"LONG","pnlUsd":-562.3,"pnlPct":"-22.5%","timestamp":1779473633850},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-239.5,"pnlPct":"-9.6%","timestamp":1779459771518},{"asset":"TAOUSDT","type":"LONG","pnlUsd":1.7,"pnlPct":"+0.1%","timestamp":1779458670223},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-289.9,"pnlPct":"-11.6%","timestamp":1779456172336},{"asset":"XAGUSDT","type":"LONG","pnlUsd":-145.3,"pnlPct":"-5.8%","timestamp":1779284560767},{"asset":"ETH/USDT","type":"SHORT","pnlUsd":10.6,"pnlPct":"+0.8%","timestamp":1779220422907},{"asset":"ETHUSDT","type":"SHORT","pnlUsd":177.0,"pnlPct":"+14.2%","timestamp":1779113991075},{"asset":"ETHUSDT","type":"SHORT","pnlUsd":54.5,"pnlPct":"+4.4%","timestamp":1779111197174},{"asset":"BTCUSDT","type":"LONG","pnlUsd":83.0,"pnlPct":"+6.6%","timestamp":1778886347191},{"asset":"TAOUSDT","type":"LONG","pnlUsd":759.7,"pnlPct":"+121.5%","timestamp":1778852086284},{"asset":"SUIUSDT","type":"LONG","pnlUsd":401.0,"pnlPct":"+32.1%","timestamp":1778529069981},{"asset":"SUIUSDT","type":"LONG","pnlUsd":-142.9,"pnlPct":"-5.7%","timestamp":1778507461935},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-290.5,"pnlPct":"-11.6%","timestamp":1778161818726},{"asset":"TONUSDT","type":"LONG","pnlUsd":-237.7,"pnlPct":"-9.5%","timestamp":1778153768953},{"asset":"TONUSDT","type":"LONG","pnlUsd":878.1,"pnlPct":"+70.2%","timestamp":1778093073606},{"asset":"TONUSDT","type":"LONG","pnlUsd":322.7,"pnlPct":"+25.8%","timestamp":1778082362845},{"asset":"XAUUSDT","type":"LONG","pnlUsd":190.3,"pnlPct":"+15.2%","timestamp":1777987191522},{"asset":"XAUUSDT","type":"LONG","pnlUsd":24.3,"pnlPct":"+1.9%","timestamp":1777958002099},{"asset":"TAOUSDT","type":"LONG","pnlUsd":656.9,"pnlPct":"+105.1%","timestamp":1777749602748},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-124.3,"pnlPct":"-9.9%","timestamp":1777669305357},{"asset":"BTC/USDT","type":"LONG","pnlUsd":90.8,"pnlPct":"+7.3%","timestamp":1777650607163},{"asset":"BTC/USDT","type":"LONG","pnlUsd":123.0,"pnlPct":"+4.9%","timestamp":1777488273946},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-150.4,"pnlPct":"-6.0%","timestamp":1777477659383},{"asset":"SOLUSDT","type":"SHORT","pnlUsd":-97.9,"pnlPct":"-7.8%","timestamp":1777442043758},{"asset":"TAOUSDT","type":"LONG","pnlUsd":646.9,"pnlPct":"+51.8%","timestamp":1777441734192},{"asset":"SOLUSDT","type":"SHORT","pnlUsd":55.6,"pnlPct":"+4.4%","timestamp":1777384817496},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-86.1,"pnlPct":"-6.9%","timestamp":1776697499672},{"asset":"BTC/USDT","type":"LONG","pnlUsd":81.8,"pnlPct":"+6.5%","timestamp":1776695032630},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-124.0,"pnlPct":"-19.8%","timestamp":1776688882557},{"asset":"BTC/USDT","type":"LONG","pnlUsd":209.6,"pnlPct":"+33.5%","timestamp":1776436746186},{"asset":"BTC/USDT","type":"LONG","pnlUsd":157.8,"pnlPct":"+12.6%","timestamp":1776431838942},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-59.4,"pnlPct":"-4.8%","timestamp":1776422992217},{"asset":"SOLUSDT","type":"LONG","pnlUsd":132.8,"pnlPct":"+10.6%","timestamp":1776416091973},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-146.4,"pnlPct":"-11.7%","timestamp":1776347738580},{"asset":"SOLUSDT","type":"LONG","pnlUsd":147.5,"pnlPct":"+11.8%","timestamp":1776345776246},{"asset":"TAOUSDT","type":"LONG","pnlUsd":238.1,"pnlPct":"+19.0%","timestamp":1776265440000},{"asset":"TAOUSDT","type":"LONG","pnlUsd":238.1,"pnlPct":"+19.0%","timestamp":1776265320000},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-380.8,"pnlPct":"-15.2%","timestamp":1776183042364},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-71.6,"pnlPct":"-11.4%","timestamp":1776111927812},{"asset":"BTCUSDT","type":"LONG","pnlUsd":117.7,"pnlPct":"+18.8%","timestamp":1775831152127},{"asset":"BTC/USDT","type":"LONG","pnlUsd":122.1,"pnlPct":"+9.8%","timestamp":1775829883313},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-27.8,"pnlPct":"-4.4%","timestamp":1775726954830},{"asset":"BTC/USDT","type":"LONG","pnlUsd":127.3,"pnlPct":"+20.4%","timestamp":1775670689113},{"asset":"BTC/USDT","type":"LONG","pnlUsd":73.6,"pnlPct":"+5.9%","timestamp":1775661651012},{"asset":"BTC/USDT","type":"LONG","pnlUsd":277.7,"pnlPct":"+22.2%","timestamp":1775583608043},{"asset":"BTCUSDT","type":"LONG","pnlUsd":147.7,"pnlPct":"+11,8%","timestamp":1775578560000},{"asset":"UNIUSDT","type":"LONG","pnlUsd":206.2,"pnlPct":"+16.5%","timestamp":1775210760000},{"asset":"XRPUSDT","type":"SHORT","pnlUsd":108.2,"pnlPct":"+8.7%","timestamp":1775171897171},{"asset":"XRPUSDT","type":"SHORT","pnlUsd":277.7,"pnlPct":"+22.2%","timestamp":1775171892428},{"asset":"BTC/USDT","type":"LONG","pnlUsd":516.0,"pnlPct":"+41.3%","timestamp":1774977427701},{"asset":"BTC/USDT","type":"LONG","pnlUsd":137.7,"pnlPct":"+11.0%","timestamp":1774970123933},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-256.6,"pnlPct":"-10.3%","timestamp":1774969315234},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-140.4,"pnlPct":"-5.6%","timestamp":1774879260000},{"asset":"BTCUSDT","type":"LONG","pnlUsd":295.9,"pnlPct":"+23.7%","timestamp":1774711140000},{"asset":"BCHUSDT","type":"LONG","pnlUsd":8.8,"pnlPct":"+0.4%","timestamp":1774696500000},{"asset":"BTCUSDT","type":"LONG","pnlUsd":53.9,"pnlPct":"+4.3%","timestamp":1774641120000}];
 
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
-  const [acct, setAcct] = useState(null);
-  const [fills, setFills] = useState(null);
-  const [julienTrades, setJulienTrades] = useState(null);
 
-  useEffect(() => {
-    setUser(getUser());
-    const tick = async () => {
-      const [a, f] = await Promise.all([
-        fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
-        fetch("/api/kraken/futures/fills").then((r) => r.json()).catch(() => null),
-      ]);
-      setAcct(a); setFills(f);
-    };
-    tick();
-    const id = setInterval(tick, 10000);
+  useEffect(() => { setUser(getUser()); }, []);
 
-    const fetchJulien = async () => {
-      try {
-        const parsePnl = (x) => {
-          if (x == null) return 0;
-          if (typeof x === "number") return x;
-          const s = String(x).replace(",", ".").replace(/[^-+\d.]/g, "");
-          return parseFloat(s) || 0;
-        };
-        let allDocs = [], pageToken = null;
-        do {
-          const url = _JULIEN_URL + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
-          const d = await fetch(url).then((r) => r.json());
-          allDocs = allDocs.concat(d.documents || []);
-          pageToken = d.nextPageToken || null;
-        } while (pageToken);
-        const docs = allDocs
-          .map((doc) => {
-            const f = doc.fields || {};
-            return {
-              asset:      _fsVal(f.asset),
-              type:       _fsVal(f.type),
-              pnlUsd:     parsePnl(_fsVal(f.pnlUsd)),
-              pnlPct:     _fsVal(f.pnlPct),
-              timestamp:  parseInt(_fsVal(f.timestamp) ?? 0),
-              screenshot: _fsVal(f.screenshot) || "",
-            };
-          })
-          .sort((a, b) => b.timestamp - a.timestamp);
-        setJulienTrades(docs);
-      } catch {
-        setJulienTrades([]);
-      }
-    };
-    fetchJulien();
-    const jId = setInterval(fetchJulien, 60000);
-
-    return () => { clearInterval(id); clearInterval(jId); };
-  }, []);
-
-  const flex = acct?.data?.accounts?.flex || {};
-  const walletValue = flex.portfolioValue ?? flex.balanceValue ?? null;
-  const walletPnl = flex.pnl ?? flex.unrealizedFunding ?? null;
-  const acctInactive = acct && acct.ok === false && /inactive/i.test(acct.error || "");
-  const fillRows = (fills?.trades || []).slice(0, 50);
-  const MULT = 100;
-  const dUsd = (x) => (x == null ? "—" : "$" + Number(x * MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-  const dUsdSigned = (x) => x == null ? "—" : `${x >= 0 ? "+" : ""}${dUsd(x)}`;
-  const dPct = (x, ref) => (!x || !ref || ref === 0) ? "—" : `${x >= 0 ? "+" : ""}${((x / ref) * 100).toFixed(2)} %`;
-
-  // Stats julien
-  const jTrades = julienTrades || [];
+  // Données statiques — mise à jour manuelle
+  const jTrades = JULIEN_TRADES;
   const jTotalPnl = jTrades.reduce((s, t) => s + (t.pnlUsd || 0), 0);
   const jWins = jTrades.filter((t) => (t.pnlUsd || 0) > 0).length;
   const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;
@@ -1083,7 +1010,7 @@ export function Monitoring({ onGoCopy }) {
         <div>
           <h3 className="font-display text-[18px] text-bone">Futures — Pôle Trading</h3>
           <p className="text-[11.5px] text-mist/70 mt-0.5">
-            Swing trading · faible levier · margin &amp; perps Kraken
+            Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployé piloté par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping.
           </p>
         </div>
         <LiveTag />
@@ -1096,21 +1023,21 @@ export function Monitoring({ onGoCopy }) {
         {[
           {
             label: "Gains réalisés",
-            value: julienTrades === null ? "…" : dUsdJ(jTotalPnl),
-            sub: julienTrades === null ? null : `${jTrades.length} trades`,
-            cls: julienTrades === null ? "text-mist/40" : jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
+            value: dUsdJ(jTotalPnl),
+            sub: `${jTrades.length} trades`,
+            cls: jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Total %",
-            value: jTotalPct === null ? (julienTrades === null ? "…" : "—") : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
+            value: `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
             sub: "capital 50 000 $",
-            cls: jTotalPct === null ? "text-mist/40" : jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
+            cls: jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Taux de réussite",
-            value: jWinRate === null ? (julienTrades === null ? "…" : "—") : `${jWinRate} %`,
-            sub: jWins > 0 ? `${jWins}W / ${jTrades.length - jWins}L` : null,
-            cls: jWinRate == null ? "text-mist/40" : jWinRate >= 50 ? "text-emerald-400" : "text-rose-400",
+            value: `${jWinRate} %`,
+            sub: `${jWins}W / ${jTrades.length - jWins}L`,
+            cls: jWinRate >= 50 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Drawdown max",
@@ -1121,15 +1048,8 @@ export function Monitoring({ onGoCopy }) {
         ].map(({ label, value, sub, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
-            {julienTrades === null ? (
-              <svg className="mt-1 h-5 w-5 animate-spin text-mist/30" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-              </svg>
-            ) : (
-              <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-            )}
-            {sub && julienTrades !== null && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
           </div>
         ))}
       </div>
@@ -1140,21 +1060,11 @@ export function Monitoring({ onGoCopy }) {
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
             Historique des trades (copy)
           </span>
-          {julienTrades !== null && (
-            <span className="font-mono text-[10px] text-mist/40">
-              {jTrades.length} op. · source : julien.informateurcrypto.fr
-            </span>
-          )}
+          <span className="font-mono text-[10px] text-mist/40">
+            {jTrades.length} op. · julien.informateurcrypto.fr
+          </span>
         </div>
-        {julienTrades === null ? (
-          <div className="mt-4 flex items-center gap-2 text-[13px] text-mist/50">
-            <svg className="h-4 w-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
-            </svg>
-            Chargement des trades…
-          </div>
-        ) : jTrades.length === 0 ? (
+        {jTrades.length === 0 ? (
           <div className="mt-3 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
@@ -1197,8 +1107,7 @@ export function Monitoring({ onGoCopy }) {
       </div>
 
       <Disclaimer>
-        Swing trading faible levier, sur marge et/ou perps Kraken. Suivi en lecture seule — ne
-        constitue pas un conseil en investissement.
+        Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployé piloté par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping. Suivi en lecture seule — ne constitue pas un conseil en investissement.
       </Disclaimer>
     </div>
   );

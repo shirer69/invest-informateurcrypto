@@ -205,8 +205,8 @@ export default function MoonXAdmin({ adminKey }) {
               <input
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                type="email"
-                placeholder="utilisateur@example.com"
+                type="text"
+                placeholder="nacim, nacim@gmail.com…"
                 className="flex-1 min-w-0 rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone placeholder:text-mist/40 text-[13px] font-mono outline-none"
               />
               <button type="submit" disabled={checking || !email.trim()}

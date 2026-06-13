@@ -149,9 +149,14 @@ export default function Dashboard() {
   }
 
   if (!registered) {
-    // Utilisateur Telegram : il est déjà dans la mini-app, donc déjà invité.
-    // On saute le code d'invitation et on lui demande juste son email.
     const isTgUser = emailLc.endsWith("@telegram.local");
+    // Lien direct ?direct=1 (web) ou startapp=direct (mini-app) → saute l'étape code
+    let isDirect = false;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
+      isDirect = p.get("direct") === "1" || sp === "direct";
+    } catch {}
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
@@ -159,7 +164,7 @@ export default function Dashboard() {
         <SignupGate
           onDone={() => setUser(getUser())}
           onLogin={() => setLoginOpen(true)}
-          skipCode={isTgUser}
+          skipCode={isTgUser || isDirect}
           tgName={isTgUser ? (user?.name || "") : ""}
         />
       </div>

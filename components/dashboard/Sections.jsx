@@ -1121,8 +1121,15 @@ export function Monitoring({ onGoCopy }) {
         ].map(({ label, value, sub, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
-            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+            {julienTrades === null ? (
+              <svg className="mt-1 h-5 w-5 animate-spin text-mist/30" viewBox="0 0 24 24" fill="none">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+              </svg>
+            ) : (
+              <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+            )}
+            {sub && julienTrades !== null && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
           </div>
         ))}
       </div>
@@ -1140,7 +1147,13 @@ export function Monitoring({ onGoCopy }) {
           )}
         </div>
         {julienTrades === null ? (
-          <div className="mt-3 text-[13px] text-mist/60">Chargement…</div>
+          <div className="mt-4 flex items-center gap-2 text-[13px] text-mist/50">
+            <svg className="h-4 w-4 animate-spin shrink-0" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+            </svg>
+            Chargement des trades…
+          </div>
         ) : jTrades.length === 0 ? (
           <div className="mt-3 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
         ) : (

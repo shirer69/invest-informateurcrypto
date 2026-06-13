@@ -164,7 +164,56 @@ export function Intelligence() {
 /* ---------------- Dernier investissement (bloc commun Invest + Actions) ---------------- */
 const DISPLAY_MULT = 100;
 
+const LAST_INVEST_MOCK = {
+  symbol: "BTC",
+  entry_ts: 1748700000,
+  baseline: 94200,
+  value: 0.0495 / 100,
+  cost:  0.0462 / 100,
+};
+
+function LastInvestmentMockup() {
+  const fmtUsd = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const MULT = DISPLAY_MULT;
+  const value  = LAST_INVEST_MOCK.value  * MULT;
+  const cost   = LAST_INVEST_MOCK.cost   * MULT;
+  const pnlAbs = value - cost;
+  const pnlPct = ((value - cost) / cost) * 100;
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/40 px-5 py-3.5 mb-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Dernier investissement</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
+        <span className="font-display text-[15px] text-bone">BTC</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Acheté le</span>
+        <span className="font-mono text-[12px] text-bone">31 mai 2025 · 09:14</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Prix d'entrée</span>
+        <span className="font-mono text-[13.5px] text-bone">{fmtUsd(LAST_INVEST_MOCK.baseline)}</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Taille</span>
+        <span className="font-mono text-[13.5px] text-bone">{fmtUsd(value)}</span>
+      </div>
+      <div className="flex items-center gap-1.5 ml-auto">
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">PnL en cours</span>
+        <span className="font-mono text-[13.5px] font-semibold text-emerald-400">
+          +{fmtUsd(pnlAbs)}
+          <span className="ml-1 text-[11px] opacity-80">(+{pnlPct.toFixed(2)} %)</span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
 function LastInvestment({ kinds }) {
+  const { locked } = useUnlock();
   const [item, setItem] = useState(null);
 
   useEffect(() => {
@@ -181,6 +230,11 @@ function LastInvestment({ kinds }) {
       .catch(() => {});
   }, [kinds]);
 
+  if (locked) return (
+    <Locked label="Déverrouiller pour voir">
+      <LastInvestmentMockup />
+    </Locked>
+  );
   if (!item) return null;
 
   const MULT = DISPLAY_MULT;
@@ -1715,6 +1769,7 @@ function XStocksPie({ data }) {
 }
 
 export function XStocks() {
+  const { locked } = useUnlock();
   // Calculs à partir des données démo
   const holdings = XSTOCKS_DEMO.map((s) => {
     const mktVal = s.qty * s.price;
@@ -1748,6 +1803,7 @@ export function XStocks() {
   return (
     <div>
       <LastInvestment kinds={["stock"]} />
+      <Locked label="Déverrouiller pour voir les Actions">
       {/* Titre */}
       <div className="mb-5">
         <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisés)</span></h3>
@@ -1865,6 +1921,7 @@ export function XStocks() {
           * Données de démonstration — les valeurs seront remplacées par les données réelles du compte maître.
         </p>
       </div>
+      </Locked>
     </div>
   );
 }

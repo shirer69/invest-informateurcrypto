@@ -76,6 +76,7 @@ export default function Dashboard() {
       compte: "account",
       audios: "audio",
       monitoring_audio: "audio",
+      video: "videos",
     };
     const resolve = (v) => {
       const k = (v || "").toLowerCase();

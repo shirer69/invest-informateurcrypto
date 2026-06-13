@@ -1024,7 +1024,7 @@ export function Monitoring({ onGoCopy }) {
   const J_CAPITAL = 50000;
   const jTotalPct = jTrades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
 
-  // Drawdown max sur courbe d'équité cumulée (trades triés par timestamp croissant)
+  // Drawdown max = chute max depuis le pic / capital de départ (50 000$)
   const jDrawdown = (() => {
     if (jTrades.length === 0) return null;
     const sorted = [...jTrades].sort((a, b) => a.timestamp - b.timestamp);
@@ -1032,7 +1032,7 @@ export function Monitoring({ onGoCopy }) {
     for (const t of sorted) {
       equity += t.pnlUsd || 0;
       if (equity > peak) peak = equity;
-      const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
+      const dd = ((peak - equity) / J_CAPITAL) * 100;
       if (dd > maxDd) maxDd = dd;
     }
     return maxDd;

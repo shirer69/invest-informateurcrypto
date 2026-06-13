@@ -948,22 +948,28 @@ export function Monitoring({ onGoCopy }) {
 
     const fetchJulien = async () => {
       try {
-        const d = await fetch(_JULIEN_URL).then((r) => r.json());
         const parsePnl = (x) => {
           if (x == null) return 0;
           if (typeof x === "number") return x;
           const s = String(x).replace(",", ".").replace(/[^-+\d.]/g, "");
           return parseFloat(s) || 0;
         };
-        const docs = (d.documents || [])
+        let allDocs = [], pageToken = null;
+        do {
+          const url = _JULIEN_URL + (pageToken ? `&pageToken=${encodeURIComponent(pageToken)}` : "");
+          const d = await fetch(url).then((r) => r.json());
+          allDocs = allDocs.concat(d.documents || []);
+          pageToken = d.nextPageToken || null;
+        } while (pageToken);
+        const docs = allDocs
           .map((doc) => {
             const f = doc.fields || {};
             return {
-              asset:     _fsVal(f.asset),
-              type:      _fsVal(f.type),
-              pnlUsd:    parsePnl(_fsVal(f.pnlUsd)),
-              pnlPct:    _fsVal(f.pnlPct),
-              timestamp: parseInt(_fsVal(f.timestamp) ?? 0),
+              asset:      _fsVal(f.asset),
+              type:       _fsVal(f.type),
+              pnlUsd:     parsePnl(_fsVal(f.pnlUsd)),
+              pnlPct:     _fsVal(f.pnlPct),
+              timestamp:  parseInt(_fsVal(f.timestamp) ?? 0),
               screenshot: _fsVal(f.screenshot) || "",
             };
           })
@@ -996,9 +1002,9 @@ export function Monitoring({ onGoCopy }) {
   const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;
   const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-  // Total % = somme des pnlPct individuels
-  const parsePct = (s) => { if (!s) return null; const m = String(s).replace(",", ".").match(/[-+]?[\d.]+/); return m ? parseFloat(m[0]) : null; };
-  const jTotalPct = jTrades.length > 0 ? jTrades.reduce((s, t) => s + (parsePct(t.pnlPct) ?? 0), 0) : null;
+  // Total % = PnL total / capital de départ
+  const J_CAPITAL = 50000;
+  const jTotalPct = jTrades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
 
   // Drawdown max sur courbe d'équité cumulée (trades triés par timestamp croissant)
   const jDrawdown = (() => {
@@ -1083,8 +1089,8 @@ export function Monitoring({ onGoCopy }) {
           },
           {
             label: "Total %",
-            value: jTotalPct === null ? (julienTrades === null ? "…" : "—") : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(1)} %`,
-            sub: null,
+            value: jTotalPct === null ? (julienTrades === null ? "…" : "—") : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
+            sub: "capital 50 000 $",
             cls: jTotalPct === null ? "text-mist/40" : jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {

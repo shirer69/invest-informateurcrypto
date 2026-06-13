@@ -150,13 +150,16 @@ export default function Dashboard() {
 
   if (!registered) {
     const isTgUser = emailLc.endsWith("@telegram.local");
-    // Lien direct ?direct=1 (web) ou startapp=direct (mini-app) → saute l'étape code
+    // Lien direct ?direct=1 / startapp=direct → saute le code.
+    // Utilisateur Telegram existant (is_new=false) → saute le code (déjà dans le système).
+    // Nouvel utilisateur Telegram (is_new=true, sessionStorage) → doit entrer son code.
     let isDirect = false;
     try {
       const p = new URLSearchParams(window.location.search);
       const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
+    const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
@@ -164,7 +167,7 @@ export default function Dashboard() {
         <SignupGate
           onDone={() => setUser(getUser())}
           onLogin={() => setLoginOpen(true)}
-          skipCode={isDirect}
+          skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}
         />
       </div>

@@ -12,6 +12,7 @@ import KrakenLogo from "./KrakenLogo";
 import HyperliquidLogo from "./HyperliquidLogo";
 import OkxLogo from "./OkxLogo";
 import Countdown from "./Countdown";
+import LoginModal from "./dashboard/LoginModal";
 
 const ease = [0.22, 1, 0.36, 1];
 
@@ -19,9 +20,11 @@ export default function Hero() {
   const { open: openJoin, openWithCode } = useJoin();
   const [heroCode, setHeroCode] = useState("");
   const [logged, setLogged] = useState(false);
+  const [loginOpen, setLoginOpen] = useState(false);
   useEffect(() => { setLogged(!!getToken()); }, []);
   return (
     <section id="top" className="relative aura pt-24 sm:pt-32 md:pt-44 pb-16 sm:pb-20 md:pb-28">
+      <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
       {/* fine vertical guide lines */}
       <div className="pointer-events-none absolute inset-0 opacity-[0.5]">
         <div className="mx-auto max-w-[1180px] h-full px-6 grid grid-cols-12">
@@ -119,6 +122,14 @@ export default function Hero() {
                     <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </button>
                 </form>
+              )}
+              {!logged && (
+                <button
+                  onClick={() => setLoginOpen(true)}
+                  className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
+                >
+                  Se connecter
+                </button>
               )}
               <a
                 href="#approche"

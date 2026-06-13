@@ -173,6 +173,7 @@ const LAST_INVEST_MOCK = {
 };
 
 function LastInvestmentMockup() {
+  const { openUnlock } = useUnlock();
   const fmtUsd = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const MULT = DISPLAY_MULT;
   const value  = LAST_INVEST_MOCK.value  * MULT;
@@ -181,32 +182,46 @@ function LastInvestmentMockup() {
   const pnlPct = ((value - cost) / cost) * 100;
   return (
     <div className="rounded-2xl border hairline bg-ink-800/40 px-5 py-3.5 mb-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+      {/* Titre + date : toujours visibles */}
       <div className="flex items-center gap-2 shrink-0">
         <span className="h-1.5 w-1.5 rounded-full bg-gold" />
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Dernier investissement</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
-        <span className="font-display text-[15px] text-bone">BTC</span>
-      </div>
-      <div className="flex items-center gap-1.5">
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Acheté le</span>
         <span className="font-mono text-[12px] text-bone">31 mai 2025 · 09:14</span>
       </div>
-      <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Prix d'entrée</span>
-        <span className="font-mono text-[13.5px] text-bone">{fmtUsd(LAST_INVEST_MOCK.baseline)}</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Taille</span>
-        <span className="font-mono text-[13.5px] text-bone">{fmtUsd(value)}</span>
-      </div>
-      <div className="flex items-center gap-1.5 ml-auto">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">PnL en cours</span>
-        <span className="font-mono text-[13.5px] font-semibold text-emerald-400">
-          +{fmtUsd(pnlAbs)}
-          <span className="ml-1 text-[11px] opacity-80">(+{pnlPct.toFixed(2)} %)</span>
-        </span>
+      {/* Contenu financier : flou + bouton déverrouiller */}
+      <div className="relative flex flex-wrap items-center gap-x-6 gap-y-2 flex-1">
+        <div className="pointer-events-none select-none blur-[4px] opacity-60 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
+            <span className="font-display text-[15px] text-bone">BTC</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Prix d'entrée</span>
+            <span className="font-mono text-[13.5px] text-bone">{fmtUsd(LAST_INVEST_MOCK.baseline)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Taille</span>
+            <span className="font-mono text-[13.5px] text-bone">{fmtUsd(value)}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">PnL en cours</span>
+            <span className="font-mono text-[13.5px] font-semibold text-emerald-400">
+              +{fmtUsd(pnlAbs)}
+              <span className="ml-1 text-[11px] opacity-80">(+{pnlPct.toFixed(2)} %)</span>
+            </span>
+          </div>
+        </div>
+        <button
+          onClick={openUnlock}
+          className="absolute inset-0 z-10 flex items-center justify-center"
+        >
+          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold shadow-lg">
+            🔒 Déverrouiller
+          </span>
+        </button>
       </div>
     </div>
   );

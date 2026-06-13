@@ -937,33 +937,10 @@ export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"
 
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
-  const [apiTrades, setApiTrades] = useState([]);
 
   useEffect(() => { setUser(getUser()); }, []);
 
-  useEffect(() => {
-    fetch(`https://api.informateurcrypto.fr/api/julien/trades`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (d?.trades?.length) {
-          // Normalise vers le format {asset, type, pnlUsd, pnlPct, timestamp}
-          const norm = d.trades.map((t) => ({
-            asset: t.asset,
-            type: t.direction || "LONG",
-            pnlUsd: t.pnl_usd || 0,
-            pnlPct: t.pnl_pct || "",
-            timestamp: (t.created_at || 0) * 1000,
-          }));
-          setApiTrades(norm);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  // Fusionne : API (nouveaux) + hardcodés (historique) — déduplique par timestamp ms
-  const apiTs = new Set(apiTrades.map((t) => t.timestamp));
-  const merged = [...apiTrades, ...JULIEN_TRADES.filter((t) => !apiTs.has(t.timestamp))];
-  const jTrades = merged.sort((a, b) => b.timestamp - a.timestamp);
+  const jTrades = JULIEN_TRADES;
   const jTotalPnl = jTrades.reduce((s, t) => s + (t.pnlUsd || 0), 0);
   const jWins = jTrades.filter((t) => (t.pnlUsd || 0) > 0).length;
   const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;

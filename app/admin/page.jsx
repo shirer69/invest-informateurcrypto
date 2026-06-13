@@ -57,7 +57,6 @@ const TABS = [
   { id: "support",  label: "💬 Support" },
   { id: "iiban_pending", label: "⏳ IIBAN Pending" },
   { id: "moonx",        label: "🌙 MoonX" },
-  { id: "trades_safe",  label: "📊 Trades Safe" },
 ];
 
 export default function Admin() {
@@ -179,7 +178,6 @@ export default function Admin() {
         {tab === "support"      && <SupportAdmin adminKey={key} />}
         {tab === "iiban_pending" && <IibanPendingAdmin adminKey={key} />}
         {tab === "moonx"         && <MoonXAdmin adminKey={key} />}
-        {tab === "trades_safe"   && <TradesSafe adminKey={key} />}
       </div>
     </div>
   );
@@ -855,147 +853,3 @@ function CopyAuto({ adminKey }) {
   );
 }
 
-function TradesSafe({ adminKey }) {
-  const EMPTY = { asset: "", direction: "LONG", pnl_usd: "", pnl_pct: "", comment: "", notify: true };
-  const [form, setForm] = useState(EMPTY);
-  const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState(null);
-  const [trades, setTrades] = useState(null);
-
-  const load = useCallback(async () => {
-    const r = await adminGet("/api/julien/trades", adminKey);
-    setTrades(r?.trades || []);
-  }, [adminKey]);
-
-  useEffect(() => { load(); }, [load]);
-
-  async function submit(e) {
-    e.preventDefault();
-    if (!form.asset.trim()) { setMsg({ ok: false, t: "Asset requis." }); return; }
-    setBusy(true); setMsg(null);
-    const r = await adminPost("/api/admin/julien/trade", adminKey, {
-      asset: form.asset.trim().toUpperCase(),
-      direction: form.direction,
-      pnl_usd: parseFloat(form.pnl_usd) || 0,
-      pnl_pct: form.pnl_pct.trim(),
-      comment: form.comment.trim(),
-      notify: form.notify,
-    });
-    setBusy(false);
-    if (r?.ok) {
-      setMsg({ ok: true, t: `Trade ${form.asset} enregistré.${form.notify ? " Notifications envoyées." : ""}` });
-      setForm(EMPTY);
-      load();
-    } else {
-      setMsg({ ok: false, t: r?.error || "Erreur." });
-    }
-  }
-
-  async function deleteTrade(id) {
-    if (!confirm("Supprimer ce trade ?")) return;
-    await adminPost(`/api/admin/julien/trade/${id}`, adminKey, {});
-    load();
-  }
-
-  const fmtPnl = (v) => v == null ? "—" : (v >= 0 ? `+${v.toFixed(1)}` : v.toFixed(1)) + " $";
-  const fmtDate = (ts) => { try { return new Date(ts * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }); } catch { return "—"; } };
-
-  const input = "rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-2.5 text-bone placeholder:text-mist/40 text-[13.5px] outline-none";
-
-  return (
-    <div>
-      <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-6 max-w-2xl">
-        <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">Enregistrer un trade clôturé</div>
-        <p className="text-[12.5px] text-mist mb-4">
-          Ajoute le trade en base et envoie automatiquement un <b>broadcast TG + email</b> à tous les membres.
-        </p>
-        <form onSubmit={submit} className="grid sm:grid-cols-2 gap-3">
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest2 text-mist/60 mb-1">Asset</label>
-            <input value={form.asset} onChange={(e) => setForm({ ...form, asset: e.target.value })}
-              placeholder="BTCUSDT" className={`w-full ${input}`} />
-          </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest2 text-mist/60 mb-1">Direction</label>
-            <div className="flex gap-2">
-              {["LONG", "SHORT"].map((d) => (
-                <button type="button" key={d} onClick={() => setForm({ ...form, direction: d })}
-                  className={`flex-1 rounded-lg px-3 py-2.5 text-[13px] font-semibold border transition-colors ${
-                    form.direction === d ? (d === "LONG" ? "bg-pos/10 border-pos/40 text-pos" : "bg-neg/10 border-neg/40 text-neg") : "border-white/10 text-mist hover:text-bone"
-                  }`}>{d}</button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest2 text-mist/60 mb-1">PnL ($)</label>
-            <input type="number" step="0.01" value={form.pnl_usd} onChange={(e) => setForm({ ...form, pnl_usd: e.target.value })}
-              placeholder="+592.30" className={`w-full ${input}`} />
-          </div>
-          <div>
-            <label className="block text-[11px] uppercase tracking-widest2 text-mist/60 mb-1">PnL (%)</label>
-            <input value={form.pnl_pct} onChange={(e) => setForm({ ...form, pnl_pct: e.target.value })}
-              placeholder="+12.5%" className={`w-full ${input}`} />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="block text-[11px] uppercase tracking-widest2 text-mist/60 mb-1">Commentaire (optionnel)</label>
-            <input value={form.comment} onChange={(e) => setForm({ ...form, comment: e.target.value })}
-              placeholder="Prise de profit partielle, objectif atteint…" className={`w-full ${input}`} />
-          </div>
-          <div className="sm:col-span-2 flex items-center gap-3 flex-wrap">
-            <button type="submit" disabled={busy}
-              className="btn-gold rounded-full px-6 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
-              {busy ? "Envoi…" : "Enregistrer & notifier"}
-            </button>
-            <label className="flex items-center gap-2 text-[12.5px] text-mist cursor-pointer">
-              <input type="checkbox" checked={form.notify} onChange={(e) => setForm({ ...form, notify: e.target.checked })}
-                className="accent-gold" />
-              Envoyer les notifications (TG + email)
-            </label>
-            {msg && <span className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</span>}
-          </div>
-        </form>
-      </div>
-
-      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
-        <table className="w-full min-w-[640px] text-[13.5px]">
-          <thead>
-            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-              <th className="px-5 py-3">Date</th>
-              <th className="px-5 py-3">Asset</th>
-              <th className="px-5 py-3">Direction</th>
-              <th className="px-5 py-3 text-right">PnL ($)</th>
-              <th className="px-5 py-3">PnL (%)</th>
-              <th className="px-5 py-3">Commentaire</th>
-              <th className="px-5 py-3"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {trades === null && <tr><td colSpan={7} className="px-5 py-4 text-mist/50 text-[13px]">Chargement…</td></tr>}
-            {trades && trades.length === 0 && <tr><td colSpan={7} className="px-5 py-4 text-mist/50 text-[13px]">Aucun trade enregistré.</td></tr>}
-            {trades && trades.map((t) => (
-              <tr key={t.id} className="border-b hairline last:border-0">
-                <td className="px-5 py-3 font-mono text-[12px] text-mist">{fmtDate(t.created_at)}</td>
-                <td className="px-5 py-3 font-mono text-bone">{t.asset}</td>
-                <td className="px-5 py-3">
-                  <span className={`font-mono text-[11px] uppercase rounded px-1.5 py-0.5 border ${t.direction === "LONG" ? "text-pos border-pos/30" : "text-neg border-neg/30"}`}>
-                    {t.direction}
-                  </span>
-                </td>
-                <td className={`px-5 py-3 text-right font-mono ${(t.pnl_usd || 0) >= 0 ? "text-pos" : "text-neg"}`}>{fmtPnl(t.pnl_usd)}</td>
-                <td className="px-5 py-3 font-mono text-mist">{t.pnl_pct || "—"}</td>
-                <td className="px-5 py-3 text-mist text-[12px]">{t.comment || "—"}</td>
-                <td className="px-5 py-3">
-                  <button onClick={() => deleteTrade(t.id)}
-                    className="text-[11px] text-neg/60 hover:text-neg transition-colors">✕</button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="mt-3 text-[11.5px] text-mist/55">
-        Chaque trade enregistré déclenche un broadcast Telegram (trigger <span className="font-mono">trade_cloture_safe</span>) + email à tous les membres. Le template est personnalisable dans les onglets Posts TG et Emails.
-      </p>
-    </div>
-  );
-}

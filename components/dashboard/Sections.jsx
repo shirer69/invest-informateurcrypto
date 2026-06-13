@@ -1005,7 +1005,7 @@ export function Monitoring({ onGoCopy }) {
         <div>
           <h3 className="font-display text-[18px] text-bone">Portefeuille Trading</h3>
           <p className="text-[11.5px] text-mist/70 mt-0.5">
-            Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployé piloté par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping.
+            Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployés pilotés par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping.
           </p>
         </div>
         <LiveTag />
@@ -1150,7 +1150,7 @@ export function Monitoring({ onGoCopy }) {
       </div>
 
       <Disclaimer>
-        Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployé piloté par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping. Suivi en lecture seule — ne constitue pas un conseil en investissement.
+        Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployés pilotés par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping. Suivi en lecture seule — ne constitue pas un conseil en investissement.
       </Disclaimer>
     </div>
   );

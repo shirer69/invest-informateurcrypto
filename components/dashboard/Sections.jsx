@@ -1018,6 +1018,48 @@ export function Monitoring({ onGoCopy }) {
 
       <FuturesCTAs />
 
+      {/* Challenge +100% */}
+      <div className="mb-5 rounded-2xl overflow-hidden border border-emerald-500/30 bg-gradient-to-br from-ink-900 via-ink-800/80 to-ink-900 relative">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full blur-3xl opacity-20" style={{background:"radial-gradient(circle,#22c55e,transparent 70%)"}}/>
+          <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full blur-3xl opacity-10" style={{background:"radial-gradient(circle,#eab308,transparent 70%)"}}/>
+        </div>
+        <div className="relative p-5">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div>
+              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
+              <div className="font-display text-[28px] leading-none text-emerald-400 font-black">+29.20 %</div>
+              <div className="font-mono text-[11px] text-mist/70 mt-1">après 9 jours</div>
+            </div>
+            <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-center shrink-0">
+              <div className="font-mono text-[9px] uppercase tracking-widest2 text-gold/70">Objectif</div>
+              <div className="font-display text-[22px] leading-none text-gold font-black">+100 %</div>
+              <div className="font-mono text-[10px] text-gold/60 mt-0.5">en 30-45 jours</div>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {[
+              { icon: "📈", label: "Stratégie explosive à haut potentiel" },
+              { icon: "🛡️", label: "Gestion des risques professionnelle" },
+              { icon: "📡", label: "Résultats en temps réel" },
+              { icon: "🏆", label: "Objectif unique +100% en 30-45 j" },
+            ].map(({ icon, label }) => (
+              <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
+                <span className="text-[13px]">{icon}</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+          <a
+            href="https://t.me/clubdesinformateurs"
+            target="_blank" rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
+          >
+            Relevez le défi <IconArrow className="h-3.5 w-3.5" />
+          </a>
+        </div>
+      </div>
+
       {/* KPIs performance */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[

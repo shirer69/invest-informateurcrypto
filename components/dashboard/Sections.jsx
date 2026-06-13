@@ -415,7 +415,7 @@ export function Analytics() {
       ),
     },
     {
-      k: "perps", label: "Futures (perps)", color: "#19C37D",
+      k: "perps", label: "Futures (Swing Trading)", color: "#19C37D",
       icon: (
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
@@ -510,7 +510,7 @@ export function Analytics() {
                 { k: "spot",   label: "Spot",       color: "#C9A24B" },
                 { k: "stock",  label: "Actions US",  color: "#7C5CFC" },
                 { k: "margin", label: "Marge",       color: "#5BA8FF" },
-                { k: "perps",  label: "Perps",       color: "#19C37D" },
+                { k: "perps",  label: "Futures (Swing Trading)", color: "#19C37D" },
               ];
               const absTotal = cats.reduce((s, c) => s + Math.abs(r[c.k] || 0), 0);
               // Construction du pie SVG

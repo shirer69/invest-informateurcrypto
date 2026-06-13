@@ -944,11 +944,61 @@ export function Monitoring({ onGoCopy }) {
   const dUsdSigned = (x) => x == null ? "—" : `${x >= 0 ? "+" : ""}${dUsd(x)}`;
   const dPct = (x, ref) => (!x || !ref || ref === 0) ? "—" : `${x >= 0 ? "+" : ""}${((x / ref) * 100).toFixed(2)} %`;
 
+  const FuturesCTAs = () => (
+    <div className="flex flex-col sm:flex-row gap-3 mb-5">
+      {/* CTA 1 — Copy auto */}
+      <a
+        href="https://t.me/clubdesinformateurs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 flex items-center gap-3 justify-between hover:border-gold/50 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+              <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <div className="font-display text-[15px] text-bone">Rejoindre le copy auto</div>
+            <div className="text-[12px] text-mist">Réplique automatiquement les trades de Julien.</div>
+          </div>
+        </div>
+        <span className="btn-gold inline-flex items-center gap-2 rounded-full px-4 py-2 text-[12px] font-semibold whitespace-nowrap shrink-0">
+          Rejoindre <IconArrow className="h-3.5 w-3.5" />
+        </span>
+      </a>
+      {/* CTA 2 — Signaux */}
+      <a
+        href="https://t.me/Clubdesinformateurs_bot/unlock"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-1 rounded-2xl border hairline bg-ink-800/40 p-4 flex items-center gap-3 justify-between hover:border-gold/30 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border hairline text-mist/70">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1" /><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
+            </svg>
+          </span>
+          <div className="min-w-0">
+            <div className="font-display text-[15px] text-bone">Obtenir les signaux</div>
+            <div className="text-[12px] text-mist">Accès aux alertes et signaux trading en temps réel.</div>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border hairline px-4 py-2 text-[12px] font-semibold text-bone whitespace-nowrap shrink-0">
+          Accès <IconArrow className="h-3.5 w-3.5" />
+        </span>
+      </a>
+    </div>
+  );
+
   if (!user) {
     return (
       <div>
         <h3 className="font-display text-[18px] text-bone mb-4">Futures — Pôle Trading</h3>
-        <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
+        <FuturesCTAs />
+        <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 text-[14px] text-mist text-center">
           Connecte-toi pour suivre l'activité du trader en direct.
         </div>
       </div>
@@ -968,28 +1018,7 @@ export function Monitoring({ onGoCopy }) {
         <LiveTag />
       </div>
 
-      {/* CTA copy auto (remplace l'ancien titre redondant des audios) */}
-      <a
-        href="https://t.me/clubdesinformateurs"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mb-5 rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 flex flex-wrap items-center gap-3 justify-between hover:border-gold/50 transition-colors"
-      >
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
-            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-              <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
-            </svg>
-          </span>
-          <div className="min-w-0">
-            <div className="font-display text-[15px] text-bone">Rejoindre le copy auto</div>
-            <div className="text-[12px] text-mist">Réplique automatiquement les trades de Julien — infos &amp; accès sur Telegram.</div>
-          </div>
-        </div>
-        <span className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold whitespace-nowrap">
-          Rejoindre <IconArrow className="h-4 w-4" />
-        </span>
-      </a>
+      <FuturesCTAs />
 
       {/* Audios — aperçu flou si verrouillé, feed complet si déverrouillé */}
       <div className="mb-5">

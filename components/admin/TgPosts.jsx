@@ -72,6 +72,10 @@ export default function TgPosts({ adminKey }) {
   const [trgCooldown, setTrgCooldown] = useState(24);
   const [trgAud, setTrgAud] = useState("all");
 
+  /* canaux supplémentaires */
+  const [availableChannels, setAvailableChannels] = useState([]);
+  const [selectedChannels, setSelectedChannels] = useState([]);
+
   /* send log */
   const [sendLog, setSendLog] = useState([]);
 
@@ -79,18 +83,20 @@ export default function TgPosts({ adminKey }) {
   const [seedMsg, setSeedMsg] = useState(null);
 
   const reload = useCallback(async () => {
-    const [t, s, tr, tm, sl] = await Promise.all([
+    const [t, s, tr, tm, sl, ch] = await Promise.all([
       aGet("/api/admin/tg/templates", adminKey),
       aGet("/api/admin/tg/schedules", adminKey),
       aGet("/api/admin/tg/triggers", adminKey),
       aGet("/api/admin/tg/triggers/meta", adminKey),
       aGet("/api/admin/tg/sendlog", adminKey),
+      aGet("/api/admin/tg/channels", adminKey),
     ]);
     setTemplates(t.templates || []);
     setSchedules(s.schedules || []);
     setTriggers(tr.triggers || []);
     setTriggerMeta(tm.triggers || []);
     setSendLog(Array.isArray(sl) ? sl : []);
+    setAvailableChannels(ch.channels || []);
   }, [adminKey]);
 
   useEffect(() => { reload(); }, [reload]);
@@ -138,7 +144,11 @@ export default function TgPosts({ adminKey }) {
 
   function payload() {
     const text = editorRef.current ? serialize(editorRef.current) : "";
-    return { text, photo: photo.trim() || null, buttons: buttons.filter((b) => b.text && b.url).map((b) => [b]), audience };
+    return { text, photo: photo.trim() || null, buttons: buttons.filter((b) => b.text && b.url).map((b) => [b]), audience, channels: selectedChannels };
+  }
+
+  function toggleChannel(id) {
+    setSelectedChannels((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
   }
 
   function loadTemplate(t) {
@@ -395,6 +405,24 @@ export default function TgPosts({ adminKey }) {
             <button onClick={saveTemplate} className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">💾 Template</button>
             <button onClick={sendNow} className="btn-gold rounded-full px-5 py-2 text-[12.5px] font-semibold">Envoyer maintenant</button>
           </div>
+
+          {/* canaux supplémentaires */}
+          {availableChannels.length > 0 && (
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              <span className="text-[11.5px] text-mist/60 whitespace-nowrap">Aussi poster dans :</span>
+              {availableChannels.map((ch) => (
+                <label key={ch.id} className="flex items-center gap-1.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedChannels.includes(ch.id)}
+                    onChange={() => toggleChannel(ch.id)}
+                    className="accent-gold"
+                  />
+                  <span className="text-[12.5px] text-bone">{ch.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
           <div className="mt-2 flex items-center gap-2">
             <input value={testId} onChange={(e) => setTestId(e.target.value)} placeholder="tg_id de test"
               className="w-40 rounded-lg bg-ink-900 border border-white/10 px-3 py-1.5 text-bone text-[12.5px] font-mono outline-none" />

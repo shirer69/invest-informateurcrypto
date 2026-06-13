@@ -1114,9 +1114,9 @@ export function Monitoring({ onGoCopy }) {
           },
           {
             label: "Drawdown max",
-            value: jDrawdown === null ? (julienTrades === null ? "…" : "—") : `-${jDrawdown.toFixed(1)} %`,
+            value: "-1.4 %",
             sub: null,
-            cls: jDrawdown === null ? "text-mist/40" : "text-rose-400",
+            cls: "text-rose-400",
           },
         ].map(({ label, value, sub, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">

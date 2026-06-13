@@ -129,9 +129,11 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
     if (trimmed.length < 4) { setState("notfound"); return; }
     setState("checking");
 
-    // Vérification publique d'abord (sans auth) pour détecter les IIBAN pending.
+    // Vérification (+ stockage CRM si connecté) pour détecter les IIBAN pending.
     try {
-      const chk = await fetch(`${API_BASE}/api/access/iiban/check?uid=${encodeURIComponent(trimmed)}`, { cache: "no-store" }).then((r) => r.json());
+      const tok = getToken();
+      const headers = tok ? { Authorization: `Bearer ${tok}` } : {};
+      const chk = await fetch(`${API_BASE}/api/access/iiban/check?uid=${encodeURIComponent(trimmed)}`, { cache: "no-store", headers }).then((r) => r.json());
       if (chk.uid_status === "pending") { setState("pending"); return; }
       if (chk.uid_status === "notfound" || chk.uid_status === "invalid") { setState("notfound"); return; }
     } catch {}

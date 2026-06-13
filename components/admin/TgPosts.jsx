@@ -42,10 +42,11 @@ const tgToHtml = (t) => (t || "").replace(/\n/g, "<br>");
 const sample = (t) => (t || "").replace(/\{pr[ée]nom\}|\{PRENOM\}|\{first_name\}/gi, "Jean");
 
 const AUDIENCES = [
-  { id: "all", label: "Tous" },
+  { id: "all", label: "Tous (DMs)" },
   { id: "members", label: "Membres (email)" },
   { id: "users", label: "Telegram" },
   { id: "copy", label: "Copy actifs" },
+  { id: "none", label: "Canaux seulement" },
 ];
 
 export default function TgPosts({ adminKey }) {

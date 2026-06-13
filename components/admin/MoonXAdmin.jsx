@@ -119,10 +119,15 @@ export default function MoonXAdmin({ adminKey }) {
     else { setSortField(field); setSortDir("desc"); }
   }
 
+  const STATUS_LABELS = {
+    qualified: "Qualifié", validated: "Validé", partial: "Partiel",
+    pending: "En attente", active: "Actif",
+  };
+  const statusLabel = (s) => STATUS_LABELS[(s || "").toLowerCase()] || s || "—";
   const statusColor = (s) => {
     if (!s) return "text-mist/40";
     const sl = s.toLowerCase();
-    if (sl.includes("valid")) return "text-emerald-400";
+    if (sl === "qualified" || sl.includes("valid") || sl === "active") return "text-emerald-400";
     if (sl.includes("partial")) return "text-amber-300";
     return "text-mist/60";
   };
@@ -222,7 +227,7 @@ export default function MoonXAdmin({ adminKey }) {
               <p className="mt-3 text-[12.5px] text-rose-400">{error}</p>
             )}
 
-            {result && !result.found && (
+            {result && !result.found && !result.multiple && (
               <div className="mt-4 rounded-xl border border-white/10 bg-ink-900/60 p-4 flex items-center gap-3">
                 <span className="text-2xl">🔍</span>
                 <div>
@@ -234,19 +239,35 @@ export default function MoonXAdmin({ adminKey }) {
               </div>
             )}
 
+            {result?.multiple && result.suggestions?.length > 0 && (
+              <div className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/[0.05] p-4">
+                <div className="font-semibold text-bone text-[13px] mb-2">
+                  Plusieurs correspondances — précisez l'email :
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {result.suggestions.map(s => (
+                    <button key={s} onClick={() => { setEmail(s); setResult(null); }}
+                      className="font-mono text-[12px] px-3 py-1.5 rounded-lg border border-amber-500/30 text-amber-200 hover:bg-amber-500/10">
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {result?.found && (
               <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
                 <div className="flex items-center gap-2 mb-3">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shrink-0" />
                   <span className="font-semibold text-bone text-[14px]">{result.email}</span>
                   <span className={`ml-auto text-[11px] font-mono px-2 py-0.5 rounded-full border ${
-                    result.status?.toLowerCase().includes("valid")
+                    statusColor(result.status) === "text-emerald-400"
                       ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
-                      : result.status?.toLowerCase().includes("partial")
+                      : statusColor(result.status) === "text-amber-300"
                         ? "border-amber-500/30 text-amber-300 bg-amber-500/10"
                         : "border-white/10 text-mist/50 bg-white/5"
                   }`}>
-                    {result.status || "—"}
+                    {statusLabel(result.status)}
                   </span>
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">

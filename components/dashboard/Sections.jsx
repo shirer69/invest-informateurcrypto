@@ -914,7 +914,25 @@ function LockedAudioPreview() {
   );
 }
 
-/* ---------------- Futures (ex-Monitoring) : audios + KPIs + positions en direct ---------------- */
+/* ---------------- Monitoring audio (onglet dédié) ---------------- */
+export function MonitoringAudio() {
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div>
+          <h3 className="font-display text-[18px] text-bone">Monitoring — Points audio</h3>
+          <p className="text-[11.5px] text-mist/70 mt-0.5">
+            Analyses vocales de Julien en temps réel
+          </p>
+        </div>
+        <LiveTag />
+      </div>
+      <LockedAudioPreview />
+    </div>
+  );
+}
+
+/* ---------------- Futures : KPIs copy + historique des trades ---------------- */
 const _JULIEN_URL =
   "https://firestore.googleapis.com/v1/projects/julien-5d7a1/databases/(default)/documents" +
   "/artifacts/julien-5d7a1/public/data/trades?pageSize=200" +
@@ -1072,11 +1090,6 @@ export function Monitoring({ onGoCopy }) {
       </div>
 
       <FuturesCTAs />
-
-      {/* Audios — aperçu flou si verrouillé, feed complet si déverrouillé */}
-      <div className="mb-5">
-        <LockedAudioPreview />
-      </div>
 
       {/* KPIs performance */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">

@@ -11,7 +11,7 @@ import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
 import Billing from "@/components/dashboard/Billing";
 import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
-import { Intelligence, Analytics, CopyTrading, Monitoring, XStocks } from "@/components/dashboard/Sections";
+import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XStocks } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
@@ -20,7 +20,8 @@ import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
   { id: "analytics", label: "Résultats", icon: "📊" },
-  { id: "monitoring", label: "Futures", icon: "📡" },
+  { id: "monitoring", label: "Futures", icon: "⚡" },
+  { id: "audio", label: "Monitoring", icon: "📡" },
   { id: "vip", label: "Actions", icon: "📈" },
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
@@ -35,7 +36,7 @@ const NAV = [
 const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
 
 // Onglets principaux de la barre du bas (mobile) — les autres sont sous « Plus ».
-const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "vip"];
+const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -73,6 +74,8 @@ export default function Dashboard() {
       chat: "community",
       facturation: "billing",
       compte: "account",
+      audios: "audio",
+      monitoring_audio: "audio",
     };
     const resolve = (v) => {
       const k = (v || "").toLowerCase();
@@ -241,8 +244,10 @@ export default function Dashboard() {
           {tab === "academy" && <Academy />}
           {/* Logs : historique de tous les trades (verrou interne) */}
           {tab === "logs" && <Logs />}
-          {/* Monitoring : seuls les lecteurs audio sont verrouillés (verrou interne) */}
+          {/* Futures : KPIs copy + historique des trades julien */}
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
+          {/* Monitoring audio : points vocaux de Julien */}
+          {tab === "audio" && <MonitoringAudio />}
           {tab === "analytics" && <Analytics />}
           {/* Vidéos : accès libre même dashboard verrouillé */}
           {tab === "videos" && <VideosFeed />}

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { REFERRAL_CODES } from "@/lib/site";
-import { apiSignup, apiLogin, apiCheckCode, apiAccessCode } from "@/lib/clientStore";
+import { apiSignup, apiLogin, apiCheckCode, apiAccessCode, apiSendPassword } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
 /**
@@ -13,7 +13,7 @@ import { IconArrow } from "@/components/Icons";
  *   skipCode  {boolean}  — si true, saute l'étape code (ex: utilisateur Telegram déjà identifié)
  *   tgName    {string}   — prénom pré-rempli depuis Telegram
  */
-export default function SignupGate({ onDone, onLogin, skipCode = false, tgName = "", title }) {
+export default function SignupGate({ onDone, onLogin, skipCode = false, tgName = "", title, noPassword = false }) {
   const [unlocked, setUnlocked]   = useState(skipCode); // skip direct si Telegram
   const [code, setCode]           = useState("");
   const [codeErr, setCodeErr]     = useState(false);
@@ -51,9 +51,9 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
     const fn   = firstName.trim();
     if (fn.length < 2)                               { setErr("Indiquez votre prénom."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail))   { setErr("Adresse e-mail invalide."); return; }
-    if (pwd.length < 6)                              { setErr("Mot de passe : 6 caractères minimum."); return; }
+    if (!noPassword && pwd.length < 6)               { setErr("Mot de passe : 6 caractères minimum."); return; }
     setErr(""); setBusy(true);
-    const r = await apiSignup({ email: mail, password: pwd, name: fn });
+    const r = await apiSignup({ email: mail, password: noPassword ? undefined : pwd, name: fn, no_password: noPassword });
     if (!r.ok) {
       setBusy(false);
       setErr(r.error === "invalid_credentials" ? "Mot de passe incorrect." : "Connexion impossible. Réessayez.");
@@ -156,14 +156,21 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
                 autoComplete="email"
                 className={`mt-2.5 ${input}`}
               />
-              <input
-                type="password"
-                value={pwd}
-                onChange={(e) => { setPwd(e.target.value); setErr(""); }}
-                placeholder="Mot de passe (6 caractères min.)"
-                autoComplete="new-password"
-                className={`mt-2.5 ${input}`}
-              />
+              {!noPassword && (
+                <input
+                  type="password"
+                  value={pwd}
+                  onChange={(e) => { setPwd(e.target.value); setErr(""); }}
+                  placeholder="Mot de passe (6 caractères min.)"
+                  autoComplete="new-password"
+                  className={`mt-2.5 ${input}`}
+                />
+              )}
+              {noPassword && (
+                <p className="mt-2 text-[12px] text-mist/60">
+                  Un mot de passe sera généré et envoyé à votre adresse email.
+                </p>
+              )}
 
               {err && <p className="mt-2 text-[12.5px] text-red-400/90">{err}</p>}
 

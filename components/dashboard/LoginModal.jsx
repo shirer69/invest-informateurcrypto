@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { apiLogin } from "@/lib/clientStore";
+import { apiLogin, apiSendPassword } from "@/lib/clientStore";
 
 export default function LoginModal({ open, onClose }) {
   const [email, setEmail] = useState("");
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [sendPwdMsg, setSendPwdMsg] = useState(null);
 
   if (!open) return null;
 
@@ -60,6 +61,22 @@ export default function LoginModal({ open, onClose }) {
                   className="btn-gold w-full rounded-full px-6 py-3.5 text-[15px] font-semibold disabled:opacity-60">
             {busy ? "Connexion…" : "Se connecter"}
           </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={async () => {
+              const mail = email.trim();
+              if (!mail) { setSendPwdMsg({ ok: false, t: "Entrez votre adresse email d'abord." }); return; }
+              setSendPwdMsg({ ok: true, t: "Envoi en cours…" });
+              const r = await apiSendPassword(mail);
+              setSendPwdMsg(r.ok ? { ok: true, t: "✓ Mot de passe envoyé — vérifiez votre boîte mail." } : { ok: false, t: "Adresse introuvable ou erreur réseau." });
+            }}
+            className="mt-1 w-full text-center text-[12.5px] text-mist hover:text-bone transition-colors">
+            Recevoir mon mot de passe par email
+          </button>
+          {sendPwdMsg && (
+            <p className={`text-[12px] text-center ${sendPwdMsg.ok ? "text-emerald-400" : "text-red-400/90"}`}>{sendPwdMsg.t}</p>
+          )}
         </form>
       </div>
     </div>

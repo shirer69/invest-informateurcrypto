@@ -180,6 +180,7 @@ export default function Dashboard() {
           skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}
           title={isTgUser && !isNewTgUser && !isDirect ? "Ajouter ton mail" : undefined}
+          noPassword={isTgUser}
         />
       </div>
     );

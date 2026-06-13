@@ -15,7 +15,7 @@ import { Intelligence, Analytics, CopyTrading, Monitoring, XStocks } from "@/com
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth, hasAccess } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
@@ -45,6 +45,7 @@ export default function Dashboard() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [codeMsg, setCodeMsg] = useState(null); // {ok, text} — redemption auto via ?code
   const [booted, setBooted] = useState(false); // résolution initiale (web immédiat, mini-app après auto-login)
+  const [gateCleared, setGateCleared] = useState(false); // true après que l'utilisateur a validé le gate (évite la boucle)
 
   useEffect(() => {
     setUser(getUser());
@@ -169,6 +170,29 @@ export default function Dashboard() {
         />
       </div>
     );
+  }
+
+  // Utilisateur inscrit (email réel) mais dashboard verrouillé dans la mini-app :
+  // on le renvoie sur le formulaire d'inscription pour qu'il finalise/re-confirme.
+  if (registered && !gateCleared) {
+    let inTgApp = false;
+    try {
+      inTgApp = !!(window.Telegram?.WebApp?.initData);
+    } catch {}
+    if (inTgApp && !hasAccess()) {
+      return (
+        <div className="min-h-screen aura">
+          <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
+          <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
+          <SignupGate
+            onDone={() => { setUser(getUser()); setGateCleared(true); }}
+            onLogin={() => setLoginOpen(true)}
+            skipCode={true}
+            tgName={user?.name || ""}
+          />
+        </div>
+      );
+    }
   }
 
   return (

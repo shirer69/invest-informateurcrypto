@@ -25,6 +25,8 @@ export default function MoonXAdmin({ adminKey }) {
   const [result, setResult]     = useState(null);
   const [checking, setChecking] = useState(false);
   const [error, setError]       = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteResult, setInviteResult] = useState(null);
 
   // Credentials form
   const [showCreds, setShowCreds] = useState(false);
@@ -78,11 +80,18 @@ export default function MoonXAdmin({ adminKey }) {
     e.preventDefault();
     const target = email.trim();
     if (!target) return;
-    setChecking(true); setResult(null); setError("");
+    setChecking(true); setResult(null); setError(""); setInviteResult(null);
     const r = await get(`/api/admin/moonx/check?email=${encodeURIComponent(target)}`);
     setChecking(false);
     if (!r.ok) { setError(r.error || "Erreur API"); return; }
     setResult(r);
+  }
+
+  async function sendInvite(targetEmail) {
+    setInviting(true); setInviteResult(null);
+    const r = await post("/api/admin/moonx/invite", { email: targetEmail });
+    setInviting(false);
+    setInviteResult(r);
   }
 
   async function loadAll(force = false) {
@@ -257,10 +266,10 @@ export default function MoonXAdmin({ adminKey }) {
 
             {result?.found && (
               <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.05] p-4">
-                <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-2 mb-3 flex-wrap">
                   <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 shrink-0" />
                   <span className="font-semibold text-bone text-[14px]">{result.email}</span>
-                  <span className={`ml-auto text-[11px] font-mono px-2 py-0.5 rounded-full border ${
+                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full border ${
                     statusColor(result.status) === "text-emerald-400"
                       ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
                       : statusColor(result.status) === "text-amber-300"
@@ -269,7 +278,45 @@ export default function MoonXAdmin({ adminKey }) {
                   }`}>
                     {statusLabel(result.status)}
                   </span>
+                  <button
+                    onClick={() => sendInvite(result.email)}
+                    disabled={inviting}
+                    className="ml-auto btn-gold rounded-xl px-4 py-2 text-[12.5px] font-semibold disabled:opacity-50 flex items-center gap-1.5"
+                  >
+                    {inviting ? (
+                      <>
+                        <svg className="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        </svg>
+                        Envoi…
+                      </>
+                    ) : "✉ Inviter"}
+                  </button>
                 </div>
+
+                {inviteResult && (
+                  <div className={`mb-3 rounded-lg px-3 py-2 text-[12.5px] ${
+                    inviteResult.ok
+                      ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"
+                      : "bg-rose-500/10 border border-rose-500/20 text-rose-300"
+                  }`}>
+                    {inviteResult.ok ? (
+                      <>
+                        ✓ Invitation envoyée à <b>{inviteResult.tg_name}</b> via Telegram + email.
+                        {inviteResult.invite_link && (
+                          <a href={inviteResult.invite_link} target="_blank" rel="noopener noreferrer"
+                            className="ml-2 underline opacity-70 hover:opacity-100 font-mono text-[11px]">
+                            Voir le lien
+                          </a>
+                        )}
+                      </>
+                    ) : (
+                      <>✗ {inviteResult.error}</>
+                    )}
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {[
                     { label: "Date d'inscription", value: fmtDate(result.registration_date) },

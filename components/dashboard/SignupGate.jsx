@@ -175,7 +175,7 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
                 {busy
                   ? "Enregistrement…"
                   : skipCode
-                    ? "Sauvegarder mon email"
+                    ? "Enregistrer"
                     : "Créer mon compte & accéder au tableau de bord"}
                 {!busy && <IconArrow className="h-4 w-4" />}
               </button>

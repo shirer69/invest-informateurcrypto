@@ -406,7 +406,7 @@ export function Analytics() {
       ),
     },
     {
-      k: "margin", label: "Marge", color: "#5BA8FF",
+      k: "margin", label: "Margin Trading", color: "#5BA8FF",
       icon: (
         <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
           <path d="M7 16V8m0 8-3-3m3 3 3-3M17 8v8m0-8 3 3m-3-3-3 3" />
@@ -509,7 +509,7 @@ export function Analytics() {
               const cats = [
                 { k: "spot",   label: "Spot",       color: "#C9A24B" },
                 { k: "stock",  label: "Actions US",  color: "#7C5CFC" },
-                { k: "margin", label: "Marge",       color: "#5BA8FF" },
+                { k: "margin", label: "Margin Trading", color: "#5BA8FF" },
                 { k: "perps",  label: "Futures (Swing Trading)", color: "#19C37D" },
               ];
               const absTotal = cats.reduce((s, c) => s + Math.abs(r[c.k] || 0), 0);

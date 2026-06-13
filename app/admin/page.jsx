@@ -168,7 +168,7 @@ export default function Admin() {
           ))}
         </nav>
 
-        {tab === "overview"  && <Overview ov={ov} />}
+        {tab === "overview"  && <Overview ov={ov} members={members} />}
         {tab === "members"   && <Members members={members} adminKey={key} />}
         {tab === "deposits"  && <Deposits iiban={iiban} ov={ov} adminKey={key} onReload={() => loadAll(key)} />}
         {tab === "codes"     && <Codes adminKey={key} />}
@@ -193,17 +193,84 @@ function KPI({ label, value, sub, accent }) {
   );
 }
 
-function Overview({ ov }) {
+function Overview({ ov, members }) {
+  const [filter, setFilter] = useState("all");
   if (!ov) return <div className="text-mist text-[14px]">Chargement…</div>;
+  const filterFn = CRM_FILTERS.find((f) => f.id === filter)?.fn ?? (() => true);
+  const visible = (members || []).filter(filterFn);
   return (
-    <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <KPI label="Membres" value={ov.members} sub={`+${ov.new24h} / 24h`} accent="text-gold-grad" />
-      <KPI label="Via Telegram" value={ov.telegram} sub={`${ov.web} via web`} />
-      <KPI label="Dépôts actifs" value={ov.iiban_active} sub={`${ov.iiban_pending} en attente`} accent="text-pos" />
-      <KPI label="En attente d'activation" value={ov.iiban_pending} accent="text-flag" />
-      <KPI label="Messages chat" value={ov.messages} />
-      <KPI label="Academy démarrée" value={ov.academy} />
-      <KPI label="UID suivis" value={ov.iiban_total} sub="dans la liste" />
+    <div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <KPI label="Membres" value={ov.members} sub={`+${ov.new24h} / 24h`} accent="text-gold-grad" />
+        <KPI label="Via Telegram" value={ov.telegram} sub={`${ov.web} via web`} />
+        <KPI label="Dépôts actifs" value={ov.iiban_active} sub={`${ov.iiban_pending} en attente`} accent="text-pos" />
+        <KPI label="En attente d'activation" value={ov.iiban_pending} accent="text-flag" />
+        <KPI label="Messages chat" value={ov.messages} />
+        <KPI label="Academy démarrée" value={ov.academy} />
+        <KPI label="UID suivis" value={ov.iiban_total} sub="dans la liste" />
+      </div>
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        {CRM_FILTERS.map((f) => {
+          const count = (members || []).filter(f.fn).length;
+          const on = filter === f.id;
+          return (
+            <button key={f.id} onClick={() => setFilter(f.id)}
+              className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold border transition-colors ${
+                on ? "bg-gold/[0.12] border-gold/50 text-gold" : "border-white/10 text-mist hover:text-bone"
+              }`}>
+              {f.label}
+              <span className={`font-mono text-[11px] rounded-full px-1.5 py-0 ${on ? "bg-gold/20 text-gold" : "bg-white/5 text-mist/60"}`}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+        <table className="w-full min-w-[860px] text-[13.5px]">
+          <thead>
+            <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+              <th className="px-5 py-3">Membre</th>
+              <th className="px-5 py-3">Email</th>
+              <th className="px-5 py-3">Source</th>
+              <th className="px-5 py-3">Inscription</th>
+              <th className="px-5 py-3">Dépôt</th>
+              <th className="px-5 py-3">Accès</th>
+              <th className="px-5 py-3">Dernière activité</th>
+            </tr>
+          </thead>
+          <tbody>
+            {!members && (
+              <tr><td colSpan={7} className="px-5 py-6 text-mist/50 text-center text-[13px]">Chargement…</td></tr>
+            )}
+            {members && visible.length === 0 && (
+              <tr><td colSpan={7} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
+            )}
+            {visible.map((m) => (
+              <tr key={m.email} className="border-b hairline last:border-0">
+                <td className="px-5 py-3">
+                  <div className="text-bone">{m.name || "—"}</div>
+                  {m.tg_id && <div className="font-mono text-[10px] text-mist/50">tg:{m.tg_id}</div>}
+                </td>
+                <td className="px-5 py-3 font-mono text-[12px] text-mist">{m.email}</td>
+                <td className="px-5 py-3">
+                  <span className={`font-mono text-[10px] uppercase tracking-widest2 rounded px-1.5 py-0.5 border ${m.source === "telegram" ? "text-info border-info/30" : "text-gold border-gold/30"}`}>
+                    {m.source}
+                  </span>
+                </td>
+                <td className="px-5 py-3 font-mono text-mist">{fmtDate(m.created_at)}</td>
+                <td className="px-5 py-3">
+                  {m.deposit === "active" ? <span className="text-pos">✓ actif</span>
+                    : m.deposit === "pending" ? <span className="text-flag">en attente</span>
+                    : <span className="text-mist/50">—</span>}
+                </td>
+                <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
+                <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -1060,6 +1060,12 @@ export function Monitoring({ onGoCopy }) {
         </div>
       </div>
 
+      {/* Titre Portefeuille safe */}
+      <div className="mb-4 mt-1">
+        <h4 className="font-display text-[16px] text-bone">Portefeuille safe</h4>
+        <p className="text-[11.5px] text-mist/60 mt-0.5">Copy permanent · faible levier · résultats depuis le lancement</p>
+      </div>
+
       {/* KPIs performance */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[

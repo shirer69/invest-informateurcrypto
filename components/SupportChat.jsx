@@ -102,7 +102,9 @@ export default function SupportChat() {
       {/* Bulle flottante */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-5 right-5 z-[9998] flex items-center justify-center w-14 h-14 rounded-full shadow-2xl bg-gold text-ink-900 transition-transform hover:scale-105 active:scale-95"
+        className="fixed z-[9998] flex items-center justify-center w-14 h-14 shadow-2xl bg-gold text-ink-900 transition-transform hover:scale-105 active:scale-95
+          top-1/2 -translate-y-1/2 right-0 rounded-l-2xl rounded-r-none
+          sm:top-auto sm:translate-y-0 sm:bottom-5 sm:right-5 sm:rounded-full"
         aria-label="Support"
       >
         {open ? (
@@ -123,7 +125,8 @@ export default function SupportChat() {
 
       {/* Panel */}
       {open && (
-        <div className="fixed bottom-24 right-5 z-[9997] w-[340px] max-w-[calc(100vw-2.5rem)] rounded-2xl border hairline bg-ink-900 shadow-2xl flex flex-col overflow-hidden"
+        <div className="fixed z-[9997] w-[340px] max-w-[calc(100vw-1rem)] rounded-2xl border hairline bg-ink-900 shadow-2xl flex flex-col overflow-hidden
+          right-1 bottom-[calc(50%-210px)] sm:right-5 sm:bottom-24"
           style={{ height: "420px" }}>
           {/* Header */}
           <div className="flex items-center gap-2.5 px-4 py-3 border-b hairline bg-ink-800/80">

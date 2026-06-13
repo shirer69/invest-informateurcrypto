@@ -179,6 +179,7 @@ export default function Dashboard() {
           onLogin={() => setLoginOpen(true)}
           skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}
+          title={isTgUser && !isNewTgUser && !isDirect ? "Ajouter ton mail" : undefined}
         />
       </div>
     );

@@ -163,7 +163,7 @@ export default function Dashboard() {
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
-          onDone={() => setUser(getUser())}
+          onDone={() => { setUser(getUser()); setGateCleared(true); }}
           onLogin={() => setLoginOpen(true)}
           skipCode={isTgUser || isDirect}
           tgName={isTgUser ? (user?.name || "") : ""}

@@ -245,11 +245,7 @@ function LastInvestment({ kinds }) {
       .catch(() => {});
   }, [kinds]);
 
-  if (locked) return (
-    <Locked label="Déverrouiller pour voir">
-      <LastInvestmentMockup />
-    </Locked>
-  );
+  if (locked) return <LastInvestmentMockup />;
   if (!item) return null;
 
   const MULT = DISPLAY_MULT;

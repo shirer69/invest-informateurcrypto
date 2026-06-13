@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/site";
 import TgPosts from "@/components/admin/TgPosts";
 import EmailAdmin from "@/components/admin/EmailAdmin";
 import SupportAdmin from "@/components/admin/SupportAdmin";
+import IibanPendingAdmin from "@/components/admin/IibanPendingAdmin";
 
 const KEYK = "pi_admin_key";
 
@@ -53,6 +54,7 @@ const TABS = [
   { id: "emails",   label: "📧 Emails" },
   { id: "copy",     label: "Copy Auto" },
   { id: "support",  label: "💬 Support" },
+  { id: "iiban_pending", label: "⏳ IIBAN Pending" },
 ];
 
 export default function Admin() {
@@ -152,7 +154,8 @@ export default function Admin() {
         {tab === "posts"     && <TgPosts adminKey={key} />}
         {tab === "emails"    && <EmailAdmin adminKey={key} />}
         {tab === "copy"      && <CopyAuto adminKey={key} />}
-        {tab === "support"   && <SupportAdmin adminKey={key} />}
+        {tab === "support"      && <SupportAdmin adminKey={key} />}
+        {tab === "iiban_pending" && <IibanPendingAdmin adminKey={key} />}
       </div>
     </div>
   );

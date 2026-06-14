@@ -331,6 +331,7 @@ const DEMO_ROWS = [
 ].map((r) => ({ ...r, total: r.spot + r.stock + r.margin + r.perps }));
 
 export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy }) {
+  const { openUnlock } = useUnlock();
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
@@ -348,7 +349,22 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy })
             </svg>
             <span className="text-[13px] text-emerald-400 font-medium">Copy auto activé sur votre compte</span>
           </div>
-        ) : !hasAccess ? null : copyRequest ? (
+        ) : !hasAccess ? (
+          <button
+            onClick={openUnlock}
+            className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-gold" fill="currentColor" aria-hidden>
+                <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
+              </svg>
+              <span className="text-[13px] text-bone font-medium">Activer le copy auto — Pôle Invest</span>
+            </div>
+            <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
+              Activer <IconArrow className="h-3 w-3" />
+            </span>
+          </button>
+        ) : copyRequest ? (
           <div className="w-full flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-4 py-2.5">
             <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />

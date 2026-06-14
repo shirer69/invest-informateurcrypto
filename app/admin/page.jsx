@@ -452,7 +452,8 @@ function Members({ members, adminKey }) {
 
 const AUDIENCES = [
   { id: "all", label: "Tous" },
-  { id: "members", label: "Membres (compte + UID)" },
+  { id: "members", label: "Membres actifs" },
+  { id: "non_members", label: "Membres actifs exclus" },
   { id: "users", label: "Utilisateurs (mini-app)" },
   { id: "copy", label: "Membres avec copy actif" },
 ];

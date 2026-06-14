@@ -907,7 +907,52 @@ function LockedAudioPreview() {
 }
 
 /* ---------------- Monitoring audio (onglet dédié) ---------------- */
+function LatestVideo() {
+  const [video, setVideo] = useState(null);
+  const [active, setActive] = useState(false);
+  useEffect(() => {
+    fetch("/api/videos", { cache: "no-store" })
+      .then((r) => r.json()).catch(() => ({ videos: [] }))
+      .then((d) => { const v = (d.videos || [])[0]; if (v) setVideo(v); });
+  }, []);
+
+  if (!video) return (
+    <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13px] text-mist/60">
+      {video === null ? "Chargement…" : "Aucune vidéo disponible."}
+    </div>
+  );
+
+  const date = video.published ? new Date(video.published).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
+
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/50 overflow-hidden">
+      <div className="relative aspect-video bg-ink-900">
+        {active ? (
+          <iframe className="absolute inset-0 h-full w-full"
+            src={`https://www.youtube.com/embed/${video.id}?autoplay=1&rel=0`}
+            title={video.title} allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen />
+        ) : (
+          <button onClick={() => setActive(true)} className="group absolute inset-0">
+            <img src={`https://i.ytimg.com/vi/${video.id}/hqdefault.jpg`} alt={video.title}
+                 className="h-full w-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+            <span className="absolute inset-0 grid place-items-center">
+              <span className="grid place-items-center h-14 w-14 rounded-full bg-black/60 border border-white/20 text-white group-hover:scale-110 transition-transform">
+                <svg viewBox="0 0 24 24" className="h-6 w-6 ml-0.5" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+              </span>
+            </span>
+          </button>
+        )}
+      </div>
+      <div className="p-4">
+        <p className="text-[14px] leading-snug text-bone font-medium">{video.title}</p>
+        {date && <p className="mt-1 font-mono text-[11px] text-mist/60">{date}</p>}
+      </div>
+    </div>
+  );
+}
+
 export function MonitoringAudio() {
+  const [subTab, setSubTab] = useState("audio");
   return (
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
@@ -915,14 +960,26 @@ export function MonitoringAudio() {
           <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <div>
             <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
-            <p className="text-[11.5px] text-mist/70 mt-0.5">
-              Analyses vocales de Julien en temps réel
-            </p>
+            <p className="text-[11.5px] text-mist/70 mt-0.5">Analyses vocales de Julien en temps réel</p>
           </div>
         </div>
         <LiveTag />
       </div>
-      <LockedAudioPreview />
+
+      {/* Sous-onglets */}
+      <div className="flex gap-1.5 mb-4">
+        {[{ id: "audio", label: "🎙 Audios" }, { id: "video", label: "🎬 Vidéos" }].map((t) => (
+          <button key={t.id} onClick={() => setSubTab(t.id)}
+            className={`rounded-xl px-4 py-2 text-[13px] font-medium transition-colors border ${
+              subTab === t.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"
+            }`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {subTab === "audio" && <LockedAudioPreview />}
+      {subTab === "video" && <LatestVideo />}
     </div>
   );
 }

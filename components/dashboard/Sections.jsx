@@ -937,8 +937,16 @@ export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"
 
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
+  const [forexTrades, setForexTrades] = useState([]);
 
   useEffect(() => { setUser(getUser()); }, []);
+
+  useEffect(() => {
+    fetch("https://api.informateurcrypto.fr/api/julien/trades")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
+      .catch(() => {});
+  }, []);
 
   const jTrades = JULIEN_TRADES;
   const jTotalPnl = jTrades.reduce((s, t) => s + (t.pnlUsd || 0), 0);
@@ -963,6 +971,37 @@ export function Monitoring({ onGoCopy }) {
     }
     return maxDd;
   })();
+
+  // ── Challenge Forex ──
+  const CHALLENGE_CAPITAL = 5000;
+  const CHALLENGE_BASELINE_PCT = 29.20;       // acquis au 14 juin 2026
+  const CHALLENGE_TRACKING_SINCE = 1781395200; // 14 juin 2026 00:00 UTC (s)
+  const CHALLENGE_START_TS = 1780617600;       // 5 juin 2026 00:00 UTC (s)
+
+  const newForexPnl = forexTrades
+    .filter((t) => (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
+    .reduce((s, t) => s + (t.pnl_usd || 0), 0);
+  const challengePct = CHALLENGE_BASELINE_PCT + (newForexPnl / CHALLENGE_CAPITAL * 100);
+  const daysElapsed = Math.max(0, Math.floor((Date.now() / 1000 - CHALLENGE_START_TS) / 86400));
+
+  // ── Historique fusionné futures + forex ──
+  const futuresList = jTrades.map((t) => ({
+    source: "futures",
+    asset: t.asset,
+    direction: t.type,
+    pnlUsd: t.pnlUsd,
+    pnlPct: t.pnlPct,
+    ts: t.timestamp,
+  }));
+  const forexList = forexTrades.map((t) => ({
+    source: "forex",
+    asset: t.asset,
+    direction: t.direction,
+    pnlUsd: t.pnl_usd,
+    pnlPct: t.pnl_pct != null ? (t.pnl_pct >= 0 ? "+" : "") + Number(t.pnl_pct).toFixed(2) + "%" : "—",
+    ts: (t.opened_at || t.created_at || 0) * 1000,
+  }));
+  const allTrades = [...futuresList, ...forexList].sort((a, b) => b.ts - a.ts);
 
   const FuturesCTAs = () => (
     <div className="mb-5">
@@ -1022,8 +1061,8 @@ export function Monitoring({ onGoCopy }) {
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
-              <div className="font-display text-[28px] leading-none text-emerald-400 font-black">+29.20 %</div>
-              <div className="font-mono text-[11px] text-mist/70 mt-1">après 9 jours</div>
+              <div className="font-display text-[28px] leading-none text-emerald-400 font-black">{challengePct >= 0 ? "+" : ""}{challengePct.toFixed(2)} %</div>
+              <div className="font-mono text-[11px] text-mist/70 mt-1">après {daysElapsed} jour{daysElapsed > 1 ? "s" : ""}</div>
             </div>
             <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-center shrink-0">
               <div className="font-mono text-[9px] uppercase tracking-widest2 text-gold/70">Objectif</div>
@@ -1096,48 +1135,56 @@ export function Monitoring({ onGoCopy }) {
         ))}
       </div>
 
-      {/* Historique des trades — données julien.informateurcrypto.fr */}
+      {/* Historique des trades */}
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
         <div className="flex items-center justify-between mb-1">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
             Historique des trades (copy)
           </span>
           <span className="font-mono text-[10px] text-mist/40">
-            {jTrades.length} op. · julien.informateurcrypto.fr
+            {allTrades.length} op.
           </span>
         </div>
-        {jTrades.length === 0 ? (
+        {allTrades.length === 0 ? (
           <div className="mt-3 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
         ) : (
           <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[420px] text-[13px] font-mono">
+            <table className="w-full min-w-[480px] text-[13px] font-mono">
               <thead>
                 <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
                   <th className="py-2 pr-4">Date</th>
                   <th className="py-2 pr-4">Marché</th>
                   <th className="py-2 pr-4">Sens</th>
                   <th className="py-2 pr-4 text-right">PnL ($)</th>
-                  <th className="py-2 text-right">PnL (%)</th>
+                  <th className="py-2 pr-4 text-right">PnL (%)</th>
+                  <th className="py-2 text-right">Source</th>
                 </tr>
               </thead>
               <tbody>
-                {jTrades.map((t, i) => {
-                  const isLong = (t.type || "").toUpperCase() === "LONG";
+                {allTrades.map((t, i) => {
+                  const isLong = (t.direction || "").toUpperCase() === "LONG";
                   const win = (t.pnlUsd || 0) >= 0;
                   return (
                     <tr key={i} className="border-b hairline last:border-0">
                       <td className="py-2 pr-4 text-mist text-[12px]">
-                        {t.timestamp ? new Date(t.timestamp).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                        {t.ts ? new Date(t.ts).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
                       </td>
                       <td className="py-2 pr-4 text-bone">{t.asset || "—"}</td>
                       <td className={`py-2 pr-4 ${isLong ? "text-emerald-400" : "text-rose-400"}`}>
                         {isLong ? "Long" : "Short"}
                       </td>
                       <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
-                        {(t.pnlUsd >= 0 ? "+" : "") + t.pnlUsd.toFixed(2)}
+                        {(t.pnlUsd >= 0 ? "+" : "") + Number(t.pnlUsd).toFixed(2)}
                       </td>
-                      <td className={`py-2 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
+                      <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
                         {t.pnlPct || "—"}
+                      </td>
+                      <td className="py-2 text-right">
+                        {t.source === "forex" ? (
+                          <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">CHALLENGE</span>
+                        ) : (
+                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">Futures</span>
+                        )}
                       </td>
                     </tr>
                   );

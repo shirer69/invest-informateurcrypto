@@ -40,7 +40,8 @@ const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
-  const [tab, setTab] = useState("portfolio");
+  const [tab, setRawTab] = useState("portfolio");
+  const setTab = (t) => { setRawTab(t); try { localStorage.setItem("pi_active_tab", t); } catch {} };
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
   const [loginOpen, setLoginOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -52,6 +53,8 @@ export default function Dashboard() {
     try {
       const l = localStorage.getItem("pi_tg_link");
       if (l) setTgLink(l);
+      const savedTab = localStorage.getItem("pi_active_tab");
+      if (savedTab) setRawTab(savedTab);
     } catch {}
     // Hors mini-app Telegram : on peut statuer immédiatement.
     let inTg = false;

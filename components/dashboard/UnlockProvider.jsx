@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, useCallback } from "rea
 import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
+import { TESTIMONIALS } from "@/lib/testimonials";
 
 const Ctx = createContext({ locked: true, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
@@ -84,6 +85,30 @@ export function Locked({ children, label = "Déverrouiller", className = "" }) {
 }
 
 /* Modal des deux options de déblocage (IIBAN 3 mois offerts / 239 $ wallet). */
+function TestimonialCarousel() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setIdx((i) => (i + 1) % TESTIMONIALS.length), 4000);
+    return () => clearInterval(id);
+  }, []);
+  const t = TESTIMONIALS[idx];
+  return (
+    <div className="mt-5 rounded-xl border hairline bg-white/[0.02] px-4 py-3 min-h-[90px] flex flex-col justify-between transition-all">
+      <p className="text-[12.5px] leading-relaxed text-mist/80 italic">"{t.text}"</p>
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <span className="font-mono text-[11px] text-gold/80">— {t.name}</span>
+        <div className="flex gap-1">
+          {TESTIMONIALS.map((_, i) => (
+            <button key={i} onClick={() => setIdx(i)}
+              className={`h-1.5 rounded-full transition-all ${i === idx ? "w-4 bg-gold" : "w-1.5 bg-white/20"}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function UnlockModal({ wallet, onClose, onUnlocked }) {
   const [uid, setUid] = useState("");
   const [state, setState] = useState("idle"); // idle | checking | pending | notfound | error
@@ -366,6 +391,9 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
           </button>
           {payMsg && <p className="mt-2 text-[12px] leading-relaxed text-amber-300/90">{payMsg}</p>}
         </div>
+
+        {/* Carrousel témoignages */}
+        <TestimonialCarousel />
 
         <p className="mt-4 text-[11px] leading-relaxed text-mist/50">
           Aucun conseil en investissement. Risque de perte en capital.

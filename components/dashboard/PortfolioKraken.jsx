@@ -359,7 +359,7 @@ export default function PortfolioKraken() {
   const header = (
     <div className="mb-4">
       <div className="flex items-center gap-2">
-        <h3 className="font-display text-[18px] text-bone">Club des Informateurs</h3>
+        <h3 className="font-display text-[18px] text-bone">Tableau de bord</h3>
         <LiveTag />
         <button onClick={load} disabled={loading}
           className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
@@ -543,6 +543,140 @@ export default function PortfolioKraken() {
         Vue agrégée en lecture seule. Valeurs estimées via les prix de marché ; aucune
         exécution d'ordre ni mouvement de fonds depuis cette interface.
       </p>
+    </div>
+  );
+}
+
+/* Tableaux d'actifs réutilisables (Invest tab) */
+export function AssetTables() {
+  const [spot, setSpot] = useState(null);
+  const [fut, setFut] = useState(null);
+  const [futPos, setFutPos] = useState(null);
+  const [marginPos, setMarginPos] = useState([]);
+  const [ftk, setFtk] = useState({});
+  const [done, setDone] = useState(false);
+
+  const load = useCallback(async () => {
+    const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
+    setSpot(s); setDone(true);
+    const [f, fp, mp, tk] = await Promise.all([
+      fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
+      fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
+    ]);
+    setFut(f); setFutPos(fp);
+    const map = {};
+    for (const tk2 of (tk?.tickers || [])) {
+      const p = parseFloat(tk2.markPrice ?? tk2.last ?? 0);
+      if (tk2.symbol && p) map[tk2.symbol.toUpperCase()] = p;
+    }
+    setFtk(map);
+    const raw = mp?.result || {};
+    setMarginPos(Object.entries(raw).map(([id, p]) => ({
+      id, pair: p.pair, side: p.type,
+      vol: parseFloat(p.vol) || 0, cost: parseFloat(p.cost) || 0,
+      margin: parseFloat(p.margin) || 0,
+      value: parseFloat(p.value ?? p.cost ?? 0) || 0,
+      net: parseFloat(p.net ?? 0) || 0,
+    })));
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  if (!done) {
+    return (
+      <div className="grid place-items-center py-12 text-mist">
+        <Spinner size={28} className="text-gold" />
+      </div>
+    );
+  }
+
+  const holdings = spot?.ok ? spot.holdings : [];
+  const t2 = spot?.totals || {};
+  const futValue = fut?.data?.accounts?.flex?.portfolioValue ?? fut?.data?.accounts?.flex?.collateralValue ?? 0;
+  const futPositionsRaw = futPos?.data?.openPositions || [];
+  const marginTotal = marginPos.reduce((s, p) => s + p.value, 0);
+  const comp2 = { crypto: t2.crypto || 0, stock: t2.stock || 0, margin: marginTotal, perps: Number(futValue) || 0, cash: t2.cash || 0 };
+  const total2 = Object.values(comp2).reduce((s, v) => s + v, 0);
+  const shareOf2 = (v) => (total2 > 0 ? ((v || 0) / total2) * 100 : 0);
+  const pnlPctOf2 = (net) => (total2 > 0 ? ((net || 0) / total2) * 100 : null);
+  const px2 = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
+  const pnlCell2 = (r) => {
+    if (r._abs == null && r._pnl == null) return "—";
+    const a = r._abs != null ? `${r._abs >= 0 ? "+" : ""}${fmtUsd(r._abs)}` : "";
+    const p2 = r._pnl != null ? `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %` : "";
+    return a && p2 ? `${a} · ${p2}` : a || p2;
+  };
+  const spotAbs2 = (h) => h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
+  const absOf2 = (a) => (TRACKING_STARTED ? a : 0);
+  const pnlOf2 = (a) => (TRACKING_STARTED ? (a == null ? null : pnlPctOf2(a)) : 0);
+  const crypto2 = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
+  const stocks2 = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
+  const cash2 = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf2(h.value) }));
+  const marginRows2 = marginPos.map((p) => ({
+    ...p,
+    entry: p.vol > 0 ? p.cost / p.vol : null,
+    cur: p.vol > 0 ? p.value / p.vol : null,
+    lev: p.margin > 0 ? p.cost / p.margin : null,
+    tp: null, sl: null,
+    _abs: absOf2(p.net), _share: shareOf2(p.value), _pnl: pnlOf2(p.net),
+  }));
+  const perps2 = futPositionsRaw.map((p) => {
+    const entry = parseFloat(p.price) || 0;
+    const mark = ftk[(p.symbol || "").toUpperCase()] || parseFloat(p.markPrice) || 0;
+    const isLong = (p.side || "").toLowerCase() === "long";
+    const size = Math.abs(parseFloat(p.size) || 0);
+    const notional = size * (mark || entry);
+    const abs = entry && mark ? (mark - entry) * size * (isLong ? 1 : -1) : null;
+    return { symbol: (p.symbol || "").toUpperCase(), side: isLong ? "long" : "short", entry, cur: mark, lev: parseFloat(p.maxFixedLeverage) || null, tp: null, sl: null, _abs: absOf2(abs), _share: shareOf2(notional), _pnl: pnlOf2(abs) };
+  });
+
+  return (
+    <div className="space-y-5 mt-4">
+      <Section title="Spot crypto" dot={CAT.crypto.color} icon={ICONS.crypto}>
+        <Table rows={crypto2} mobileMax={3} cols={[
+          { k: "symbol", h: "Actif" },
+          { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
+          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+          { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
+        ]} />
+      </Section>
+      <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock} badge={<span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-400/90 border border-amber-500/30 rounded px-1.5 py-0.5">démo</span>}>
+        <Table rows={stocks2} cols={[
+          { k: "symbol", h: "Titre" },
+          { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
+          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+          { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
+        ]} />
+        <p className="px-5 py-3 text-[11.5px] text-amber-400/80 border-t hairline">
+          ⏳ Données de démonstration — les xStocks réelles seront affichées à partir du démarrage du portefeuille le <span className="font-semibold">16 juin 2026</span>.
+        </p>
+      </Section>
+      <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
+        <Table rows={marginRows2} cols={[
+          { k: "pair", h: "Paire" },
+          { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
+          { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.entry) },
+          { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
+          { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
+          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+          { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
+        ]} />
+      </Section>
+      <Section title="Futures crypto (perps)" dot={CAT.perps.color} icon={ICONS.perps}>
+        <div className="p-1.5"><RealFuturesPositions /></div>
+      </Section>
+      <Section title="Cash & stablecoins" dot={CAT.cash.color} icon={ICONS.cash}>
+        <Table rows={cash2} cols={[
+          { k: "symbol", h: "Devise" },
+          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+        ]} />
+      </Section>
     </div>
   );
 }

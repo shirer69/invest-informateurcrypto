@@ -8,6 +8,7 @@ import VipFeed from "@/components/dashboard/VipFeed";
 import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked, useUnlock } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
+import { AssetTables } from "@/components/dashboard/PortfolioKraken";
 import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, getToken, copyState, copySaveKeys, copySettings, copyStart, copyStop,
@@ -477,101 +478,7 @@ export function Analytics() {
         <CopyKpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
       </div>
 
-      {/* histogramme PnL mensuel (total) */}
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-6 mb-5">
-        <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-          PnL réalisé par mois — compte complet (spot · actions US · marge · perps)
-        </div>
-        {rows.length === 0 ? (
-          <p className="mt-4 text-[13px] text-mist/60">Aucun résultat sur la période (pas encore d'historique).</p>
-        ) : (
-          <div className="mt-6 flex items-end justify-between gap-2 h-44">
-            {rows.map((r) => {
-              const h = (Math.abs(r.total) / max) * 100;
-              const up = r.total >= 0;
-              return (
-                <div key={r.month} className="flex-1 flex flex-col items-center justify-end h-full min-w-0">
-                  <span className={`mb-1 font-mono text-[9px] ${up ? "text-emerald-400" : "text-rose-400"}`}>
-                    {dUsdSigned(r.total)}
-                  </span>
-                  <div className={`w-full rounded-t ${up ? "bg-emerald-500/70" : "bg-rose-500/70"}`}
-                       style={{ height: `${Math.max(h, 4)}%` }} title={`${moLabel(r.month)} : ${dUsdSigned(r.total)} · ${pctStr(r.total)}`} />
-                  <span className="mt-1.5 font-mono text-[9px] text-mist/60">{moLabel(r.month)}</span>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* Détail par mois & catégorie — camemberts */}
-      {rows.length > 0 && (
-        <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Détail par mois &amp; catégorie</span>
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {rows.slice().reverse().map((r) => {
-              const cats = [
-                { k: "spot",   label: "Spot",       color: "#C9A24B" },
-                { k: "stock",  label: "Actions US",  color: "#7C5CFC" },
-                { k: "margin", label: "Margin Trading", color: "#5BA8FF" },
-                { k: "perps",  label: "Futures (Swing Trading)", color: "#19C37D" },
-              ];
-              const absTotal = cats.reduce((s, c) => s + Math.abs(r[c.k] || 0), 0);
-              // Construction du pie SVG
-              const size = 88; const cx = size / 2; const cy = size / 2; const rad = size / 2 - 3;
-              let ang = -Math.PI / 2;
-              const slices = absTotal > 0 ? cats.map((c) => {
-                const v = r[c.k] || 0;
-                const sweep = (Math.abs(v) / absTotal) * 2 * Math.PI;
-                const x1 = cx + rad * Math.cos(ang);
-                const y1 = cy + rad * Math.sin(ang);
-                ang += sweep;
-                const x2 = cx + rad * Math.cos(ang);
-                const y2 = cy + rad * Math.sin(ang);
-                const large = sweep > Math.PI ? 1 : 0;
-                const path = `M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${rad},${rad} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z`;
-                return { ...c, v, sweep, path, pct: absTotal > 0 ? (Math.abs(v) / absTotal) * 100 : 0 };
-              }) : [];
-              return (
-                <div key={r.month} className="rounded-xl border hairline bg-ink-900/60 p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-[11px] text-bone">{moLabel(r.month)}</span>
-                    <span className={`font-mono text-[11px] font-semibold ${signClass(r.total)}`}>{dUsdSigned(r.total)}</span>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    {/* Pie */}
-                    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-                      {slices.length === 0 ? (
-                        <circle cx={cx} cy={cy} r={rad} fill="rgba(255,255,255,0.05)" />
-                      ) : slices.map((s, i) => (
-                        <path key={i} d={s.path} fill={s.v >= 0 ? s.color : "#fb7185"} opacity={s.v >= 0 ? 0.85 : 0.5} />
-                      ))}
-                    </svg>
-                    {/* Légende */}
-                    <div className="space-y-1.5 min-w-0 flex-1">
-                      {cats.map((c) => (
-                        <div key={c.k} className="flex items-center justify-between gap-2 text-[11px]">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="h-2 w-2 rounded-full shrink-0" style={{ background: c.color }} />
-                            <span className="text-mist/70 truncate">{c.label}</span>
-                          </div>
-                          <span className={`font-mono tabular-nums ${signClass(r[c.k] || 0)}`}>{cellVal(r[c.k] || 0)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <Disclaimer>
-        PnL réalisé reconstitué depuis l'historique Kraken (trades spot/marge + journal des perps du
-        compte maître). Le PnL spot dépend du prix de revient reconstitué (approximatif). Les
-        performances passées ne préjugent pas des performances futures.
-      </Disclaimer>
+      <AssetTables />
     </div>
   );
 }
@@ -1106,10 +1013,10 @@ export function Monitoring({ onGoCopy }) {
         </div>
       </div>
 
-      {/* Titre Portefeuille safe */}
-      <div className="mb-4 mt-1">
-        <h4 className="font-display text-[16px] text-bone">Portefeuille safe</h4>
-        <p className="text-[11.5px] text-mist/60 mt-0.5">Copy permanent · faible levier · résultats depuis le lancement</p>
+      {/* Titre Portefeuille Trading */}
+      <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">
+        <h4 className="font-display text-[16px] text-bone">Portefeuille Trading</h4>
+        <LiveTag />
       </div>
 
       {/* KPIs performance */}

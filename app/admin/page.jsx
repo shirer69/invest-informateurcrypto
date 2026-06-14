@@ -801,9 +801,12 @@ function CopyAuto({ adminKey }) {
   const [reqBusy, setReqBusy] = useState("");
 
   const load = useCallback(async () => {
-    setData(await adminGet("/api/admin/copy/users", adminKey));
-    const m = await adminGet("/api/admin/members", adminKey);
-    setRequests((m.members || []).filter((u) => u.copy_request && !u.copy_access));
+    const [copyData, membersData] = await Promise.all([
+      adminGet("/api/admin/copy/users", adminKey).catch(() => null),
+      adminGet("/api/admin/members", adminKey).catch(() => null),
+    ]);
+    if (copyData) setData(copyData);
+    setRequests(((membersData?.members) || []).filter((u) => u.copy_request && !u.copy_access));
   }, [adminKey]);
 
   useEffect(() => { load(); const id = setInterval(load, 10000); return () => clearInterval(id); }, [load]);
@@ -823,9 +826,10 @@ function CopyAuto({ adminKey }) {
     load();
   }
 
-  if (!data) return <div className="text-mist text-[14px]">Chargement…</div>;
-  const m = data.master || {};
-  const users = data.users || [];
+  const m = data || {};
+  if (!data && requests.length === 0) return <div className="text-mist text-[14px]">Chargement…</div>;
+  const master = (data || {}).master || {};
+  const users = (data || {}).users || [];
 
   return (
     <div>
@@ -875,8 +879,8 @@ function CopyAuto({ adminKey }) {
 
       {/* Compte maître A */}
       <div className="grid sm:grid-cols-4 gap-4 mb-6">
-        <KPI label="Compte maître (A)" value={m.configured ? usd(m.equity) : "non configuré"} sub={m.flat ? "flat" : `${m.positions} position(s)`} accent="text-gold-grad" />
-        <KPI label="Moteur" value={m.running ? "actif" : "à l'arrêt"} accent={m.running ? "text-pos" : "text-mist"} />
+        <KPI label="Compte maître (A)" value={master.configured ? usd(master.equity) : "non configuré"} sub={master.flat ? "flat" : `${master.positions} position(s)`} accent="text-gold-grad" />
+        <KPI label="Moteur" value={master.running ? "actif" : "à l'arrêt"} accent={master.running ? "text-pos" : "text-mist"} />
         <KPI label="Copys configurés" value={users.length} />
         <KPI label="Copys actifs" value={users.filter((u) => u.active).length} accent="text-pos" />
       </div>

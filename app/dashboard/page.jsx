@@ -41,7 +41,15 @@ const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [tab, setRawTab] = useState("portfolio");
-  const setTab = (t) => { setRawTab(t); try { localStorage.setItem("pi_active_tab", t); } catch {} };
+  const setTab = (t) => {
+    setRawTab(t);
+    try { localStorage.setItem("pi_active_tab", t); } catch {}
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", t);
+      window.history.replaceState(null, "", url.toString());
+    } catch {}
+  };
   const [tgLink, setTgLink] = useState(TELEGRAM_URL);
   const [loginOpen, setLoginOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);

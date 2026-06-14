@@ -703,7 +703,7 @@ function BulkIiban({ adminKey, onReload }) {
 
 function Codes({ adminKey }) {
   const [codes, setCodes] = useState(null);
-  const [form, setForm] = useState({ code: "", days: 0, max_uses: 60 });
+  const [form, setForm] = useState({ code: "", days: 7, max_uses: 1, scope: null });
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -719,9 +719,11 @@ function Codes({ adminKey }) {
     setBusy(true); setMsg(null);
     const d = await adminPost("/api/admin/codes/create", adminKey, {
       code, days: form.days === "" ? 0 : Number(form.days), max_uses: Number(form.max_uses) || 1,
+      scope: form.scope || null,
     });
     setBusy(false);
-    if (d?.ok) { setMsg({ ok: true, t: `Code ${d.code} créé (${d.max_uses} usages · ${d.days} j).` }); setForm({ ...form, code: "" }); load(); }
+    const scopeLabel = d?.scope === "monitoring" ? " · Monitoring uniquement" : "";
+    if (d?.ok) { setMsg({ ok: true, t: `Code ${d.code} créé (${d.max_uses} usage(s) · ${d.days} j${scopeLabel}).` }); setForm({ ...form, code: "" }); load(); }
     else setMsg({ ok: false, t: d?.error === "code_exists" ? "Ce code existe déjà." : "Création impossible." });
   }
 
@@ -733,11 +735,24 @@ function Codes({ adminKey }) {
       <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5 max-w-2xl">
         <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-1">Créer un code d'invitation</div>
         <p className="text-[12.5px] text-mist mb-3">Code nommé multi-usage : durée d'accès + nombre d'utilisations max (1 par personne).</p>
+        {/* Sélecteur de type */}
+        <div className="flex gap-2 mb-3">
+          {[
+            { value: null, label: "Accès complet", desc: "Dashboard + statut membre" },
+            { value: "monitoring", label: "Monitoring uniquement", desc: "Accès audio sans statut membre" },
+          ].map((opt) => (
+            <button key={String(opt.value)} onClick={() => setForm({ ...form, scope: opt.value })}
+              className={`flex-1 rounded-xl border px-3 py-2.5 text-left transition-colors ${form.scope === opt.value ? "border-gold/60 bg-gold/[0.08] text-bone" : "border-white/10 text-mist hover:text-bone"}`}>
+              <div className="text-[13px] font-medium">{opt.label}</div>
+              <div className="text-[11px] text-mist/60 mt-0.5">{opt.desc}</div>
+            </button>
+          ))}
+        </div>
         <div className="grid sm:grid-cols-[1fr_auto_auto_auto] gap-2 items-end">
           <div>
             <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Code</label>
             <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })}
-              placeholder="20FREE3M"
+              placeholder={form.scope === "monitoring" ? "MONITOR7J" : "20FREE3M"}
               className="w-full rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3.5 py-2.5 text-bone font-mono uppercase tracking-wider outline-none" />
           </div>
           <div>
@@ -763,10 +778,11 @@ function Codes({ adminKey }) {
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
               <th className="px-5 py-3">Code</th>
+              <th className="px-5 py-3">Type</th>
               <th className="px-5 py-3">Accès</th>
               <th className="px-5 py-3">Utilisations</th>
               <th className="px-5 py-3">Restantes</th>
-              <th className="px-5 py-3">Lien d'invitation</th>
+              <th className="px-5 py-3">Lien</th>
             </tr>
           </thead>
           <tbody>
@@ -775,6 +791,12 @@ function Codes({ adminKey }) {
             {codes && codes.map((c) => (
               <tr key={c.code} className="border-b hairline last:border-0">
                 <td className="px-5 py-3 font-mono text-bone">{c.code}</td>
+                <td className="px-5 py-3">
+                  {c.scope === "monitoring"
+                    ? <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">📡 Monitoring</span>
+                    : <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">Complet</span>
+                  }
+                </td>
                 <td className="px-5 py-3 text-mist">{c.days} j</td>
                 <td className="px-5 py-3 font-mono">{c.used} / {c.max_uses}</td>
                 <td className="px-5 py-3">
@@ -782,7 +804,7 @@ function Codes({ adminKey }) {
                 </td>
                 <td className="px-5 py-3">
                   <button onClick={() => { try { navigator.clipboard.writeText(`${SITE}/dashboard?code=${c.code}`); } catch {} }}
-                    className="text-[12px] text-gold hover:text-gold-soft underline">Copier le lien</button>
+                    className="text-[12px] text-gold hover:text-gold-soft underline">Copier</button>
                 </td>
               </tr>
             ))}

@@ -1,17 +1,18 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
+import { hasAccess, hasMonitoringAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
 
-const Ctx = createContext({ locked: true, openUnlock: () => {}, wallet: null });
+const Ctx = createContext({ locked: true, monitoringAccess: false, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
 
 export function UnlockProvider({ children }) {
   const [locked, setLocked] = useState(true);
+  const [monitoringAccess, setMonitoringAccess] = useState(false);
   const [wallet, setWallet] = useState(null);
   const [open, setOpen] = useState(false);
 
@@ -19,14 +20,17 @@ export function UnlockProvider({ children }) {
     const r = await apiAccess();
     if (r && r.ok) {
       setLocked(!r.has_access);
+      setMonitoringAccess(!!r.monitoring_access || r.has_access);
       setWallet({ wallet_balance: r.wallet_balance, price_usd: r.price_usd, can_pay: r.can_pay });
     } else {
       setLocked(!hasAccess());
+      setMonitoringAccess(hasMonitoringAccess() || hasAccess());
     }
   }, []);
 
   useEffect(() => {
     setLocked(!hasAccess());
+    setMonitoringAccess(hasMonitoringAccess() || hasAccess());
     refresh();
   }, [refresh]);
 
@@ -50,7 +54,7 @@ export function UnlockProvider({ children }) {
   const onUnlocked = useCallback(() => { setLocked(false); }, []);
 
   return (
-    <Ctx.Provider value={{ locked, openUnlock, wallet }}>
+    <Ctx.Provider value={{ locked, monitoringAccess, openUnlock, wallet }}>
       {children}
       {open && (
         <UnlockModal

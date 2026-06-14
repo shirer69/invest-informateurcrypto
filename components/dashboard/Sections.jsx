@@ -809,7 +809,17 @@ export function Monitoring({ onGoCopy }) {
     asset: t.asset,
     direction: t.direction,
     pnlUsd: t.pnl_usd,
-    pnlPct: t.pnl_pct != null ? (t.pnl_pct >= 0 ? "+" : "") + Number(t.pnl_pct).toFixed(2) + "%" : "—",
+    pnlPct: (() => {
+      if (t.pnl_pct != null && t.pnl_pct !== "") return String(t.pnl_pct);
+      if (t.entry_price && t.exit_price) {
+        const isLong = /long|buy/i.test(t.direction || "");
+        const pct = isLong
+          ? (t.exit_price - t.entry_price) / t.entry_price * 100
+          : (t.entry_price - t.exit_price) / t.entry_price * 100;
+        return (pct >= 0 ? "+" : "") + pct.toFixed(2) + "%";
+      }
+      return "—";
+    })(),
     ts: (t.opened_at || t.created_at || 0) * 1000,
   }));
   const allTrades = [...futuresList, ...forexList].sort((a, b) => b.ts - a.ts);

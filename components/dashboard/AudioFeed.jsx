@@ -19,6 +19,7 @@ function dateLabel(iso) {
   try {
     return new Date(iso).toLocaleString("fr-FR", {
       weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+      timeZone: "Europe/Paris",
     });
   } catch { return ""; }
 }

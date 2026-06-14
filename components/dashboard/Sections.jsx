@@ -1088,7 +1088,7 @@ export function Monitoring({ onGoCopy }) {
             target="_blank" rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
           >
-            Relevez le défi <IconArrow className="h-3.5 w-3.5" />
+            Activer le copy auto <IconArrow className="h-3.5 w-3.5" />
           </a>
         </div>
       </div>

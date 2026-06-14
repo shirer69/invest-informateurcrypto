@@ -13,7 +13,7 @@ import { IconArrow } from "@/components/Icons";
  *   skipCode  {boolean}  — si true, saute l'étape code (ex: utilisateur Telegram déjà identifié)
  *   tgName    {string}   — prénom pré-rempli depuis Telegram
  */
-export default function SignupGate({ onDone, onLogin, skipCode = false, tgName = "", title, noPassword = false }) {
+export default function SignupGate({ onDone, onSkip, onLogin, skipCode = false, tgName = "", title, noPassword = false }) {
   const [unlocked, setUnlocked]   = useState(skipCode); // skip direct si Telegram
   const [code, setCode]           = useState("");
   const [codeErr, setCodeErr]     = useState(false);
@@ -186,6 +186,16 @@ export default function SignupGate({ onDone, onLogin, skipCode = false, tgName =
                     : "Créer mon compte & accéder au tableau de bord"}
                 {!busy && <IconArrow className="h-4 w-4" />}
               </button>
+
+              {onSkip && (
+                <button
+                  type="button"
+                  onClick={onSkip}
+                  className="mt-3 w-full text-center text-[12.5px] text-mist/60 hover:text-mist transition-colors"
+                >
+                  Passer pour l'instant
+                </button>
+              )}
 
             </form>
           )}

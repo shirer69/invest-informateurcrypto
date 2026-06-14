@@ -59,6 +59,8 @@ export default function Dashboard() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [codeMsg, setCodeMsg] = useState(null); // {ok, text} — redemption auto via ?code
   const [booted, setBooted] = useState(false); // résolution initiale (web immédiat, mini-app après auto-login)
+  const [gateSkipped, setGateSkipped] = useState(false); // user a cliqué Skip sur le formulaire
+  const [visitCount, setVisitCount] = useState(1); // nb de visites TG (localStorage)
 
   useEffect(() => {
     setUser(getUser());
@@ -67,6 +69,17 @@ export default function Dashboard() {
       if (l) setTgLink(l);
       const savedTab = localStorage.getItem("pi_active_tab");
       if (savedTab) setRawTab(savedTab);
+    } catch {}
+    // Compteur de visites (une seule incrémentation par session navigateur)
+    try {
+      if (!sessionStorage.getItem("pi_session_counted")) {
+        const n = parseInt(localStorage.getItem("pi_tg_visit_count") || "0", 10) + 1;
+        localStorage.setItem("pi_tg_visit_count", String(n));
+        sessionStorage.setItem("pi_session_counted", "1");
+        setVisitCount(n);
+      } else {
+        setVisitCount(parseInt(localStorage.getItem("pi_tg_visit_count") || "1", 10));
+      }
     } catch {}
     apiAccess().then((d) => {
       if (d?.copy_access) setCopyAccess(true);
@@ -179,11 +192,16 @@ export default function Dashboard() {
     );
   }
 
-  if (!registered) {
+  if (!registered && !gateSkipped) {
     const isTgUser = emailLc.endsWith("@telegram.local");
-    // Lien direct ?direct=1 / startapp=direct → saute le code.
-    // Utilisateur Telegram existant (is_new=false) → saute le code (déjà dans le système).
-    // Nouvel utilisateur Telegram (is_new=true, sessionStorage) → doit entrer son code.
+
+    // Visite 1 : on laisse passer sans rien demander
+    if (isTgUser && visitCount === 1) {
+      // Différer la mise à jour pour éviter le rendu en double
+      if (!gateSkipped) setTimeout(() => setGateSkipped(true), 0);
+      return null;
+    }
+
     let isDirect = false;
     try {
       const p = new URLSearchParams(window.location.search);
@@ -191,12 +209,18 @@ export default function Dashboard() {
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
     const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
+
+    // Visites 2-4 : formulaire avec Skip possible
+    // Visite 5+ : formulaire obligatoire (canSkip=false)
+    const canSkip = isTgUser && visitCount >= 2 && visitCount <= 4;
+
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
           onDone={() => setUser(getUser())}
+          onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}

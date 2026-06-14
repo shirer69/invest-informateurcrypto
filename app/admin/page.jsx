@@ -341,25 +341,11 @@ function Members({ members, adminKey }) {
     setCopyStates((s) => ({ ...s, [email]: "loading" }));
     const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant });
     if (r?.ok) {
-      setCopyStates((s) => ({ ...s, [email]: { granted: grant, requested: false } }));
+      setCopyStates((s) => ({ ...s, [email]: grant }));
     } else {
       setCopyStates((s) => ({ ...s, [email]: currentGrant }));
       alert("Erreur lors de la mise à jour.");
     }
-  }
-
-  async function approveCopy(email) {
-    setCopyStates((s) => ({ ...s, [email]: "loading" }));
-    const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant: true });
-    if (r?.ok) setCopyStates((s) => ({ ...s, [email]: { granted: true, requested: false } }));
-    else alert("Erreur.");
-  }
-
-  async function rejectCopy(email) {
-    setCopyStates((s) => ({ ...s, [email]: "loading" }));
-    const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant: false });
-    if (r?.ok) setCopyStates((s) => ({ ...s, [email]: { granted: false, requested: false } }));
-    else alert("Erreur.");
   }
   const reachable = visible.filter((m) => m.tg_id).length;
   return (
@@ -410,8 +396,7 @@ function Members({ members, adminKey }) {
             {visible.map((m) => {
               const cs = copyStates[m.email];
               const loading = cs === "loading";
-              const granted = cs != null && cs !== "loading" ? cs.granted : m.copy_access;
-              const requested = cs != null && cs !== "loading" ? cs.requested : m.copy_request;
+              const granted = cs != null && cs !== "loading" ? cs : m.copy_access;
               return (
               <tr key={m.email} className="border-b hairline last:border-0">
                 <td className="px-5 py-3">
@@ -436,27 +421,17 @@ function Members({ members, adminKey }) {
                 <td className="px-5 py-3">{m.has_kraken_key ? <span className="text-pos">✓</span> : <span className="text-mist/40">—</span>}</td>
                 <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
                 <td className="px-5 py-3">
-                  {loading ? (
-                    <span className="text-mist/50 text-[12px]">…</span>
-                  ) : granted ? (
+                  {m.has_access ? (
                     <button
-                      onClick={() => toggleCopy(m.email, true)}
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-400 transition-colors"
+                      disabled={loading}
+                      onClick={() => toggleCopy(m.email, granted)}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border transition-colors disabled:opacity-50 ${
+                        granted
+                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-400"
+                          : "bg-white/5 border-white/10 text-mist/60 hover:bg-emerald-500/15 hover:border-emerald-500/40 hover:text-emerald-400"
+                      }`}
                     >
-                      ✓ Actif
-                    </button>
-                  ) : requested && m.has_access ? (
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[10px] text-amber-400 border border-amber-500/30 rounded px-1.5 py-0.5">Demande</span>
-                      <button onClick={() => approveCopy(m.email)} className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25 transition-colors">✓</button>
-                      <button onClick={() => rejectCopy(m.email)} className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-rose-500/15 border-rose-500/40 text-rose-400 hover:bg-rose-500/25 transition-colors">✕</button>
-                    </div>
-                  ) : m.has_access ? (
-                    <button
-                      onClick={() => toggleCopy(m.email, false)}
-                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border bg-white/5 border-white/10 text-mist/60 hover:bg-emerald-500/15 hover:border-emerald-500/40 hover:text-emerald-400 transition-colors"
-                    >
-                      Activer
+                      {loading ? "…" : granted ? "✓ Actif" : "Activer"}
                     </button>
                   ) : (
                     <span className="text-mist/30 text-[12px]">—</span>
@@ -822,12 +797,23 @@ function StatusBadge({ s }) {
 function CopyAuto({ adminKey }) {
   const [data, setData] = useState(null);
   const [busy, setBusy] = useState("");
+  const [requests, setRequests] = useState([]);
+  const [reqBusy, setReqBusy] = useState("");
 
   const load = useCallback(async () => {
     setData(await adminGet("/api/admin/copy/users", adminKey));
+    const m = await adminGet("/api/admin/members", adminKey);
+    setRequests((m.members || []).filter((u) => u.copy_request && !u.copy_access));
   }, [adminKey]);
 
-  useEffect(() => { load(); const id = setInterval(load, 6000); return () => clearInterval(id); }, [load]);
+  useEffect(() => { load(); const id = setInterval(load, 10000); return () => clearInterval(id); }, [load]);
+
+  async function handleRequest(email, grant) {
+    setReqBusy(email);
+    await adminPost("/api/admin/user/copy-access", adminKey, { email, grant });
+    setReqBusy("");
+    load();
+  }
 
   async function userAction(email, action) {
     if (action === "flatten" && !confirm("Fermer toutes les positions copy de " + email + " ?")) return;
@@ -843,6 +829,46 @@ function CopyAuto({ adminKey }) {
 
   return (
     <div>
+      {/* Demandes en attente */}
+      {requests.length > 0 && (
+        <div className="mb-6">
+          <h3 className="font-display text-[16px] text-bone mb-3">
+            Demandes d'accès
+            <span className="ml-2 inline-flex items-center justify-center h-5 w-5 rounded-full bg-amber-500/20 text-amber-400 font-mono text-[11px]">{requests.length}</span>
+          </h3>
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/[0.04] overflow-hidden">
+            {requests.map((u) => (
+              <div key={u.email} className="flex items-center justify-between gap-4 px-5 py-3 border-b border-amber-500/10 last:border-0">
+                <div>
+                  <div className="text-bone text-[14px]">{u.name || "—"}</div>
+                  <div className="font-mono text-[11px] text-mist/60">{u.email}</div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {reqBusy === u.email ? (
+                    <span className="text-mist/50 text-[12px]">…</span>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleRequest(u.email, true)}
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25 transition-colors"
+                      >
+                        ✓ Approuver
+                      </button>
+                      <button
+                        onClick={() => handleRequest(u.email, false)}
+                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold border bg-rose-500/15 border-rose-500/40 text-rose-400 hover:bg-rose-500/25 transition-colors"
+                      >
+                        ✕ Rejeter
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-4 py-2.5 mb-5 text-[12px] text-amber-200/90">
         🧪 Copy-trading multi-utilisateurs sur <span className="font-mono">demo-futures.kraken.com</span> (sandbox, fonds fictifs). Chaque utilisateur = compte esclave B avec ses propres clés démo.
       </div>

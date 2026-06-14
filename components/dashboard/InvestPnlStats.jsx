@@ -118,11 +118,9 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
         })}
       </div>
 
-      {/* KPIs globaux */}
-      <div className="grid sm:grid-cols-3 gap-4 mb-5">
+      {/* KPI global */}
+      <div className="mb-5">
         <Kpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`} cls={`font-display text-[20px] ${signClass(totalAll)}`} />
-        <Kpi label="Mois suivis" value={rows.length} />
-        <Kpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
       </div>
 
       {/* Bouton Voir les actifs */}

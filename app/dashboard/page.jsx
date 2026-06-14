@@ -15,7 +15,7 @@ import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XSto
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth, apiAccess } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
@@ -40,6 +40,7 @@ const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
+  const [copyAccess, setCopyAccess] = useState(false);
   const [tab, setRawTab] = useState("portfolio");
   const setTab = (t) => {
     setRawTab(t);
@@ -64,6 +65,7 @@ export default function Dashboard() {
       const savedTab = localStorage.getItem("pi_active_tab");
       if (savedTab) setRawTab(savedTab);
     } catch {}
+    apiAccess().then((d) => { if (d?.copy_access) setCopyAccess(true); }).catch(() => {});
     // Hors mini-app Telegram : on peut statuer immédiatement.
     let inTg = false;
     try {
@@ -152,7 +154,7 @@ export default function Dashboard() {
   }, []);
 
   const name = user?.name || "Invité";
-  const canCopy = (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
+  const canCopy = copyAccess || (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
   const nav = NAV; // Copy-trading reste visible pour tous ; l'accès est restreint au contenu.
 
   // Tunnel d'entrée : tant que l'utilisateur n'a pas créé son compte (prénom/mail/pwd),

@@ -331,9 +331,22 @@ const CRM_FILTERS = [
 
 function Members({ members, adminKey }) {
   const [filter, setFilter] = useState("all");
+  const [copyStates, setCopyStates] = useState({});
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
   const filterFn = CRM_FILTERS.find((f) => f.id === filter)?.fn ?? (() => true);
   const visible = members.filter(filterFn);
+
+  async function toggleCopy(email, currentGrant) {
+    const grant = !currentGrant;
+    setCopyStates((s) => ({ ...s, [email]: "loading" }));
+    const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant });
+    if (r?.ok) {
+      setCopyStates((s) => ({ ...s, [email]: grant }));
+    } else {
+      setCopyStates((s) => ({ ...s, [email]: currentGrant }));
+      alert("Erreur lors de la mise à jour.");
+    }
+  }
   const reachable = visible.filter((m) => m.tg_id).length;
   return (
     <div>
@@ -359,7 +372,7 @@ function Members({ members, adminKey }) {
       </div>
 
       <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
-        <table className="w-full min-w-[860px] text-[13.5px]">
+        <table className="w-full min-w-[960px] text-[13.5px]">
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
               <th className="px-5 py-3">Membre</th>
@@ -370,6 +383,7 @@ function Members({ members, adminKey }) {
               <th className="px-5 py-3">Dépôt</th>
               <th className="px-5 py-3">Clé Kraken</th>
               <th className="px-5 py-3">Accès</th>
+              <th className="px-5 py-3">Copy Auto</th>
               <th className="px-5 py-3 text-right">Messages</th>
               <th className="px-5 py-3">Academy</th>
               <th className="px-5 py-3">Dernière activité</th>
@@ -377,9 +391,13 @@ function Members({ members, adminKey }) {
           </thead>
           <tbody>
             {visible.length === 0 && (
-              <tr><td colSpan={11} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
+              <tr><td colSpan={12} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
             )}
-            {visible.map((m) => (
+            {visible.map((m) => {
+              const copyVal = email => copyStates[email] !== undefined ? copyStates[email] : m.copy_access;
+              const granted = copyVal(m.email);
+              const loading = copyStates[m.email] === "loading";
+              return (
               <tr key={m.email} className="border-b hairline last:border-0">
                 <td className="px-5 py-3">
                   <div className="text-bone">{m.name || "—"}</div>
@@ -402,11 +420,29 @@ function Members({ members, adminKey }) {
                 </td>
                 <td className="px-5 py-3">{m.has_kraken_key ? <span className="text-pos">✓</span> : <span className="text-mist/40">—</span>}</td>
                 <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
+                <td className="px-5 py-3">
+                  {m.has_access ? (
+                    <button
+                      disabled={loading}
+                      onClick={() => toggleCopy(m.email, granted)}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border transition-colors disabled:opacity-50 ${
+                        granted
+                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-400"
+                          : "bg-white/5 border-white/10 text-mist/60 hover:bg-emerald-500/15 hover:border-emerald-500/40 hover:text-emerald-400"
+                      }`}
+                    >
+                      {loading ? "…" : granted ? "✓ Actif" : "Activer"}
+                    </button>
+                  ) : (
+                    <span className="text-mist/30 text-[12px]">—</span>
+                  )}
+                </td>
                 <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
                 <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
                 <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
               </tr>
-            ))}
+            );})}
+
           </tbody>
         </table>
       </div>

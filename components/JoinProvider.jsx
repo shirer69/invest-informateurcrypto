@@ -155,7 +155,7 @@ export default function JoinProvider({ children }) {
     }
 
     if (typeof window !== "undefined") {
-      window.location.href = "/";
+      window.location.href = "/dashboard?tab=portfolio";
     }
   };
 

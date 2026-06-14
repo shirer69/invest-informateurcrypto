@@ -39,7 +39,7 @@ export default function ResetPage() {
     const r = await apiReset({ token, password: pwd });
     setBusy(false);
     if (r.ok) {
-      window.location.href = "/";
+      window.location.href = "/dashboard?tab=portfolio";
     } else {
       setErr(r.error === "invalid_token"
         ? "Lien expiré ou invalide. Refaites une demande."

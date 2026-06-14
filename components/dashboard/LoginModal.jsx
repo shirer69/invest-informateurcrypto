@@ -19,7 +19,7 @@ export default function LoginModal({ open, onClose }) {
     const r = await apiLogin({ email: email.trim(), password: pwd });
     setBusy(false);
     if (r.ok) {
-      window.location.href = "/";
+      window.location.href = "/dashboard?tab=portfolio";
     } else {
       setErr(r.error === "invalid_credentials" ? "E-mail ou mot de passe incorrect." : "Connexion impossible.");
     }

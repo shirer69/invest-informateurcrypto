@@ -60,6 +60,8 @@ export default function Dashboard() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [codeMsg, setCodeMsg] = useState(null); // {ok, text} — redemption auto via ?code
   const [booted, setBooted] = useState(false); // résolution initiale (web immédiat, mini-app après auto-login)
+  const [visit, setVisit] = useState(0);       // nb de connexions (utilisateurs non inscrits)
+  const [skipped, setSkipped] = useState(false); // « Passer » choisi à la 2e connexion
   const [gateSkipped, setGateSkipped] = useState(false); // user a cliqué Skip sur le formulaire
   const [visitCount, setVisitCount] = useState(1); // nb de visites TG (localStorage)
 
@@ -194,9 +196,12 @@ export default function Dashboard() {
     );
   }
 
-  if (!registered && !gateSkipped) {
+  // Gating inscription par nombre de connexions (utilisateurs non inscrits) :
+  //  • 1re connexion  → AUCUN gate (accès direct au dashboard verrouillé)
+  //  • 2e connexion   → gate avec « Passer pour l'instant »
+  //  • 3e connexion + → gate OBLIGATOIRE (pas de skip)
+  if (!registered && !gateSkipped && visitCount >= 2) {
     const isTgUser = emailLc.endsWith("@telegram.local");
-    const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
 
     let isDirect = false;
     try {
@@ -205,9 +210,8 @@ export default function Dashboard() {
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
 
-    // Existants sans mail : Skip autorisé visites 1-2, obligatoire à partir de la 3ème.
-    // Nouveaux : toujours obligatoire (pas de Skip).
-    const canSkip = isTgUser && !isNewTgUser && visitCount < 3;
+    // Skip possible uniquement à la 2e connexion ; obligatoire dès la 3e.
+    const canSkip = visitCount < 3;
 
     return (
       <div className="min-h-screen aura">
@@ -217,9 +221,9 @@ export default function Dashboard() {
           onDone={() => setUser(getUser())}
           onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
-          skipCode={isDirect || (isTgUser && !isNewTgUser)}
+          skipCode={isDirect || isTgUser}
           tgName={isTgUser ? (user?.name || "") : ""}
-          title={isTgUser && !isNewTgUser && !isDirect ? "Ajouter ton mail" : undefined}
+          title={isTgUser && !isDirect ? "Ajouter ton mail" : undefined}
           noPassword={isTgUser}
         />
       </div>

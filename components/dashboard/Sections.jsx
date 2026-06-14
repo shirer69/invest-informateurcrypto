@@ -9,6 +9,7 @@ import AudioFeed from "@/components/dashboard/AudioFeed";
 import { Locked, useUnlock } from "@/components/dashboard/UnlockProvider";
 import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import { AssetTables } from "@/components/dashboard/PortfolioKraken";
+import InvestPnlStats from "@/components/dashboard/InvestPnlStats";
 import LiveTag from "@/components/dashboard/LiveTag";
 import {
   getUser, getToken, copyState, copySaveKeys, copySettings, copyStart, copyStop,
@@ -357,6 +358,8 @@ export function Analytics() {
           </span>
         </button>
       </div>
+
+      <InvestPnlStats showButton={false} />
 
       <AssetTables />
     </div>

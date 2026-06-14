@@ -393,20 +393,10 @@ export default function PortfolioKraken({ onGoInvest }) {
 
       <VipJoinBar />
 
-      {/* Courbe equity (dashboard verrouillé) ou KPIs Spot en direct (déverrouillé) */}
-      {locked ? (
+      {/* Courbe equity (dashboard verrouillé uniquement) */}
+      {locked && (
         <div className="mb-5">
           <TrackRecord />
-        </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
-          {spotKpis.map(({ label, value, sub, cls }) => (
-            <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
-              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
-              <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-              {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
-            </div>
-          ))}
         </div>
       )}
 
@@ -465,6 +455,21 @@ export default function PortfolioKraken({ onGoInvest }) {
           </div>
         </div>
       </div>
+
+      {onGoInvest && (
+        <button
+          onClick={onGoInvest}
+          className="mt-4 w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
+        >
+          <span className="text-[13px] text-bone font-medium">Voir les actifs — Pôle Invest</span>
+          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
+            Voir
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </button>
+      )}
 
       <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">
         Vue agrégée en lecture seule. Valeurs estimées via les prix de marché ; aucune

@@ -60,7 +60,7 @@ function Kpi({ label, value, cls }) {
   );
 }
 
-export default function InvestPnlStats({ onGoInvest }) {
+export default function InvestPnlStats({ onGoInvest, showButton = true }) {
   const { locked } = useUnlock();
   const [rows, setRows] = useState(null);
 
@@ -126,18 +126,20 @@ export default function InvestPnlStats({ onGoInvest }) {
       </div>
 
       {/* Bouton Voir les actifs */}
-      <button
-        onClick={onGoInvest}
-        className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
-      >
-        <span className="text-[13px] text-bone font-medium">Voir les actifs — Pôle Invest</span>
-        <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
-          Voir
-          <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </span>
-      </button>
+      {showButton && (
+        <button
+          onClick={onGoInvest}
+          className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
+        >
+          <span className="text-[13px] text-bone font-medium">Voir les actifs — Pôle Invest</span>
+          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
+            Voir
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </button>
+      )}
     </div>
   );
 }

@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function LegalDisclaimer({ compact = false }) {
   return (
-    <div className={`mt-6 rounded-xl border hairline bg-white/[0.015] px-4 py-4 ${compact ? "text-[10.5px]" : "text-[11px]"} leading-relaxed text-mist/55`}>
+    <div className={`mt-2 rounded-xl border hairline bg-white/[0.015] px-4 py-4 ${compact ? "text-[10.5px]" : "text-[11px]"} leading-relaxed text-mist/55`}>
       {/* Accréditations */}
       <p className="mb-2">
         <span className="text-mist/80 font-medium">Julien Moretto — Conseiller en Investissements Financiers (CIF)</span>{" "}

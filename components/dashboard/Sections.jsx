@@ -27,7 +27,7 @@ const DemoTag = () => (
 );
 
 const Disclaimer = ({ children }) => (
-  <p className="mt-4 text-[11.5px] leading-relaxed text-mist/60">{children}</p>
+  <p className="mt-1.5 text-[11.5px] leading-relaxed text-mist/60">{children}</p>
 );
 
 /* ---------------- Vue d'ensemble ---------------- */

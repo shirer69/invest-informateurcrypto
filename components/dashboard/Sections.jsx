@@ -429,14 +429,17 @@ function TradeHistory() {
 
   const filtered = tab === "all" ? rows
     : tab === "futures" ? rows.filter((r) => r.type === "futures")
-    : rows.filter((r) => r.type !== "futures");
+    : tab === "xstocks" ? rows.filter((r) => r.type === "stock")
+    : rows.filter((r) => r.type !== "futures" && r.type !== "stock");
 
-  const spotPositions = data?.spot_positions || [];
+  const spotPositions = (data?.spot_positions || []).filter((p) => p.kind === "crypto");
+  const xstockPositions = (data?.spot_positions || []).filter((p) => p.kind === "stock");
 
   const TABS = [
     { id: "all", label: "Tous" },
-    { id: "futures", label: "Futures / Forex" },
+    { id: "futures", label: "Futures" },
     { id: "spot", label: "Spot / Marge" },
+    { id: "xstocks", label: "Actions US" },
   ];
 
   return (
@@ -456,14 +459,27 @@ function TradeHistory() {
         </div>
       </div>
 
-      {/* Positions spot ouvertes */}
-      {tab !== "futures" && spotPositions.length > 0 && (
+      {/* Positions ouvertes */}
+      {(tab === "all" || tab === "spot") && spotPositions.length > 0 && (
         <div className="mb-4 rounded-xl border border-sky-500/20 bg-sky-500/[0.04] p-3">
-          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-sky-400/80 mb-2">Positions spot ouvertes</div>
+          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-sky-400/80 mb-2">Positions spot crypto ouvertes</div>
           <div className="flex flex-wrap gap-2">
             {spotPositions.map((p) => (
               <div key={p.symbol} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/50 px-2.5 py-1.5">
                 <span className="font-mono text-[12px] text-bone">{p.symbol === "XBT" ? "BTC" : p.symbol}</span>
+                <span className="font-mono text-[10px] text-mist/50">@ {fmt_price(p.entry_price)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {(tab === "all" || tab === "xstocks") && xstockPositions.length > 0 && (
+        <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
+          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-2">Positions xStocks ouvertes (Actions US Kraken)</div>
+          <div className="flex flex-wrap gap-2">
+            {xstockPositions.map((p) => (
+              <div key={p.symbol} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/50 px-2.5 py-1.5">
+                <span className="font-mono text-[12px] text-bone">{p.symbol}</span>
                 <span className="font-mono text-[10px] text-mist/50">@ {fmt_price(p.entry_price)}</span>
               </div>
             ))}

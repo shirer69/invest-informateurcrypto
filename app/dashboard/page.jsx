@@ -196,6 +196,14 @@ export default function Dashboard() {
 
   if (!registered && !gateSkipped) {
     const isTgUser = emailLc.endsWith("@telegram.local");
+    const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
+
+    // Utilisateurs TG existants (déjà dans la DB, pas nouveaux) :
+    // on les laisse passer les 2 premières visites, gate obligatoire à partir de la 3ème.
+    if (isTgUser && !isNewTgUser && visitCount < 3) {
+      if (!gateSkipped) setTimeout(() => setGateSkipped(true), 0);
+      return null;
+    }
 
     let isDirect = false;
     try {
@@ -203,7 +211,6 @@ export default function Dashboard() {
       const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
-    const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
 
     return (
       <div className="min-h-screen aura">

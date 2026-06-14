@@ -703,7 +703,7 @@ function BulkIiban({ adminKey, onReload }) {
 
 function Codes({ adminKey }) {
   const [codes, setCodes] = useState(null);
-  const [form, setForm] = useState({ code: "", days: 90, max_uses: 60 });
+  const [form, setForm] = useState({ code: "", days: 0, max_uses: 60 });
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -718,7 +718,7 @@ function Codes({ adminKey }) {
     if (code.length < 3) { setMsg({ ok: false, t: "Code trop court (min 3)." }); return; }
     setBusy(true); setMsg(null);
     const d = await adminPost("/api/admin/codes/create", adminKey, {
-      code, days: Number(form.days) || 90, max_uses: Number(form.max_uses) || 1,
+      code, days: form.days === "" ? 0 : Number(form.days), max_uses: Number(form.max_uses) || 1,
     });
     setBusy(false);
     if (d?.ok) { setMsg({ ok: true, t: `Code ${d.code} créé (${d.max_uses} usages · ${d.days} j).` }); setForm({ ...form, code: "" }); load(); }

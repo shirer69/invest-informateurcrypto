@@ -741,6 +741,7 @@ function Codes({ adminKey }) {
           {[
             { value: null, label: "Accès complet", desc: "Dashboard + statut membre" },
             { value: "monitoring", label: "Monitoring uniquement", desc: "Accès audio sans statut membre" },
+            { value: "xstocks", label: "Actions US uniquement", desc: "Onglet X-Stocks sans statut membre" },
           ].map((opt) => (
             <button key={String(opt.value)} onClick={() => setForm({ ...form, scope: opt.value })}
               className={`flex-1 rounded-xl border px-3 py-2.5 text-left transition-colors ${form.scope === opt.value ? "border-gold/60 bg-gold/[0.08] text-bone" : "border-white/10 text-mist hover:text-bone"}`}>
@@ -795,6 +796,8 @@ function Codes({ adminKey }) {
                 <td className="px-5 py-3">
                   {c.scope === "monitoring"
                     ? <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">📡 Monitoring</span>
+                    : c.scope === "xstocks"
+                    ? <span className="inline-flex items-center rounded-full bg-purple-500/15 border border-purple-500/30 px-2 py-0.5 text-[9px] font-semibold text-purple-400 uppercase tracking-wide">📈 Actions US</span>
                     : <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">Complet</span>
                   }
                 </td>

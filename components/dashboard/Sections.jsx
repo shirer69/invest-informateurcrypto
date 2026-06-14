@@ -1811,12 +1811,13 @@ const XSTOCKS_DEMO = [
 ];
 
 export function XStocks() {
-  const { locked } = useUnlock();
+  const { locked, xstocksAccess } = useUnlock();
+  const isUnlocked = !locked || xstocksAccess;
   const [raw, setRaw] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (locked) return;
+    if (!isUnlocked) return;
     setLoading(true);
     fetch("https://api.informateurcrypto.fr/api/kraken/spot-portfolio", { cache: "no-store" })
       .then((r) => r.json())
@@ -1827,7 +1828,7 @@ export function XStocks() {
         .then((r) => r.json()).then(setRaw).catch(() => {});
     }, 120_000);
     return () => clearInterval(id);
-  }, [locked]);
+  }, [isUnlocked]);
 
   const fmtUsd = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const signed = (v) => `${v >= 0 ? "+" : "−"}${fmtUsd(v)}`;
@@ -1836,7 +1837,7 @@ export function XStocks() {
 
   // Build holdings — démo si verrouillé, réel sinon
   const holdings = (() => {
-    if (locked) return XSTOCKS_DEMO;
+    if (!isUnlocked) return XSTOCKS_DEMO;
     if (!raw?.ok || !raw?.holdings) return [];
     return raw.holdings
       .filter((h) => h.kind === "stock")
@@ -1878,7 +1879,7 @@ export function XStocks() {
   return (
     <div>
       <LastInvestment kinds={["stock"]} />
-      <Locked label="Déverrouiller pour voir les Actions">
+      <Locked label="Déverrouiller pour voir les Actions" bypass={xstocksAccess}>
       {/* Titre */}
       <div className="mb-5 flex items-start justify-between gap-3 flex-wrap">
         <div>

@@ -1,18 +1,19 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { hasAccess, hasMonitoringAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
+import { hasAccess, hasMonitoringAccess, hasXStocksAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin, getUser, getToken } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
 
-const Ctx = createContext({ locked: true, monitoringAccess: false, openUnlock: () => {}, wallet: null });
+const Ctx = createContext({ locked: true, monitoringAccess: false, xstocksAccess: false, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
 
 export function UnlockProvider({ children }) {
   const [locked, setLocked] = useState(true);
   const [monitoringAccess, setMonitoringAccess] = useState(false);
+  const [xstocksAccess, setXStocksAccess] = useState(false);
   const [wallet, setWallet] = useState(null);
   const [open, setOpen] = useState(false);
 
@@ -21,16 +22,19 @@ export function UnlockProvider({ children }) {
     if (r && r.ok) {
       setLocked(!r.has_access);
       setMonitoringAccess(!!r.monitoring_access || r.has_access);
+      setXStocksAccess(!!r.xstocks_access || r.has_access);
       setWallet({ wallet_balance: r.wallet_balance, price_usd: r.price_usd, can_pay: r.can_pay });
     } else {
       setLocked(!hasAccess());
       setMonitoringAccess(hasMonitoringAccess() || hasAccess());
+      setXStocksAccess(hasXStocksAccess() || hasAccess());
     }
   }, []);
 
   useEffect(() => {
     setLocked(!hasAccess());
     setMonitoringAccess(hasMonitoringAccess() || hasAccess());
+    setXStocksAccess(hasXStocksAccess() || hasAccess());
     refresh();
   }, [refresh]);
 
@@ -54,7 +58,7 @@ export function UnlockProvider({ children }) {
   const onUnlocked = useCallback(() => { setLocked(false); }, []);
 
   return (
-    <Ctx.Provider value={{ locked, monitoringAccess, openUnlock, wallet }}>
+    <Ctx.Provider value={{ locked, monitoringAccess, xstocksAccess, openUnlock, wallet }}>
       {children}
       {open && (
         <UnlockModal
@@ -68,9 +72,9 @@ export function UnlockProvider({ children }) {
 }
 
 /* Wrapper : floute le contenu + bouton « Déverrouiller » tant que verrouillé. */
-export function Locked({ children, label = "Déverrouiller", className = "" }) {
+export function Locked({ children, label = "Déverrouiller", className = "", bypass = false }) {
   const { locked, openUnlock } = useUnlock();
-  if (!locked) return children;
+  if (!locked || bypass) return children;
   return (
     <div className={`relative min-h-[120px] ${className}`}>
       <div className="pointer-events-none select-none blur-[2.5px] opacity-70" aria-hidden>

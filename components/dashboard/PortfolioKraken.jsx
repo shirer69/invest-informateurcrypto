@@ -359,7 +359,7 @@ export default function PortfolioKraken() {
   const header = (
     <div className="mb-4">
       <div className="flex items-center gap-2">
-        <h3 className="font-display text-[18px] text-bone">Portefeuille Kraken</h3>
+        <h3 className="font-display text-[18px] text-bone">Club des Informateurs</h3>
         <LiveTag />
         <button onClick={load} disabled={loading}
           className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">

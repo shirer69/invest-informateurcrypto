@@ -426,6 +426,7 @@ export function Analytics() {
 
   return (
     <div>
+      <h2 className="font-display text-[22px] text-bone mb-4 tracking-tight">PÔLE INVEST</h2>
       <LastInvestment kinds={["crypto", "margin"]} />
       <div className="flex items-center gap-2.5 flex-wrap mb-4">
         <h3 className="font-display text-[18px] text-bone">Portefeuille mid/long term</h3>
@@ -920,7 +921,7 @@ export function MonitoringAudio() {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h3 className="font-display text-[18px] text-bone">Monitoring — Points audio</h3>
+          <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
           <p className="text-[11.5px] text-mist/70 mt-0.5">
             Analyses vocales de Julien en temps réel
           </p>
@@ -1027,7 +1028,7 @@ export function Monitoring({ onGoCopy }) {
   if (!user) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Portefeuille Trading</h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">PÔLE TRADING</h3>
         <FuturesCTAs />
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 text-[14px] text-mist text-center">
           Connecte-toi pour suivre l'activité du trader en direct.
@@ -1041,7 +1042,7 @@ export function Monitoring({ onGoCopy }) {
       {/* Titre */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div>
-          <h3 className="font-display text-[18px] text-bone">Portefeuille Trading</h3>
+          <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
           <p className="text-[11.5px] text-mist/70 mt-0.5">
             Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployés pilotés par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping.
           </p>

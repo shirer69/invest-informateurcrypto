@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [copyAccess, setCopyAccess] = useState(false);
   const [copyRequest, setCopyRequest] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
+  const [tgInvite, setTgInvite] = useState("");
   const [tab, setRawTab] = useState("portfolio");
   const setTab = (t) => {
     setRawTab(t);
@@ -85,6 +86,7 @@ export default function Dashboard() {
       if (d?.copy_access) setCopyAccess(true);
       if (d?.copy_request) setCopyRequest(true);
       if (d?.has_access) setHasAccess(true);
+      if (d?.tg_invite) setTgInvite(d.tg_invite);
     }).catch(() => {});
     // Hors mini-app Telegram : on peut statuer immédiatement.
     let inTg = false;
@@ -307,6 +309,7 @@ export default function Dashboard() {
               copyAccess={copyAccess}
               copyRequest={copyRequest}
               hasAccess={hasAccess}
+              tgInvite={tgInvite}
               onRequestCopy={async () => {
                 setCopyRequest(true);
                 await apiCopyRequest();

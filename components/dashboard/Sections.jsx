@@ -319,7 +319,7 @@ const DEMO_ROWS = [
   { month: "2026-06", spot: 3.2, stock: 1.7, margin: 0.9, perps: 2.6 },
 ].map((r) => ({ ...r, total: r.spot + r.stock + r.margin + r.perps }));
 
-export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy }) {
+export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequestCopy }) {
   const { openUnlock } = useUnlock();
   return (
     <div>
@@ -378,6 +378,23 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy })
         )}
       </div>
 
+      {/* Lien VIP Telegram pour membres actifs */}
+      {hasAccess && tgInvite && (
+        <a href={tgInvite} target="_blank" rel="noopener noreferrer"
+          className="mt-5 w-full flex items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 hover:bg-emerald-500/[0.10] transition-colors">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-emerald-400" fill="currentColor" aria-hidden>
+              <path d="M9.04 15.47 8.7 20.3c.46 0 .66-.2.9-.43l2.16-2.07 4.48 3.28c.82.45 1.41.21 1.63-.76l2.95-13.81c.26-1.2-.44-1.67-1.24-1.38L2.5 9.66c-1.18.46-1.16 1.12-.2 1.42l4.71 1.47L17.9 6.6c.5-.33.96-.15.58.18z" />
+            </svg>
+            <div>
+              <div className="text-[13px] text-emerald-400 font-medium">Rejoindre le groupe VIP Telegram</div>
+              <div className="font-mono text-[10px] text-mist/50 truncate">{tgInvite}</div>
+            </div>
+          </div>
+          <IconArrow className="h-3.5 w-3.5 shrink-0 text-emerald-400/70" />
+        </a>
+      )}
+
       <InvestPnlStats showButton={false} />
 
       {/* Titre Portefeuille Invest */}
@@ -433,6 +450,7 @@ export function ChallengeBlock({ onGoTrading }) {
         <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full blur-3xl opacity-10" style={{background:"radial-gradient(circle,#eab308,transparent 70%)"}}/>
       </div>
       <div className="relative p-5">
+        <h3 className="font-display text-[18px] text-bone mb-3">Pôle Trading</h3>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>

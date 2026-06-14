@@ -713,7 +713,7 @@ function Billing({ b }) {
 
 /* Aperçu flou des 2 derniers vocaux + overlay unlock */
 function LockedAudioPreview() {
-  const { locked, openUnlock } = useUnlock();
+  const { locked, monitoringAccess, openUnlock } = useUnlock();
   const [audios, setAudios] = useState(null);
   const [retries, setRetries] = useState(0);
 
@@ -753,7 +753,7 @@ function LockedAudioPreview() {
     return `${m}:${String(s).padStart(2, "0")}`;
   }
 
-  if (!locked) {
+  if (!locked || monitoringAccess) {
     return <AudioFeed hideHeader />;
   }
 
@@ -1483,8 +1483,12 @@ export function CopyTrading() {
                 <PillarToggle label="Perps (Futures)" sub="positions à terme"
                   checked={draft.copy_perps !== false}
                   onChange={(v) => setDraft({ ...draft, copy_perps: v })} />
-                <PillarToggle label="Spot" sub="bientôt" disabled checked={false} />
-                <PillarToggle label="Marge" sub="bientôt" disabled checked={false} />
+                <PillarToggle label="Spot" sub="crypto spot"
+                  checked={draft.copy_spot === true}
+                  onChange={(v) => setDraft({ ...draft, copy_spot: v })} />
+                <PillarToggle label="Marge" sub="positions sur marge"
+                  checked={draft.copy_margin === true}
+                  onChange={(v) => setDraft({ ...draft, copy_margin: v })} />
               </div>
               <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 text-[11.5px] text-mist/70">

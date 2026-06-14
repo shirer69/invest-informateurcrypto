@@ -9,7 +9,7 @@ import { getToken } from "@/lib/clientStore";
 
 const LINKS = [
   { label: "Membres", href: "#membres" },
-  { label: "Julien Moretto", href: "#julien" },
+  { label: "À propos", href: "/a-propos" },
   { label: "Vidéos", href: "#videos" },
   { label: "Méthode", href: "#approche" },
   { label: "FAQ", href: "#faq" },

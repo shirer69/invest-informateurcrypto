@@ -20,7 +20,7 @@ import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest }
 
 const NAV = [
   { id: "portfolio", label: "Accueil", icon: "🏠" },
-  { id: "analytics", label: "Invest", icon: "📊" },
+  { id: "analytics", label: "Invest", icon: "📊", badge: "New" },
   { id: "monitoring", label: "Trading", icon: "⚡" },
   { id: "audio", label: "Monitoring", icon: "📡" },
   { id: "vip", label: "Actions", icon: "📈" },
@@ -257,6 +257,28 @@ export default function Dashboard() {
               <button onClick={() => setLoginOpen(true)}
                       className="btn-gold rounded-full px-4 py-2 text-[12.5px] font-semibold">Se connecter</button>
             )}
+          </div>
+        </div>
+        {/* nav horizontale (visible sur tablette/mobile, masquée sur grand écran avec sidebar) */}
+        <div className="lg:hidden border-t hairline overflow-x-auto">
+          <div className="flex items-center gap-0 min-w-max px-3">
+            {nav.map((n) => (
+              <button
+                key={n.id}
+                onClick={() => setTab(n.id)}
+                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium whitespace-nowrap transition-colors shrink-0 ${
+                  tab === n.id ? "text-gold border-b-2 border-gold" : "text-mist hover:text-bone border-b-2 border-transparent"
+                }`}
+              >
+                <span className="text-[14px] leading-none">{n.icon}</span>
+                <span>{n.label}</span>
+                {n.badge && (
+                  <span className="rounded-full bg-gold/20 border gold-line px-1.5 text-[8px] font-mono uppercase tracking-wider text-gold">
+                    {n.badge}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
         </div>
       </header>

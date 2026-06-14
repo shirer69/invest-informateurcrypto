@@ -42,7 +42,7 @@ export default function Founder() {
         <Reveal>
           <div className="lg:sticky lg:top-28">
             <div className="relative rounded-2xl glass overflow-hidden">
-              <FounderPhoto src="/julien.jpg" alt="Julien Moretto" />
+              <FounderPhoto src="/julien.jpg" alt="Julien Moretto" href="/a-propos" />
               <div className="p-6">
                 <h3 className="font-display text-2xl text-bone">Julien Moretto</h3>
                 <p className="mt-1 text-[13.5px] text-gold">Conseiller financier indépendant</p>

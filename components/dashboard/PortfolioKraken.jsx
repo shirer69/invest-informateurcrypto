@@ -480,10 +480,6 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
         <ChallengeBlock onGoTrading={onGoTrading} />
       </div>
 
-      <p className="mt-2 text-[11.5px] leading-relaxed text-mist/60">
-        Vue agrégée en lecture seule. Valeurs estimées via les prix de marché ; aucune
-        exécution d'ordre ni mouvement de fonds depuis cette interface.
-      </p>
     </div>
   );
 }

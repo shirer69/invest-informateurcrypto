@@ -19,7 +19,7 @@ import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest } from "@/lib/clientStore";
 
 const NAV = [
-  { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
+  { id: "portfolio", label: "Accueil", icon: "🏠" },
   { id: "analytics", label: "Invest", icon: "📊" },
   { id: "monitoring", label: "Trading", icon: "⚡" },
   { id: "audio", label: "Monitoring", icon: "📡" },
@@ -347,7 +347,7 @@ export default function Dashboard() {
       </div>
 
       {/* Disclaimer réglementaire */}
-      <div className="mx-auto max-w-[860px] px-4 pb-6 lg:pb-10">
+      <div className="mx-auto max-w-[860px] px-4 pb-[calc(80px+env(safe-area-inset-bottom))] lg:pb-12">
         <LegalDisclaimer />
       </div>
 

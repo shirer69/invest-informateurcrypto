@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { copyMaster, apiAccess } from "@/lib/clientStore";
+import { API_BASE } from "@/lib/site";
 import { Locked, useUnlock } from "./UnlockProvider";
 import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
@@ -212,10 +213,10 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
 
     // 2) Le reste (futures, marge, tickers) en arrière-plan, sans bloquer l'affichage.
     const [f, fp, mp, tk, ma] = await Promise.all([
-      fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/account`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/positions`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/tickers`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       copyMaster().catch(() => null),
     ]);
     setFut(f); setFutPos(fp); setMaster(ma);
@@ -497,10 +498,10 @@ export function AssetTables() {
     const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
     setSpot(s); setDone(true);
     const [f, fp, mp, tk] = await Promise.all([
-      fetch("/api/kraken/futures/account").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/account`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/positions`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       fetch("/api/kraken/spot/positions").then((r) => r.json()).catch(() => null),
-      fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
+      fetch(`${API_BASE}/api/kraken/futures/tickers`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
     ]);
     setFut(f); setFutPos(fp);
     const map = {};

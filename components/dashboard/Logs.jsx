@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Locked } from "./UnlockProvider";
 import LiveTag from "./LiveTag";
+import { API_BASE } from "@/lib/site";
 
 const DISPLAY_MULT = 100; // montants à l'échelle du compte (× 100)
 const fmtUsd = (x) =>
@@ -31,7 +32,7 @@ export default function Logs() {
     (async () => {
       const [sp, fu] = await Promise.all([
         fetch("/api/kraken/spot/trades").then((r) => r.json()).catch(() => null),
-        fetch("/api/kraken/futures/fills").then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/kraken/futures/fills`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       ]);
       if (!alive) return;
       const all = [...((sp?.trades) || []), ...((fu?.trades) || [])].sort((a, b) => b.ts - a.ts);

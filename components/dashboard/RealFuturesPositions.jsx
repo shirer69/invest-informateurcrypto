@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { API_BASE } from "@/lib/site";
 
 // Positions du compte Futures Kraken RÉEL (lecture seule via /api/kraken/futures/*).
 // États : chargement · non configuré · compte non activé · aucune position · liste.
@@ -11,8 +12,8 @@ export default function RealFuturesPositions({ compact = false }) {
   const load = useCallback(async () => {
     try {
       const [pr, tk] = await Promise.all([
-        fetch("/api/kraken/futures/positions").then((r) => r.json()).catch(() => null),
-        fetch("/api/kraken/futures/tickers").then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/kraken/futures/positions`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/kraken/futures/tickers`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
       ]);
       if (!pr || !pr.ok) {
         const err = pr?.error || "";

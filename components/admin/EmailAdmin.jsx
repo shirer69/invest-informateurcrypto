@@ -25,10 +25,11 @@ const fmtDate = (ts) =>
   ts ? new Date(ts * 1000).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }) : "—";
 
 const AUDIENCES = [
-  { id: "all",     label: "Tous (comptes email réels)" },
-  { id: "members", label: "Membres actifs (accès ouvert)" },
-  { id: "users",   label: "Utilisateurs Telegram uniquement" },
-  { id: "copy",    label: "Membres avec copy actif" },
+  { id: "all",                 label: "Tous (comptes email réels)" },
+  { id: "members",             label: "Membres actifs (accès ouvert)" },
+  { id: "all_except_members",  label: "Tous sauf membres actifs" },
+  { id: "users",               label: "Utilisateurs Telegram uniquement" },
+  { id: "copy",                label: "Membres avec copy actif" },
 ];
 
 /* ─── Sous-onglets ────────────────────────────────────────────────────────── */

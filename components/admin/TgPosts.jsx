@@ -49,11 +49,12 @@ const SAMPLE_VARS = {
 const sample = (t) => (t || "").replace(/\{(\w+)\}/g, (_, k) => SAMPLE_VARS[k] ?? `{${k}}`);
 
 const AUDIENCES = [
-  { id: "all", label: "Tous (DMs)" },
-  { id: "members", label: "Membres (email)" },
-  { id: "users", label: "Telegram" },
-  { id: "copy", label: "Copy actifs" },
-  { id: "none", label: "Canaux seulement" },
+  { id: "all",                label: "Tous (DMs)" },
+  { id: "members",            label: "Membres (email)" },
+  { id: "all_except_members", label: "Tous sauf actifs" },
+  { id: "users",              label: "Telegram" },
+  { id: "copy",               label: "Copy actifs" },
+  { id: "none",               label: "Canaux seulement" },
 ];
 
 export default function TgPosts({ adminKey }) {

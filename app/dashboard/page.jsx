@@ -15,7 +15,7 @@ import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XSto
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth, apiAccess } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest } from "@/lib/clientStore";
 
 const NAV = [
   { id: "portfolio", label: "Portefeuille Kraken", icon: "💼" },
@@ -41,6 +41,7 @@ const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
 export default function Dashboard() {
   const [user, setUser] = useState(null);
   const [copyAccess, setCopyAccess] = useState(false);
+  const [copyRequest, setCopyRequest] = useState(false);
   const [tab, setRawTab] = useState("portfolio");
   const setTab = (t) => {
     setRawTab(t);
@@ -65,7 +66,10 @@ export default function Dashboard() {
       const savedTab = localStorage.getItem("pi_active_tab");
       if (savedTab) setRawTab(savedTab);
     } catch {}
-    apiAccess().then((d) => { if (d?.copy_access) setCopyAccess(true); }).catch(() => {});
+    apiAccess().then((d) => {
+      if (d?.copy_access) setCopyAccess(true);
+      if (d?.copy_request) setCopyRequest(true);
+    }).catch(() => {});
     // Hors mini-app Telegram : on peut statuer immédiatement.
     let inTg = false;
     try {
@@ -271,7 +275,16 @@ export default function Dashboard() {
           {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
           {/* Monitoring audio : points vocaux de Julien */}
           {tab === "audio" && <MonitoringAudio />}
-          {tab === "analytics" && <Analytics />}
+          {tab === "analytics" && (
+            <Analytics
+              copyAccess={copyAccess}
+              copyRequest={copyRequest}
+              onRequestCopy={async () => {
+                setCopyRequest(true);
+                await apiCopyRequest();
+              }}
+            />
+          )}
           {/* Vidéos : accès libre même dashboard verrouillé */}
           {tab === "videos" && <VideosFeed />}
           {/* Chat : ouvert à tous (même dashboard verrouillé) */}
@@ -287,12 +300,26 @@ export default function Dashboard() {
             <div>
               <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading (Futures)</h3>
               <div className="rounded-2xl border gold-line bg-gold/[0.05] p-8 text-center">
-                <div className="text-[28px] mb-3">🔒</div>
-                <p className="font-display text-[20px] text-bone">Bientôt disponible</p>
-                <p className="mt-2 text-[13.5px] leading-relaxed text-mist max-w-prose2 mx-auto">
-                  Le copy-trading automatique est en cours de déploiement et n'est pas encore ouvert
-                  à votre compte. Il sera activé prochainement pour l'ensemble des membres.
+                <div className="text-[28px] mb-3">{copyRequest ? "⏳" : "🔒"}</div>
+                <p className="font-display text-[20px] text-bone">
+                  {copyRequest ? "Demande envoyée" : "Accès sur demande"}
                 </p>
+                <p className="mt-2 text-[13.5px] leading-relaxed text-mist max-w-prose2 mx-auto">
+                  {copyRequest
+                    ? "Votre demande d'accès au copy auto a bien été transmise. Julien la traitera prochainement."
+                    : "Le copy-trading automatique est disponible sur demande. Cliquez ci-dessous pour envoyer une demande d'accès à Julien."}
+                </p>
+                {!copyRequest && (
+                  <button
+                    onClick={async () => {
+                      setCopyRequest(true);
+                      await apiCopyRequest();
+                    }}
+                    className="mt-6 btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold"
+                  >
+                    Demander l'accès au copy auto
+                  </button>
+                )}
               </div>
             </div>
           ))}

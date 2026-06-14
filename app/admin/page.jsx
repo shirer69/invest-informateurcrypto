@@ -341,11 +341,25 @@ function Members({ members, adminKey }) {
     setCopyStates((s) => ({ ...s, [email]: "loading" }));
     const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant });
     if (r?.ok) {
-      setCopyStates((s) => ({ ...s, [email]: grant }));
+      setCopyStates((s) => ({ ...s, [email]: { granted: grant, requested: false } }));
     } else {
       setCopyStates((s) => ({ ...s, [email]: currentGrant }));
       alert("Erreur lors de la mise à jour.");
     }
+  }
+
+  async function approveCopy(email) {
+    setCopyStates((s) => ({ ...s, [email]: "loading" }));
+    const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant: true });
+    if (r?.ok) setCopyStates((s) => ({ ...s, [email]: { granted: true, requested: false } }));
+    else alert("Erreur.");
+  }
+
+  async function rejectCopy(email) {
+    setCopyStates((s) => ({ ...s, [email]: "loading" }));
+    const r = await adminPost("/api/admin/user/copy-access", adminKey, { email, grant: false });
+    if (r?.ok) setCopyStates((s) => ({ ...s, [email]: { granted: false, requested: false } }));
+    else alert("Erreur.");
   }
   const reachable = visible.filter((m) => m.tg_id).length;
   return (
@@ -394,9 +408,10 @@ function Members({ members, adminKey }) {
               <tr><td colSpan={12} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
             )}
             {visible.map((m) => {
-              const copyVal = email => copyStates[email] !== undefined ? copyStates[email] : m.copy_access;
-              const granted = copyVal(m.email);
-              const loading = copyStates[m.email] === "loading";
+              const cs = copyStates[m.email];
+              const loading = cs === "loading";
+              const granted = cs != null && cs !== "loading" ? cs.granted : m.copy_access;
+              const requested = cs != null && cs !== "loading" ? cs.requested : m.copy_request;
               return (
               <tr key={m.email} className="border-b hairline last:border-0">
                 <td className="px-5 py-3">
@@ -421,17 +436,27 @@ function Members({ members, adminKey }) {
                 <td className="px-5 py-3">{m.has_kraken_key ? <span className="text-pos">✓</span> : <span className="text-mist/40">—</span>}</td>
                 <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
                 <td className="px-5 py-3">
-                  {m.has_access ? (
+                  {loading ? (
+                    <span className="text-mist/50 text-[12px]">…</span>
+                  ) : granted ? (
                     <button
-                      disabled={loading}
-                      onClick={() => toggleCopy(m.email, granted)}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border transition-colors disabled:opacity-50 ${
-                        granted
-                          ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-400"
-                          : "bg-white/5 border-white/10 text-mist/60 hover:bg-emerald-500/15 hover:border-emerald-500/40 hover:text-emerald-400"
-                      }`}
+                      onClick={() => toggleCopy(m.email, true)}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-rose-500/15 hover:border-rose-500/40 hover:text-rose-400 transition-colors"
                     >
-                      {loading ? "…" : granted ? "✓ Actif" : "Activer"}
+                      ✓ Actif
+                    </button>
+                  ) : requested && m.has_access ? (
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[10px] text-amber-400 border border-amber-500/30 rounded px-1.5 py-0.5">Demande</span>
+                      <button onClick={() => approveCopy(m.email)} className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-emerald-500/15 border-emerald-500/40 text-emerald-400 hover:bg-emerald-500/25 transition-colors">✓</button>
+                      <button onClick={() => rejectCopy(m.email)} className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold border bg-rose-500/15 border-rose-500/40 text-rose-400 hover:bg-rose-500/25 transition-colors">✕</button>
+                    </div>
+                  ) : m.has_access ? (
+                    <button
+                      onClick={() => toggleCopy(m.email, false)}
+                      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold border bg-white/5 border-white/10 text-mist/60 hover:bg-emerald-500/15 hover:border-emerald-500/40 hover:text-emerald-400 transition-colors"
+                    >
+                      Activer
                     </button>
                   ) : (
                     <span className="text-mist/30 text-[12px]">—</span>

@@ -11,6 +11,7 @@ import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { IconArrow } from "@/components/Icons";
 import TrackRecord from "@/components/TrackRecord";
 import Countdown from "@/components/Countdown";
+import { ChallengeBlock } from "@/components/dashboard/Sections";
 
 // Barre d'accès au groupe VIP Telegram (grisée tant que le dashboard est verrouillé).
 function VipJoinBar() {
@@ -191,7 +192,7 @@ function Section({ title, dot, icon, badge, children }) {
 }
 
 
-export default function PortfolioKraken({ onGoInvest }) {
+export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   const { locked } = useUnlock();
   const [loading, setLoading] = useState(true);
   const [spot, setSpot] = useState(null);
@@ -475,7 +476,11 @@ export default function PortfolioKraken({ onGoInvest }) {
         </button>
       )}
 
-      <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">
+      <div className="mt-5">
+        <ChallengeBlock onGoTrading={onGoTrading} />
+      </div>
+
+      <p className="mt-2 text-[11.5px] leading-relaxed text-mist/60">
         Vue agrégée en lecture seule. Valeurs estimées via les prix de marché ; aucune
         exécution d'ordre ni mouvement de fonds depuis cette interface.
       </p>

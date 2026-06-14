@@ -405,6 +405,80 @@ const STATUS_META = {
   stopped_loss: { label: "Coupé (seuil de perte atteint)", color: "text-rose-400", dot: "bg-rose-400" },
 };
 
+/* ── Challenge Forex (bloc partagé) ── */
+const CHALLENGE_CAPITAL = 5000;
+const CHALLENGE_BASELINE_PCT = 29.20;
+const CHALLENGE_TRACKING_SINCE = 1781395200;
+const CHALLENGE_START_TS = 1780617600;
+
+export function ChallengeBlock({ onGoTrading }) {
+  const [forexTrades, setForexTrades] = useState([]);
+  useEffect(() => {
+    fetch("https://api.informateurcrypto.fr/api/julien/trades")
+      .then((r) => r.json())
+      .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
+      .catch(() => {});
+  }, []);
+
+  const newForexPnl = forexTrades
+    .filter((t) => (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
+    .reduce((s, t) => s + (t.pnl_usd || 0), 0);
+  const challengePct = CHALLENGE_BASELINE_PCT + (newForexPnl / CHALLENGE_CAPITAL * 100);
+  const daysElapsed = Math.max(0, Math.floor((Date.now() / 1000 - CHALLENGE_START_TS) / 86400));
+
+  return (
+    <div className="mb-5 rounded-2xl overflow-hidden border border-emerald-500/30 bg-gradient-to-br from-ink-900 via-ink-800/80 to-ink-900 relative">
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full blur-3xl opacity-20" style={{background:"radial-gradient(circle,#22c55e,transparent 70%)"}}/>
+        <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full blur-3xl opacity-10" style={{background:"radial-gradient(circle,#eab308,transparent 70%)"}}/>
+      </div>
+      <div className="relative p-5">
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
+            <div className="font-display text-[28px] leading-none text-emerald-400 font-black">{challengePct >= 0 ? "+" : ""}{challengePct.toFixed(2)} %</div>
+            <div className="font-mono text-[11px] text-mist/70 mt-1">après {daysElapsed} jour{daysElapsed > 1 ? "s" : ""}</div>
+          </div>
+          <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-center shrink-0">
+            <div className="font-mono text-[9px] uppercase tracking-widest2 text-gold/70">Objectif</div>
+            <div className="font-display text-[22px] leading-none text-gold font-black">+100 %</div>
+            <div className="font-mono text-[10px] text-gold/60 mt-0.5">en 30-45 jours</div>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          {[
+            { icon: "📈", label: "Stratégie explosive à haut potentiel" },
+            { icon: "🛡️", label: "Gestion des risques professionnelle" },
+            { icon: "📡", label: "Résultats en temps réel" },
+            { icon: "🏆", label: "Objectif unique +100% en 30-45 j" },
+          ].map(({ icon, label }) => (
+            <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
+              <span className="text-[13px]">{icon}</span>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        {onGoTrading ? (
+          <button
+            onClick={onGoTrading}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
+          >
+            Voir le Pôle Trading <IconArrow className="h-3.5 w-3.5" />
+          </button>
+        ) : (
+          <a
+            href="https://t.me/clubdesinformateurs"
+            target="_blank" rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
+          >
+            Activer le copy auto <IconArrow className="h-3.5 w-3.5" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EquityCurve({ points }) {
   if (!points || points.length < 2) {
     return (
@@ -794,18 +868,6 @@ export function Monitoring({ onGoCopy }) {
     return maxDd;
   })();
 
-  // ── Challenge Forex ──
-  const CHALLENGE_CAPITAL = 5000;
-  const CHALLENGE_BASELINE_PCT = 29.20;       // acquis au 14 juin 2026
-  const CHALLENGE_TRACKING_SINCE = 1781395200; // 14 juin 2026 00:00 UTC (s)
-  const CHALLENGE_START_TS = 1780617600;       // 5 juin 2026 00:00 UTC (s)
-
-  const newForexPnl = forexTrades
-    .filter((t) => (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
-    .reduce((s, t) => s + (t.pnl_usd || 0), 0);
-  const challengePct = CHALLENGE_BASELINE_PCT + (newForexPnl / CHALLENGE_CAPITAL * 100);
-  const daysElapsed = Math.max(0, Math.floor((Date.now() / 1000 - CHALLENGE_START_TS) / 86400));
-
   // ── Historique fusionné futures + forex ──
   const futuresList = jTrades.map((t) => ({
     source: "futures",
@@ -889,47 +951,7 @@ export function Monitoring({ onGoCopy }) {
 
       <FuturesCTAs />
 
-      {/* Challenge +100% */}
-      <div className="mb-5 rounded-2xl overflow-hidden border border-emerald-500/30 bg-gradient-to-br from-ink-900 via-ink-800/80 to-ink-900 relative">
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full blur-3xl opacity-20" style={{background:"radial-gradient(circle,#22c55e,transparent 70%)"}}/>
-          <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full blur-3xl opacity-10" style={{background:"radial-gradient(circle,#eab308,transparent 70%)"}}/>
-        </div>
-        <div className="relative p-5">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div>
-              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
-              <div className="font-display text-[28px] leading-none text-emerald-400 font-black">{challengePct >= 0 ? "+" : ""}{challengePct.toFixed(2)} %</div>
-              <div className="font-mono text-[11px] text-mist/70 mt-1">après {daysElapsed} jour{daysElapsed > 1 ? "s" : ""}</div>
-            </div>
-            <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-center shrink-0">
-              <div className="font-mono text-[9px] uppercase tracking-widest2 text-gold/70">Objectif</div>
-              <div className="font-display text-[22px] leading-none text-gold font-black">+100 %</div>
-              <div className="font-mono text-[10px] text-gold/60 mt-0.5">en 30-45 jours</div>
-            </div>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {[
-              { icon: "📈", label: "Stratégie explosive à haut potentiel" },
-              { icon: "🛡️", label: "Gestion des risques professionnelle" },
-              { icon: "📡", label: "Résultats en temps réel" },
-              { icon: "🏆", label: "Objectif unique +100% en 30-45 j" },
-            ].map(({ icon, label }) => (
-              <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
-                <span className="text-[13px]">{icon}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <a
-            href="https://t.me/clubdesinformateurs"
-            target="_blank" rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
-          >
-            Activer le copy auto <IconArrow className="h-3.5 w-3.5" />
-          </a>
-        </div>
-      </div>
+      <ChallengeBlock />
 
       {/* Titre Portefeuille Trading */}
       <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">

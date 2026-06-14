@@ -268,7 +268,7 @@ export default function Dashboard() {
         {/* content */}
         <main className="min-w-0">
           {/* Portefeuille : chaque tableau est verrouillé individuellement (verrou interne) */}
-          {tab === "portfolio" && <PortfolioKraken onGoInvest={() => setTab("analytics")} />}
+          {tab === "portfolio" && <PortfolioKraken onGoInvest={() => setTab("analytics")} onGoTrading={() => setTab("monitoring")} />}
           {tab === "vip" && <XStocks />}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}

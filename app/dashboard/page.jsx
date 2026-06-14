@@ -64,6 +64,8 @@ export default function Dashboard() {
   const [skipped, setSkipped] = useState(false); // « Passer » choisi à la 2e connexion
   const [gateSkipped, setGateSkipped] = useState(false); // user a cliqué Skip sur le formulaire
   const [visitCount, setVisitCount] = useState(1); // nb de visites TG (localStorage)
+  const [forceCode, setForceCode] = useState(false); // ?code dans l'URL → exiger le code d'invitation
+  const [codePrefill, setCodePrefill] = useState(""); // valeur éventuelle du ?code
 
   useEffect(() => {
     setUser(getUser());
@@ -132,16 +134,19 @@ export default function Dashboard() {
     if (target && VALID.has(target)) setTab(target);
   }, []);
 
-  // Nettoie le param ?code= si présent (le code est entrée seule, pas accès).
+  // ?code dans l'URL → on EXIGE le code d'invitation (et on pré-remplit la valeur
+  // éventuelle), puis on nettoie l'URL.
   useEffect(() => {
     try {
       const u = new URL(window.location.href);
       if (u.searchParams.has("code")) {
+        const v = (u.searchParams.get("code") || "").trim();
+        setForceCode(true);
+        if (v && v !== "1" && v.toLowerCase() !== "true") setCodePrefill(v.toUpperCase());
         u.searchParams.delete("code");
         window.history.replaceState({}, "", u);
       }
     } catch {}
-    try { localStorage.removeItem("pi_pending_code"); } catch {}
   }, []);
 
   // Mini App Telegram : init SDK + connexion automatique via initData
@@ -200,7 +205,9 @@ export default function Dashboard() {
   //  • 1re connexion  → AUCUN gate (accès direct au dashboard verrouillé)
   //  • 2e connexion   → gate avec « Passer pour l'instant »
   //  • 3e connexion + → gate OBLIGATOIRE (pas de skip)
-  if (!registered && !gateSkipped && visitCount >= 2) {
+  // ?code dans l'URL → on EXIGE la saisie du code d'invitation, quel que soit le
+  // nombre de connexions (priorité sur la règle 1re/2e/3e).
+  if (!registered && !gateSkipped && (visitCount >= 2 || forceCode)) {
     const isTgUser = emailLc.endsWith("@telegram.local");
 
     let isDirect = false;
@@ -210,8 +217,8 @@ export default function Dashboard() {
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
 
-    // Skip possible uniquement à la 2e connexion ; obligatoire dès la 3e.
-    const canSkip = visitCount < 3;
+    // Skip possible uniquement à la 2e connexion ; obligatoire dès la 3e ou si ?code.
+    const canSkip = visitCount < 3 && !forceCode;
 
     return (
       <div className="min-h-screen aura">
@@ -221,9 +228,10 @@ export default function Dashboard() {
           onDone={() => setUser(getUser())}
           onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
-          skipCode={isDirect || isTgUser}
+          skipCode={!forceCode && (isDirect || isTgUser)}
+          initialCode={codePrefill}
           tgName={isTgUser ? (user?.name || "") : ""}
-          title={isTgUser && !isDirect ? "Ajouter ton mail" : undefined}
+          title={forceCode ? "Code d'invitation requis" : (isTgUser && !isDirect ? "Ajouter ton mail" : undefined)}
           noPassword={isTgUser}
         />
       </div>

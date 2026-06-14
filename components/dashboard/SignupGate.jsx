@@ -13,9 +13,9 @@ import { IconArrow } from "@/components/Icons";
  *   skipCode  {boolean}  — si true, saute l'étape code (ex: utilisateur Telegram déjà identifié)
  *   tgName    {string}   — prénom pré-rempli depuis Telegram
  */
-export default function SignupGate({ onDone, onSkip, onLogin, skipCode = false, tgName = "", title, noPassword = false }) {
+export default function SignupGate({ onDone, onSkip, onLogin, skipCode = false, tgName = "", title, noPassword = false, initialCode = "" }) {
   const [unlocked, setUnlocked]   = useState(skipCode); // skip direct si Telegram
-  const [code, setCode]           = useState("");
+  const [code, setCode]           = useState(initialCode || "");
   const [codeErr, setCodeErr]     = useState(false);
 
   const [firstName, setFirstName] = useState(tgName);

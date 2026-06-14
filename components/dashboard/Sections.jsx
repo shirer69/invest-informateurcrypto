@@ -330,100 +330,7 @@ const DEMO_ROWS = [
 ].map((r) => ({ ...r, total: r.spot + r.stock + r.margin + r.perps }));
 
 export function Analytics() {
-  const { locked, openUnlock } = useUnlock();
-  const [rows, setRows] = useState(null);
-
-  useEffect(() => {
-    if (locked) { setRows(DEMO_ROWS); return; }   // démo tant que verrouillé
-    (async () => {
-      const [sp, pp] = await Promise.all([
-        fetch("/api/kraken/spot-monthly-pnl").then((r) => r.json()).catch(() => null),
-        copyMasterPnl().catch(() => ({ months: [] })),
-      ]);
-      const map = {};
-      const ensure = (m) => (map[m] = map[m] || { spot: 0, margin: 0, perps: 0, stock: 0 });
-      (sp?.months || []).forEach((m) => { ensure(m.month).spot = m.spot; map[m.month].margin = m.margin; map[m.month].stock = m.stock || 0; });
-      (pp?.months || []).forEach((m) => { ensure(m.month).perps = m.pnl; });
-      const arr = Object.entries(map)
-        .map(([month, v]) => ({ month, ...v, total: v.spot + v.margin + v.perps + v.stock }))
-        .filter((r) => r.month >= ANALYTICS_START_MONTH) // suivi à partir de juin 2026
-        .sort((a, b) => a.month.localeCompare(b.month));
-      setRows(arr);
-    })();
-  }, [locked]);
-
-  if (rows === null) {
-    return (
-      <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Portefeuille mid/long term <LiveTag /></h3>
-        <div className="grid place-items-center gap-3 py-24 text-mist">
-          <Spinner className="text-gold" /> <p className="text-[13px]">Calcul du PnL mensuel…</p>
-        </div>
-      </div>
-    );
-  }
-
-  const totalAll = rows.reduce((s, r) => s + r.total, 0);
-  const max = Math.max(1, ...rows.map((r) => Math.abs(r.total)));
-  // Affichage uniquement en % (jamais de montant) : part relative à l'activité totale.
-  const denomAbs = rows.reduce(
-    (s, r) => s + Math.abs(r.spot) + Math.abs(r.stock) + Math.abs(r.margin) + Math.abs(r.perps), 0
-  );
-  const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
-  const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
-  // Montants en $ affichés à l'échelle du compte (× 100) — les % ne sont PAS multipliés.
-  const DISPLAY_MULT = 100;
-  const dUsd = (v) => "$" + Math.abs(Number(v) * DISPLAY_MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const dUsdSigned = (v) => `${v >= 0 ? "+" : "−"}${dUsd(v)}`;
-  // Cellule : montant en $ (×100) + pourcentage en dessous.
-  const cellVal = (v) => (
-    <>
-      <div>{dUsdSigned(v)}</div>
-      <div className="text-[10px] text-mist/60">{pctStr(v)}</div>
-    </>
-  );
-
-  // PnL cumulé par catégorie (par « tableau »).
-  const sumCat = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
-  const CATS = [
-    {
-      k: "spot", label: "Spot crypto", color: "#C9A24B",
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9m0-5v8m0-5h5.5a2.5 2.5 0 0 1 0 5H9" />
-          <line x1="10" y1="6" x2="10" y2="8" /><line x1="10" y1="16" x2="10" y2="18" />
-        </svg>
-      ),
-    },
-    {
-      k: "stock", label: "Actions US / ETF", color: "#7C5CFC",
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="3 17 8 12 12 16 17 9 21 13" />
-          <line x1="3" y1="20" x2="21" y2="20" />
-          <line x1="21" y1="9" x2="21" y2="13" />
-        </svg>
-      ),
-    },
-    {
-      k: "margin", label: "Margin Trading", color: "#5BA8FF",
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 16V8m0 8-3-3m3 3 3-3M17 8v8m0-8 3 3m-3-3-3 3" />
-          <line x1="3" y1="12" x2="21" y2="12" strokeOpacity="0.3" />
-        </svg>
-      ),
-    },
-    {
-      k: "perps", label: "Futures (Swing Trading)", color: "#19C37D",
-      icon: (
-        <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg>
-      ),
-    },
-  ];
+  const { openUnlock } = useUnlock();
 
   return (
     <div>
@@ -432,54 +339,9 @@ export function Analytics() {
         <h2 className="font-display text-[22px] text-bone tracking-tight">PÔLE INVEST</h2>
       </div>
       <LastInvestment kinds={["crypto", "margin"]} />
-      <div className="flex items-center gap-2.5 flex-wrap mb-4">
-        <h3 className="font-display text-[18px] text-bone">Portefeuille mid/long term</h3>
-        <LiveTag />
-        {locked && (
-          <span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-300 border border-amber-500/40 bg-amber-500/10 rounded px-1.5 py-0.5">
-            données démo
-          </span>
-        )}
-      </div>
-
-      {locked && (
-        <div className="rounded-xl border gold-line bg-gold/[0.05] px-4 py-2.5 mb-5">
-          <p className="text-[12px] leading-relaxed text-mist">
-            <span className="text-gold">ⓘ</span> Aperçu avec des <span className="text-bone">données de démonstration</span>.
-            Déverrouillez votre accès pour afficher la performance réelle du compte.
-          </p>
-        </div>
-      )}
-
-      {/* PnL cumulé par catégorie (par tableau) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
-        {CATS.map((c) => {
-          const v = sumCat(c.k);
-          return (
-            <div key={c.k} className="rounded-2xl border hairline bg-ink-800/50 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="grid place-items-center h-7 w-7 shrink-0 rounded-lg"
-                      style={{ background: `${c.color}22`, color: c.color }}>
-                  {c.icon}
-                </span>
-                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 leading-tight">{c.label}</div>
-              </div>
-              <div className={`font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
-              <div className={`text-[11px] ${signClass(v)}`}>{pctStr(v)}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="grid sm:grid-cols-3 gap-4 mb-5">
-        <CopyKpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`}
-          cls={`font-display text-[20px] ${signClass(totalAll)}`} />
-        <CopyKpi label="Mois suivis" value={rows.length} />
-        <CopyKpi label="Mois positifs" value={`${rows.filter((r) => r.total >= 0).length} / ${rows.length}`} />
-      </div>
 
       {/* CTA copy auto */}
-      <div className="mt-5 mb-1">
+      <div className="mt-5">
         <button
           onClick={openUnlock}
           className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
@@ -495,8 +357,6 @@ export function Analytics() {
           </span>
         </button>
       </div>
-
-      <AssetTables />
     </div>
   );
 }

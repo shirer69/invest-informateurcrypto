@@ -324,7 +324,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+        <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
         <h2 className="font-display text-[22px] text-bone tracking-tight">PÔLE INVEST</h2>
       </div>
       <LastInvestment kinds={["crypto", "margin"]} />
@@ -395,13 +395,13 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
         </a>
       )}
 
-      <InvestPnlStats showButton={false} />
-
       {/* Titre Portefeuille Invest */}
-      <div className="mb-4 mt-6 flex items-center gap-2.5 flex-wrap">
+      <div className="mb-4 mt-2 flex items-center gap-2.5 flex-wrap">
         <h4 className="font-display text-[16px] text-bone">Portefeuille Invest</h4>
         <LiveTag />
       </div>
+
+      <InvestPnlStats showButton={false} />
 
       <AssetTables />
     </div>
@@ -831,7 +831,7 @@ export function MonitoringAudio() {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
           <div>
             <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">
@@ -940,7 +940,7 @@ export function Monitoring({ onGoCopy }) {
     return (
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
           <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         </div>
         <FuturesCTAs />
@@ -956,7 +956,7 @@ export function Monitoring({ onGoCopy }) {
       {/* Titre */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
           <div>
             <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">
@@ -1061,7 +1061,7 @@ export function Monitoring({ onGoCopy }) {
                         {t.source === "forex" ? (
                           <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">CHALLENGE</span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">Futures</span>
+                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">PF TRADING</span>
                         )}
                       </td>
                     </tr>

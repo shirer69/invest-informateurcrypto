@@ -380,6 +380,12 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy })
 
       <InvestPnlStats showButton={false} />
 
+      {/* Titre Portefeuille Invest */}
+      <div className="mb-4 mt-6 flex items-center gap-2.5 flex-wrap">
+        <h4 className="font-display text-[16px] text-bone">Portefeuille Invest</h4>
+        <LiveTag />
+      </div>
+
       <AssetTables />
     </div>
   );

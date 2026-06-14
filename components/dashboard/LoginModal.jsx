@@ -19,7 +19,7 @@ export default function LoginModal({ open, onClose }) {
     const r = await apiLogin({ email: email.trim(), password: pwd });
     setBusy(false);
     if (r.ok) {
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     } else {
       setErr(r.error === "invalid_credentials" ? "E-mail ou mot de passe incorrect." : "Connexion impossible.");
     }

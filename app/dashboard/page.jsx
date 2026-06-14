@@ -247,28 +247,6 @@ export default function Dashboard() {
             )}
           </div>
         </div>
-        {/* nav horizontale (visible sur tablette/mobile, masquée sur grand écran avec sidebar) */}
-        <div className="lg:hidden border-t hairline overflow-x-auto">
-          <div className="flex items-center gap-0 min-w-max px-3">
-            {nav.map((n) => (
-              <button
-                key={n.id}
-                onClick={() => setTab(n.id)}
-                className={`relative flex items-center gap-1.5 px-3 py-2.5 text-[12px] font-medium whitespace-nowrap transition-colors shrink-0 ${
-                  tab === n.id ? "text-gold border-b-2 border-gold" : "text-mist hover:text-bone border-b-2 border-transparent"
-                }`}
-              >
-                <span className="text-[14px] leading-none">{n.icon}</span>
-                <span>{n.label}</span>
-                {n.badge && (
-                  <span className="rounded-full bg-gold/20 border gold-line px-1.5 text-[8px] font-mono uppercase tracking-wider text-gold">
-                    {n.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
       </header>
 
       <div className="mx-auto max-w-[1280px] px-4 sm:px-5 py-6 lg:py-8 pb-28 lg:pb-8 grid lg:grid-cols-[210px_1fr] gap-5 lg:gap-8">

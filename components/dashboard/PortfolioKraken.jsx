@@ -468,8 +468,6 @@ export default function PortfolioKraken({ onGoInvest }) {
         </div>
       </div>
 
-      <InvestPnlStats onGoInvest={onGoInvest} />
-
       <p className="mt-5 text-[11.5px] leading-relaxed text-mist/60">
         Vue agrégée en lecture seule. Valeurs estimées via les prix de marché ; aucune
         exécution d'ordre ni mouvement de fonds depuis cette interface.

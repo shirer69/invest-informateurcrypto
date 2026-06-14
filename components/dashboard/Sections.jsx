@@ -357,6 +357,8 @@ export function Analytics() {
           </span>
         </button>
       </div>
+
+      <AssetTables />
     </div>
   );
 }

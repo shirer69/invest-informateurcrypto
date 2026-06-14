@@ -98,7 +98,10 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
   return (
     <div className="mt-5">
       {/* PnL par catégorie */}
-      <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 mb-3">PnL cumulé par stratégie</div>
+      <div className="flex items-center gap-2 flex-wrap mb-3">
+        <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">PnL cumulé par stratégie</div>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-400/80 border border-amber-500/30 rounded px-1.5 py-0.5">démo · actif le 16 juin</span>
+      </div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
         {CATS.map((c) => {
           const v = sumCat(c.k);

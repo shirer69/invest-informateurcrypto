@@ -197,13 +197,6 @@ export default function Dashboard() {
   if (!registered && !gateSkipped) {
     const isTgUser = emailLc.endsWith("@telegram.local");
 
-    // Visite 1 : on laisse passer sans rien demander
-    if (isTgUser && visitCount === 1) {
-      // Différer la mise à jour pour éviter le rendu en double
-      if (!gateSkipped) setTimeout(() => setGateSkipped(true), 0);
-      return null;
-    }
-
     let isDirect = false;
     try {
       const p = new URLSearchParams(window.location.search);
@@ -212,17 +205,12 @@ export default function Dashboard() {
     } catch {}
     const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
 
-    // Visites 2-4 : formulaire avec Skip possible
-    // Visite 5+ : formulaire obligatoire (canSkip=false)
-    const canSkip = isTgUser && visitCount >= 2 && visitCount <= 4;
-
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
           onDone={() => setUser(getUser())}
-          onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}

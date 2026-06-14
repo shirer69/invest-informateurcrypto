@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Erreur 404 - Page non trouvée</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 50px;
+        background-color: #f8f9fa;
+    }
+    .error-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .error-code {
+        font-size: 72px;
+        font-weight: bold;
+        color: #ffc107;
+        margin: 0;
+    }
+    .error-message {
+        font-size: 24px;
+        color: #6c757d;
+        margin: 20px 0;
+    }
+    .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 5px;
+    }
+    .back-link:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+<div class="error-container">
+    <h1 class="error-code">404</h1>
+    <p class="error-message"></p>
+    <p>La page que vous recherchez n'existe pas.</p>
+    <a href="/" class="back-link">Retour à l'accueil</a>
+</div>
+</body>
+</html>

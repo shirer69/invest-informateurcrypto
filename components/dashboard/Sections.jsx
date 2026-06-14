@@ -18,6 +18,7 @@ import {
   poleTradingAudios, audioStreamUrl,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
+import LegalDisclaimer from "@/components/LegalDisclaimer";
 
 const DemoTag = () => (
   <span className="font-mono text-[9px] uppercase tracking-widest2 text-mist/50 border hairline rounded px-1.5 py-0.5">
@@ -85,10 +86,7 @@ export function Overview({ tgLink }) {
         </div>
       </div>
 
-      <Disclaimer>
-        Données de démonstration. Contenu éducatif — ne constitue pas un conseil en
-        investissement. Risque de perte en capital.
-      </Disclaimer>
+      <LegalDisclaimer />
     </div>
   );
 }
@@ -108,10 +106,7 @@ export function Positions() {
         <RealFuturesPositions />
       </div>
       </Locked>
-      <Disclaimer>
-        Positions ouvertes du compte Futures Kraken, en lecture seule — aucune exécution
-        d'ordre n'est possible depuis cette interface.
-      </Disclaimer>
+      <LegalDisclaimer compact />
     </div>
   );
 }
@@ -155,10 +150,7 @@ export function Intelligence() {
           </div>
         ))}
       </div>
-      <Disclaimer>
-        Feed illustratif. En production : ingestion + classification des publications du
-        canal, restituées en flux structuré. Aucun conseil personnalisé.
-      </Disclaimer>
+      <LegalDisclaimer compact />
     </div>
   );
 }
@@ -1038,9 +1030,7 @@ export function Monitoring({ onGoCopy }) {
         )}
       </div>
 
-      <Disclaimer>
-        Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployés pilotés par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping. Suivi en lecture seule — ne constitue pas un conseil en investissement.
-      </Disclaimer>
+      <LegalDisclaimer />
     </div>
   );
 }
@@ -1495,10 +1485,7 @@ export function CopyTrading() {
 
       <CopyInfo />
 
-      <Disclaimer>
-        Environnement de démonstration (sandbox) — aucun argent réel. Tout investissement comporte
-        un risque de perte en capital. Outil éducatif, ne constitue pas un conseil en investissement.
-      </Disclaimer>
+      <LegalDisclaimer />
     </div>
   );
 }

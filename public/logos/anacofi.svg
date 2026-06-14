@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 210 72" role="img" aria-label="ANACOFI-CIF">
+  <!-- Hexagon layers (simplified) -->
+  <polygon points="30,6 50,6 58,20 50,34 30,34 22,20" fill="none" stroke="#3D7A5A" stroke-width="2.5" opacity="0.9"/>
+  <polygon points="26,12 54,12 62,26 54,40 26,40 18,26" fill="none" stroke="#3D7A5A" stroke-width="1.5" opacity="0.5"/>
+  <polygon points="22,18 58,18 66,32 58,46 22,46 14,32" fill="none" stroke="#3D7A5A" stroke-width="1" opacity="0.25"/>
+  <!-- anacofi text -->
+  <text x="72" y="30" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#3D7A5A" letter-spacing="0.5">anacofi</text>
+  <!-- association nationale -->
+  <text x="72" y="42" font-family="Arial, sans-serif" font-size="6.5" font-weight="400" fill="#5C5C3A" letter-spacing="0.3">association nationale</text>
+  <text x="72" y="50" font-family="Arial, sans-serif" font-size="6.5" font-weight="400" fill="#5C5C3A" letter-spacing="0.3">des conseils financiers</text>
+  <!-- anacofi-cif bold -->
+  <text x="72" y="65" font-family="Arial, sans-serif" font-size="14" font-weight="900" fill="#5C5C3A" letter-spacing="0.5">anacofi-cif</text>
+</svg>

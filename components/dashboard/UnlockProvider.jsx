@@ -5,6 +5,7 @@ import { hasAccess, apiAccess, apiAccessIiban, apiAccessPay, apiSignup, apiLogin
 import { IconArrow } from "@/components/Icons";
 import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
+import LegalDisclaimer from "@/components/LegalDisclaimer";
 
 const Ctx = createContext({ locked: true, openUnlock: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
@@ -371,9 +372,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
         {/* Carrousel témoignages */}
         <div className="mt-5"><TestimonialCarousel /></div>
 
-        <p className="mt-4 text-[11px] leading-relaxed text-mist/50">
-          Aucun conseil en investissement. Risque de perte en capital.
-        </p>
+        <LegalDisclaimer compact />
         </>
         )}
       </div>

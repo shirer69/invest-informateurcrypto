@@ -198,13 +198,6 @@ export default function Dashboard() {
     const isTgUser = emailLc.endsWith("@telegram.local");
     const isNewTgUser = isTgUser && (() => { try { return !!sessionStorage.getItem("pi_tg_is_new"); } catch { return false; } })();
 
-    // Utilisateurs TG existants (déjà dans la DB, pas nouveaux) :
-    // on les laisse passer les 2 premières visites, gate obligatoire à partir de la 3ème.
-    if (isTgUser && !isNewTgUser && visitCount < 3) {
-      if (!gateSkipped) setTimeout(() => setGateSkipped(true), 0);
-      return null;
-    }
-
     let isDirect = false;
     try {
       const p = new URLSearchParams(window.location.search);
@@ -212,12 +205,17 @@ export default function Dashboard() {
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
 
+    // Existants sans mail : Skip autorisé visites 1-2, obligatoire à partir de la 3ème.
+    // Nouveaux : toujours obligatoire (pas de Skip).
+    const canSkip = isTgUser && !isNewTgUser && visitCount < 3;
+
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
           onDone={() => setUser(getUser())}
+          onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={isDirect || (isTgUser && !isNewTgUser)}
           tgName={isTgUser ? (user?.name || "") : ""}

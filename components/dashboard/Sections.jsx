@@ -1342,8 +1342,8 @@ export function CopyTrading() {
             {!active ? (
               <button disabled={busy || (contract && !contract.signed)} onClick={doStart}
                 title={contract && !contract.signed ? "Signez d'abord le contrat" : ""}
-                className="rounded-full px-6 py-3 text-[14px] font-semibold bg-emerald-500/90 text-ink-900 disabled:opacity-50">
-                ▶ Démarrer la copie
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold bg-emerald-500/90 text-ink-900 disabled:opacity-50">
+                {busy ? <Spinner size={16} className="text-ink-900" /> : "▶"} {busy ? "Démarrage…" : "Démarrer la copie"}
               </button>
             ) : (
               <button disabled={stopping} onClick={doStop}

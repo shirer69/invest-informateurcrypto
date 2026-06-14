@@ -350,7 +350,7 @@ function Members({ members, adminKey }) {
   const reachable = visible.filter((m) => m.tg_id).length;
   return (
     <div>
-      <BroadcastPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} total={members.length} />
+      <BroadcastPanel adminKey={adminKey} reachable={members.filter((m) => m.tg_id).length} total={members.length} members={members} />
 
       {/* Onglets filtre */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -472,7 +472,7 @@ function fmtRes(res) {
   return <span className="text-[12.5px] text-pos">✓ {parts.join(" · ") || "envoyé"}</span>;
 }
 
-function BroadcastPanel({ adminKey, reachable, total }) {
+function BroadcastPanel({ adminKey, reachable, total, members = [] }) {
   const [audience, setAudience] = useState("all");
   const [channel, setChannel] = useState("bot");
   const [subject, setSubject] = useState("");
@@ -481,6 +481,31 @@ function BroadcastPanel({ adminKey, reachable, total }) {
   const [res, setRes] = useState(null);
   const [teaserBusy, setTeaserBusy] = useState(false);
   const [teaserRes, setTeaserRes] = useState(null);
+
+  // ── DM individuel ──
+  const [dmTgId, setDmTgId] = useState("");
+  const [dmText, setDmText] = useState("");
+  const [dmBusy, setDmBusy] = useState(false);
+  const [dmRes, setDmRes] = useState(null);
+  const [dmQuery, setDmQuery] = useState("");
+  const [dmOpen, setDmOpen] = useState(false);
+
+  const dmSuggestions = dmQuery.length >= 1
+    ? members.filter((m) => m.tg_id && (
+        (m.name || "").toLowerCase().includes(dmQuery.toLowerCase()) ||
+        (m.email || "").toLowerCase().includes(dmQuery.toLowerCase()) ||
+        String(m.tg_id).includes(dmQuery)
+      )).slice(0, 6)
+    : [];
+
+  async function sendDm() {
+    if (!dmTgId.trim() || !dmText.trim()) return;
+    if (!confirm(`Envoyer un DM à tg:${dmTgId} ?`)) return;
+    setDmBusy(true); setDmRes(null);
+    const r = await adminPost("/api/admin/dm", adminKey, { tg_id: dmTgId.trim(), text: dmText.trim() });
+    setDmBusy(false); setDmRes(r);
+    if (r?.ok) setDmText("");
+  }
 
   const channels = channel === "both" ? ["bot", "email"] : [channel];
 
@@ -571,6 +596,57 @@ function BroadcastPanel({ adminKey, reachable, total }) {
       <p className="mt-3 text-[11px] text-mist/55">
         Bot : membres ayant ouvert la mini-app. Email : comptes avec email réel. Le teaser ne donne aucun détail (incite à rejoindre).
       </p>
+
+      {/* ── DM individuel ── */}
+      <div className="mt-5 pt-5 border-t hairline">
+        <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 mb-3">Message direct — un utilisateur</div>
+        <div className="relative mb-2">
+          <input
+            value={dmQuery || dmTgId}
+            onChange={(e) => { setDmQuery(e.target.value); setDmTgId(e.target.value); setDmOpen(true); setDmRes(null); }}
+            onFocus={() => setDmOpen(true)}
+            onBlur={() => setTimeout(() => setDmOpen(false), 150)}
+            placeholder="ID Telegram, nom ou email du membre…"
+            className="w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-2.5 text-[13px] text-bone placeholder:text-mist/40 outline-none font-mono"
+          />
+          {dmOpen && dmSuggestions.length > 0 && (
+            <div className="absolute z-20 top-full mt-1 left-0 right-0 rounded-xl border hairline bg-ink-800 shadow-xl overflow-hidden">
+              {dmSuggestions.map((m) => (
+                <button key={m.tg_id} type="button"
+                  onMouseDown={() => { setDmTgId(String(m.tg_id)); setDmQuery(""); setDmOpen(false); }}
+                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.05] text-left">
+                  <div>
+                    <span className="text-[13px] text-bone">{m.name || "—"}</span>
+                    <span className="ml-2 text-[11px] text-mist/60">{m.email}</span>
+                  </div>
+                  <span className="font-mono text-[11px] text-gold/70">tg:{m.tg_id}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+        {dmTgId && !dmQuery && (
+          <div className="mb-2 font-mono text-[11px] text-emerald-400/80">
+            → ID sélectionné : {dmTgId}
+            {members.find((m) => String(m.tg_id) === dmTgId) && (
+              <span className="ml-2 text-mist/60">({members.find((m) => String(m.tg_id) === dmTgId)?.name})</span>
+            )}
+          </div>
+        )}
+        <textarea value={dmText} onChange={(e) => { setDmText(e.target.value); setDmRes(null); }} rows={2}
+          placeholder="Votre message… (HTML : <b>, <i>, <a href>)"
+          className="w-full rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-2.5 text-[13.5px] text-bone placeholder:text-mist/40 outline-none resize-y" />
+        <div className="mt-2 flex items-center gap-3">
+          <button onClick={sendDm} disabled={dmBusy || !dmTgId.trim() || !dmText.trim()}
+            className="rounded-full border gold-line text-gold hover:bg-gold/[0.06] px-5 py-2 text-[13px] font-semibold disabled:opacity-40">
+            {dmBusy ? "Envoi…" : "Envoyer le DM"}
+          </button>
+          {dmRes && (dmRes.ok
+            ? <span className="text-[12.5px] text-pos">✓ Envoyé à {dmRes.user?.name || dmRes.tg_id}</span>
+            : <span className="text-[12.5px] text-neg">Erreur : {dmRes.error || "échec"}</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

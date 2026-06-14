@@ -426,7 +426,6 @@ export default function PortfolioKraken({ onGoInvest }) {
             <> · <span className="text-gold font-semibold">démarrage le {TRACKING_START_LABEL}</span></>
           )}
           </div>
-          <Locked label="Obtenir les calls">
           <div className={`mt-2 font-display text-[44px] md:text-[54px] leading-none ${
             accountPnlPct == null ? "text-bone" : accountPnlPct >= 0 ? "text-emerald-400" : "text-rose-400"
           }`}>
@@ -464,7 +463,6 @@ export default function PortfolioKraken({ onGoInvest }) {
               </div>
             ))}
           </div>
-          </Locked>
         </div>
       </div>
 

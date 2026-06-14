@@ -223,17 +223,34 @@ function LastInvestment({ kinds }) {
   const [item, setItem] = useState(null);
 
   useEffect(() => {
-    fetch("/api/kraken/spot/portfolio", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((d) => {
-        if (!d.ok || !d.holdings) return;
-        // Filtre par kind puis trie par entry_ts desc (achat le plus récent)
-        const best = d.holdings
-          .filter((h) => kinds.includes(h.kind) && h.value > 0 && h.baseline)
-          .sort((a, b) => (b.entry_ts || 0) - (a.entry_ts || 0))[0];
-        if (best) setItem(best);
-      })
-      .catch(() => {});
+    // Fetch portfolio pour les infos financières (valeur, PnL…)
+    const portfolioP = fetch("/api/kraken/spot/portfolio", { cache: "no-store" })
+      .then((r) => r.json()).catch(() => null);
+    // Fetch historique Kraken pour la vraie date du dernier achat
+    const historyP = fetch(`${API_BASE_URL}/api/julien/trade-history`, { cache: "no-store" })
+      .then((r) => r.json()).catch(() => null);
+
+    Promise.all([portfolioP, historyP]).then(([port, hist]) => {
+      if (!port?.ok || !port.holdings) return;
+      const best = port.holdings
+        .filter((h) => kinds.includes(h.kind) && h.value > 0 && h.baseline)
+        .sort((a, b) => (b.entry_ts || 0) - (a.entry_ts || 0))[0];
+      if (!best) return;
+
+      // Remplacer entry_ts par la date réelle du dernier achat Kraken si disponible
+      if (hist?.ok) {
+        const buyTs = [
+          ...(hist.spot_events || [])
+            .filter((e) => ["achat", "renforcement", "long", "short"].includes((e.direction || "").toLowerCase()))
+            .map((e) => e.created_at || 0),
+          ...(hist.kraken_futures || [])
+            .filter((f) => f.side === "buy")
+            .map((f) => f.fillTime ? Math.floor(new Date(f.fillTime).getTime() / 1000) : 0),
+        ].filter(Boolean).sort((a, b) => b - a);
+        if (buyTs.length > 0) best.entry_ts = buyTs[0];
+      }
+      setItem(best);
+    });
   }, [kinds]);
 
   if (locked) return <LastInvestmentMockup />;
@@ -392,15 +409,17 @@ function TradeHistory() {
   }, []);
 
   const rows = data ? [
-    ...(data.futures || []).map((t) => ({
-      type: "futures", asset: t.asset, direction: t.direction,
-      entry_price: t.entry_price, exit_price: t.exit_price,
-      pnl_usd: t.pnl_usd, pnl_pct: t.pnl_pct,
-      close_ts: t.created_at, open_ts: t.opened_at,
-      duration_s: t.created_at && t.opened_at ? t.created_at - t.opened_at : null,
+    ...(data.kraken_futures || []).map((f) => ({
+      type: "futures",
+      asset: (f.symbol || "").replace("PF_", "").replace("USD", "/USD"),
+      direction: f.side === "buy" ? "Long" : "Short",
+      entry_price: f.price, exit_price: null,
+      pnl_usd: f.realized_pnl ?? null, pnl_pct: null,
+      close_ts: f.fillTime ? Math.floor(new Date(f.fillTime).getTime() / 1000) : null,
     })),
     ...(data.spot_events || []).map((t) => ({
-      type: t.type || "crypto", asset: t.symbol, direction: t.direction,
+      type: t.type || "crypto", asset: t.symbol === "XBT" ? "BTC" : t.symbol,
+      direction: t.direction,
       entry_price: t.entry_price, exit_price: t.exit_price,
       pnl_usd: t.pnl_usd, pnl_pct: t.pnl_pct,
       close_ts: t.created_at, entry_ts: t.entry_ts,
@@ -478,7 +497,7 @@ function TradeHistory() {
         </div>
       )}
       <p className="mt-3 text-[11px] text-mist/40">
-        Trades clôturés du compte maître. Futures / Forex via MoonX. Spot, Marge et xStocks via Kraken.
+        Trades du compte maître Kraken (spot, marge, xStocks, futures perps).
         Données historiques — ne constituent pas un conseil en investissement.
       </p>
     </div>

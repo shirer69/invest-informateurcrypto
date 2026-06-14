@@ -6,7 +6,7 @@ export default function LegalDisclaimer({ compact = false }) {
     <div className={`mt-6 rounded-xl border hairline bg-white/[0.015] px-4 py-4 ${compact ? "text-[10.5px]" : "text-[11px]"} leading-relaxed text-mist/55`}>
       {/* Accréditations */}
       <p className="mb-2">
-        <span className="text-mist/80 font-medium">Julien Pelloux — Conseiller en Investissements Financiers (CIF)</span>{" "}
+        <span className="text-mist/80 font-medium">Julien Moretto — Conseiller en Investissements Financiers (CIF)</span>{" "}
         enregistré à l'ORIAS sous le n°&nbsp;<span className="text-mist/75 font-mono">25008843</span>{" "}
         (<a href="https://www.orias.fr" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-gold/80 transition-colors">www.orias.fr</a>),
         titulaire du certificat AMF (Autorité des Marchés Financiers) et membre de l'ANACOFI-CIF,

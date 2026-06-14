@@ -7,6 +7,7 @@ import RealFuturesPositions from "./RealFuturesPositions";
 import LiveTag from "./LiveTag";
 import InvestPnlStats from "./InvestPnlStats";
 import KrakenLogo from "@/components/KrakenLogo";
+import TestimonialCarousel from "@/components/TestimonialCarousel";
 import { IconArrow } from "@/components/Icons";
 import TrackRecord from "@/components/TrackRecord";
 import Countdown from "@/components/Countdown";
@@ -393,13 +394,6 @@ export default function PortfolioKraken({ onGoInvest }) {
 
       <VipJoinBar />
 
-      {/* Courbe equity (dashboard verrouillé uniquement) */}
-      {locked && (
-        <div className="mb-5">
-          <TrackRecord />
-        </div>
-      )}
-
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>
         <div className="pointer-events-none absolute -top-20 -right-10 h-56 w-56 rounded-full blur-3xl"
@@ -455,6 +449,16 @@ export default function PortfolioKraken({ onGoInvest }) {
           </div>
         </div>
       </div>
+
+      {/* Carrousel témoignages */}
+      <div className="mb-5"><TestimonialCarousel /></div>
+
+      {/* Courbe equity (dashboard verrouillé uniquement) */}
+      {locked && (
+        <div className="mb-5">
+          <TrackRecord />
+        </div>
+      )}
 
       {onGoInvest && (
         <button

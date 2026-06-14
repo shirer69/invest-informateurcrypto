@@ -25,7 +25,7 @@ export default function Billing() {
   if (b === null)
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Facturation</h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Wallet</h3>
         <div className="text-[13px] text-mist/60">Chargement…</div>
       </div>
     );
@@ -54,7 +54,7 @@ export default function Billing() {
 
   return (
     <div>
-      <h3 className="font-display text-[18px] text-bone mb-4">Facturation</h3>
+      <h3 className="font-display text-[18px] text-bone mb-4">Wallet</h3>
 
       {/* Statut d'accès */}
       <div className="rounded-2xl border gold-line bg-gold/[0.04] p-5 mb-5">

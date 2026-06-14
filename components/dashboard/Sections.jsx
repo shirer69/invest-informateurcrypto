@@ -495,7 +495,7 @@ function CopyInfo() {
   );
 }
 
-/* ---------------- Facturation (frais de performance HWM) ---------------- */
+/* ---------------- Wallet (frais de performance HWM) ---------------- */
 function Billing({ b }) {
   const [copied, setCopied] = useState(false);
   const due = b.fee_due > 0;
@@ -503,7 +503,7 @@ function Billing({ b }) {
   return (
     <div className="rounded-2xl border gold-line bg-ink-800/40 p-5">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Facturation · frais de performance</span>
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Wallet · frais de performance</span>
         <span className="text-[11px] text-mist/60">
           Taux actuel <b className="text-bone">{b.current_rate_pct} %</b>
         </span>

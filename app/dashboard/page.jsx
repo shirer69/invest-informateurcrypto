@@ -28,7 +28,7 @@ const NAV = [
   { id: "videos", label: "Vidéos", icon: "🎬" },
   { id: "community", label: "Chat", icon: "💬" },
   { id: "copy", label: "Copy-trading", icon: "🔁", badge: "Soon" },
-  { id: "billing", label: "Facturation", icon: "💳" },
+  { id: "billing", label: "Wallet", icon: "💳" },
   { id: "account", label: "Mon compte", icon: "👤" },
 ];
 

@@ -65,7 +65,7 @@ function VipJoinBar() {
           Rejoindre le groupe Telegram <IconArrow className="h-4 w-4" />
         </a>
       ) : (
-        <span className="text-[12px] text-mist/70">Lien VIP envoyé par e-mail / dans l'onglet Facturation.</span>
+        <span className="text-[12px] text-mist/70">Lien VIP envoyé par e-mail / dans l'onglet Wallet.</span>
       )}
     </div>
   );

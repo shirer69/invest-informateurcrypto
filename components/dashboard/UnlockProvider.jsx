@@ -199,7 +199,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
               </a>
             ) : (
               <p className="mt-4 text-[12.5px] text-amber-300/90">
-                Votre lien VIP arrive par e-mail dans un instant (ou retrouvez-le dans l'onglet Facturation).
+                Votre lien VIP arrive par e-mail dans un instant (ou retrouvez-le dans l'onglet Wallet).
               </p>
             )}
             <button onClick={onClose}

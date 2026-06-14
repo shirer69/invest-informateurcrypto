@@ -32,7 +32,6 @@ const Disclaimer = ({ children }) => (
 
 /* ---------------- Vue d'ensemble ---------------- */
 export function Overview({ tgLink }) {
-  const { locked } = useUnlock();
   return (
     <div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -54,13 +53,7 @@ export function Overview({ tgLink }) {
         ))}
       </div>
 
-      <div className={`mt-5 gap-5 items-start ${locked ? "grid lg:grid-cols-[1.6fr_1fr]" : ""}`}>
-        {locked && (
-          <div>
-            <h3 className="mb-3 font-display text-[17px] text-bone">Courbe de performance</h3>
-            <TrackRecord />
-          </div>
-        )}
+      <div className="mt-5 gap-5 items-start">
         <div className="relative rounded-2xl border gold-line overflow-hidden p-6 flex flex-col justify-between min-h-[220px]">
           <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
                style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }} />
@@ -219,7 +212,6 @@ function LastInvestmentMockup() {
 }
 
 function LastInvestment({ kinds }) {
-  const { locked } = useUnlock();
   const [item, setItem] = useState(null);
 
   useEffect(() => {
@@ -323,7 +315,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+        <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 cursor-pointer hover:ring-2 hover:ring-gold/60 transition" /></a>
         <h2 className="font-display text-[22px] text-bone tracking-tight">PÔLE INVEST</h2>
       </div>
       <LastInvestment kinds={["crypto", "margin"]} />
@@ -394,19 +386,19 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
         </a>
       )}
 
-      <InvestPnlStats showButton={false} />
-
       {/* Titre Portefeuille Invest */}
-      <div className="mb-4 mt-6 flex items-center gap-2.5 flex-wrap">
+      <div className="mb-4 mt-2 flex items-center gap-2.5 flex-wrap">
         <h4 className="font-display text-[16px] text-bone">Portefeuille Invest</h4>
         <LiveTag />
       </div>
+
+      <InvestPnlStats showButton={false} />
 
       {hasAccess ? (
         <AssetTables />
       ) : (
         <div className="relative">
-          <div className="pointer-events-none select-none blur-[3px] opacity-60" aria-hidden>
+          <div className="pointer-events-none select-none blur-[3px] opacity-40" aria-hidden>
             <AssetTables />
           </div>
           <div className="absolute inset-0 z-10 grid place-items-center p-4">
@@ -847,7 +839,7 @@ export function MonitoringAudio() {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 cursor-pointer hover:ring-2 hover:ring-gold/60 transition" /></a>
           <div>
             <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">
@@ -956,7 +948,7 @@ export function Monitoring({ onGoCopy }) {
     return (
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 cursor-pointer hover:ring-2 hover:ring-gold/60 transition" /></a>
           <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         </div>
         <FuturesCTAs />
@@ -972,7 +964,7 @@ export function Monitoring({ onGoCopy }) {
       {/* Titre */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 cursor-pointer hover:ring-2 hover:ring-gold/60 transition" /></a>
           <div>
             <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">
@@ -1077,7 +1069,7 @@ export function Monitoring({ onGoCopy }) {
                         {t.source === "forex" ? (
                           <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">CHALLENGE</span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">Futures</span>
+                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">PF TRADING</span>
                         )}
                       </td>
                     </tr>

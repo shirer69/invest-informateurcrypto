@@ -158,7 +158,7 @@ export default function Dashboard() {
   }, []);
 
   const name = user?.name || "Invité";
-  const canCopy = copyAccess || (user?.email || "").trim().toLowerCase() === COPY_ALLOWED_EMAIL;
+  const canCopy = copyAccess;
   const nav = NAV; // Copy-trading reste visible pour tous ; l'accès est restreint au contenu.
 
   // Tunnel d'entrée : tant que l'utilisateur n'a pas créé son compte (prénom/mail/pwd),

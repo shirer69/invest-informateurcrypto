@@ -210,7 +210,7 @@ function LastInvestmentMockup() {
           className="absolute inset-0 z-10 flex items-center justify-center"
         >
           <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold shadow-lg">
-            Obtenir les signaux
+            🔒 Obtenir les signaux
           </span>
         </button>
       </div>

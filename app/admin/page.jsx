@@ -454,6 +454,7 @@ const AUDIENCES = [
   { id: "all", label: "Tous" },
   { id: "members", label: "Membres actifs" },
   { id: "non_members", label: "Membres actifs exclus" },
+  { id: "all_except_members", label: "Tous sauf actifs" },
   { id: "users", label: "Utilisateurs (mini-app)" },
   { id: "copy", label: "Membres avec copy actif" },
 ];

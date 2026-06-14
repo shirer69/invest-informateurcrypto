@@ -131,9 +131,7 @@ export default function SignupGate({ onDone, onSkip, onLogin, skipCode = false, 
                     Créez votre compte
                   </h3>
                   <p className="mt-2 text-[13.5px] leading-relaxed text-mist">
-                    Renseignez vos informations pour accéder à votre tableau de bord. Vous
-                    débloquerez ensuite le contenu (validation IIBAN Kraken — 3 mois offerts —
-                    ou abonnement).
+                    Renseignez vos informations pour accéder à votre tableau de bord.
                   </p>
                 </>
               )}

@@ -306,6 +306,185 @@ function LastInvestment({ kinds }) {
   );
 }
 
+/* ---------------- Historique trading master A ---------------- */
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE || "https://api.informateurcrypto.fr";
+
+function fmt_price(x) {
+  if (x == null) return "—";
+  return x >= 1000
+    ? x.toLocaleString("fr-FR", { maximumFractionDigits: 0 })
+    : x.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+}
+function fmt_pnl_usd(x) {
+  if (x == null) return null;
+  const sign = x >= 0 ? "+" : "";
+  return `${sign}$${Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+function fmt_date(ts) {
+  if (!ts) return "—";
+  return new Date(ts * 1000).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+function fmt_duration(s) {
+  if (!s) return null;
+  const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60);
+  if (d) return `${d}j ${h}h`;
+  if (h) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
+const TYPE_BADGE = {
+  futures: { label: "Futures", cls: "bg-violet-500/15 text-violet-400 border-violet-500/30" },
+  forex:   { label: "Forex",   cls: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  crypto:  { label: "Spot",    cls: "bg-sky-500/15 text-sky-400 border-sky-500/30" },
+  margin:  { label: "Marge",   cls: "bg-amber-500/15 text-amber-400 border-amber-500/30" },
+  stock:   { label: "xStocks", cls: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30" },
+};
+
+function TradeBadge({ type }) {
+  const b = TYPE_BADGE[type] || { label: type, cls: "bg-white/5 text-mist border-white/10" };
+  return (
+    <span className={`font-mono text-[9.5px] px-1.5 py-0.5 rounded border ${b.cls}`}>{b.label}</span>
+  );
+}
+
+function TradeRow({ trade }) {
+  const pnl = trade.pnl_usd ?? null;
+  const pnlPct = trade.pnl_pct ?? null;
+  const isPos = pnl != null ? pnl >= 0 : null;
+  const dir = (trade.direction || "").toUpperCase();
+
+  return (
+    <tr className="border-t border-white/5 hover:bg-white/[0.02] transition-colors">
+      <td className="py-2 pr-3 whitespace-nowrap">
+        <div className="flex items-center gap-1.5">
+          <TradeBadge type={trade.type} />
+          <span className="font-mono text-[12px] text-bone">{trade.asset || trade.symbol}</span>
+        </div>
+      </td>
+      <td className="py-2 pr-3">
+        <span className={`font-mono text-[11px] ${["LONG","ACHAT","RENFORCEMENT"].includes(dir) ? "text-emerald-400" : dir.includes("VENTE") || dir.includes("CLOTURE") || dir.includes("SHORT") ? "text-rose-400" : "text-mist/60"}`}>
+          {trade.direction || "—"}
+        </span>
+      </td>
+      <td className="py-2 pr-3 font-mono text-[11px] text-mist/70">{fmt_price(trade.entry_price)}</td>
+      <td className="py-2 pr-3 font-mono text-[11px] text-mist/70">{fmt_price(trade.exit_price)}</td>
+      <td className="py-2 pr-3">
+        {pnl != null ? (
+          <span className={`font-mono text-[11px] font-medium ${isPos ? "text-emerald-400" : "text-rose-400"}`}>
+            {fmt_pnl_usd(pnl)}
+            {pnlPct != null && <span className="text-[10px] ml-1 opacity-70">({pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(1)}%)</span>}
+          </span>
+        ) : <span className="text-mist/30">—</span>}
+      </td>
+      <td className="py-2 pr-3 font-mono text-[10.5px] text-mist/50">{fmt_date(trade.close_ts || trade.created_at)}</td>
+    </tr>
+  );
+}
+
+function TradeHistory() {
+  const [data, setData] = useState(null);
+  const [tab, setTab] = useState("all");
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/julien/trade-history`, { cache: "no-store" })
+      .then((r) => r.json()).catch(() => null)
+      .then((d) => setData(d || null));
+  }, []);
+
+  const rows = data ? [
+    ...(data.futures || []).map((t) => ({
+      type: "futures", asset: t.asset, direction: t.direction,
+      entry_price: t.entry_price, exit_price: t.exit_price,
+      pnl_usd: t.pnl_usd, pnl_pct: t.pnl_pct,
+      close_ts: t.created_at, open_ts: t.opened_at,
+      duration_s: t.created_at && t.opened_at ? t.created_at - t.opened_at : null,
+    })),
+    ...(data.spot_events || []).map((t) => ({
+      type: t.type || "crypto", asset: t.symbol, direction: t.direction,
+      entry_price: t.entry_price, exit_price: t.exit_price,
+      pnl_usd: t.pnl_usd, pnl_pct: t.pnl_pct,
+      close_ts: t.created_at, entry_ts: t.entry_ts,
+      duration_s: t.duration_s,
+    })),
+  ].sort((a, b) => (b.close_ts || 0) - (a.close_ts || 0)) : [];
+
+  const filtered = tab === "all" ? rows
+    : tab === "futures" ? rows.filter((r) => r.type === "futures")
+    : rows.filter((r) => r.type !== "futures");
+
+  const spotPositions = data?.spot_positions || [];
+
+  const TABS = [
+    { id: "all", label: "Tous" },
+    { id: "futures", label: "Futures / Forex" },
+    { id: "spot", label: "Spot / Marge" },
+  ];
+
+  return (
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
+          <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte maître A</span>
+        </div>
+        <div className="flex gap-1">
+          {TABS.map((t) => (
+            <button key={t.id} onClick={() => setTab(t.id)}
+              className={`font-mono text-[10.5px] px-2.5 py-1 rounded-full border transition-colors ${tab === t.id ? "border-gold/50 text-gold bg-gold/10" : "border-white/10 text-mist/60 hover:text-mist"}`}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Positions spot ouvertes */}
+      {tab !== "futures" && spotPositions.length > 0 && (
+        <div className="mb-4 rounded-xl border border-sky-500/20 bg-sky-500/[0.04] p-3">
+          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-sky-400/80 mb-2">Positions spot ouvertes</div>
+          <div className="flex flex-wrap gap-2">
+            {spotPositions.map((p) => (
+              <div key={p.symbol} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/50 px-2.5 py-1.5">
+                <span className="font-mono text-[12px] text-bone">{p.symbol === "XBT" ? "BTC" : p.symbol}</span>
+                <span className="font-mono text-[10px] text-mist/50">@ {fmt_price(p.entry_price)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data === null ? (
+        <div className="text-[13px] text-mist/60">Chargement de l'historique…</div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-xl border border-white/5 bg-ink-900/30 p-5 text-[13px] text-mist/50">Aucun trade enregistré pour ce filtre.</div>
+      ) : (
+        <div className="rounded-xl border border-white/10 bg-ink-900/30 overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-white/5">
+                {["Actif", "Direction", "Entrée", "Sortie", "PnL", "Date"].map((h) => (
+                  <th key={h} className="py-2 pr-3 font-mono text-[9.5px] uppercase tracking-widest2 text-mist/40">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.slice(0, 100).map((t, i) => <TradeRow key={i} trade={t} />)}
+            </tbody>
+          </table>
+          {filtered.length > 100 && (
+            <div className="py-2 px-4 text-[11px] text-mist/40 border-t border-white/5">
+              {filtered.length - 100} trades supplémentaires non affichés.
+            </div>
+          )}
+        </div>
+      )}
+      <p className="mt-3 text-[11px] text-mist/40">
+        Trades clôturés du compte maître. Futures / Forex via MoonX. Spot, Marge et xStocks via Kraken.
+        Données historiques — ne constituent pas un conseil en investissement.
+      </p>
+    </div>
+  );
+}
+
 /* ---------------- Analytics ---------------- */
 const moLabel = (m) => { const [y, mo] = m.split("-"); return `${mo}/${y.slice(2)}`; };
 // Le suivi Analytics démarre à juin 2026 (les mois antérieurs sont ignorés).
@@ -416,6 +595,8 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
       <InvestPnlStats showButton={false} />
 
       <AssetTables />
+
+      <TradeHistory />
     </div>
   );
 }

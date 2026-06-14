@@ -324,7 +324,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
-        <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
+        <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
         <h2 className="font-display text-[22px] text-bone tracking-tight">PÔLE INVEST</h2>
       </div>
       <LastInvestment kinds={["crypto", "margin"]} />
@@ -831,7 +831,7 @@ export function MonitoringAudio() {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
+          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <div>
             <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">
@@ -940,7 +940,7 @@ export function Monitoring({ onGoCopy }) {
     return (
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
+          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         </div>
         <FuturesCTAs />
@@ -956,7 +956,7 @@ export function Monitoring({ onGoCopy }) {
       {/* Titre */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <a href="/a-propos"><img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 hover:ring-2 hover:ring-gold/60 transition rounded-full" /></a>
+          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <div>
             <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
             <p className="text-[11.5px] text-mist/70 mt-0.5">

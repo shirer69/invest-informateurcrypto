@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 
-export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien Moretto", href }) {
+export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien Moretto" }) {
   const [failed, setFailed] = useState(false);
-  const Wrapper = href ? "a" : "div";
 
   return (
-    <Wrapper href={href} className={`relative block aspect-[4/5] bg-gradient-to-b from-ink-600 to-ink-900 overflow-hidden${href ? " cursor-pointer" : ""}`}>
+    <div className="relative aspect-[4/5] bg-gradient-to-b from-ink-600 to-ink-900 overflow-hidden">
       <div
         className="absolute inset-0 opacity-60"
         style={{ background: "radial-gradient(70% 50% at 50% 15%, rgba(46,230,168,0.16), transparent 60%)" }}
@@ -29,6 +28,6 @@ export default function FounderPhoto({ src = "/julien.jpg", alt = "Julien Morett
       )}
 
       <div className="absolute bottom-0 inset-x-0 h-24 bg-gradient-to-t from-ink-900 to-transparent" />
-    </Wrapper>
+    </div>
   );
 }

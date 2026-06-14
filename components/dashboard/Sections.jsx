@@ -86,7 +86,6 @@ export function Overview({ tgLink }) {
         </div>
       </div>
 
-      <LegalDisclaimer />
     </div>
   );
 }
@@ -106,7 +105,6 @@ export function Positions() {
         <RealFuturesPositions />
       </div>
       </Locked>
-      <LegalDisclaimer compact />
     </div>
   );
 }
@@ -150,7 +148,6 @@ export function Intelligence() {
           </div>
         ))}
       </div>
-      <LegalDisclaimer compact />
     </div>
   );
 }
@@ -1030,7 +1027,6 @@ export function Monitoring({ onGoCopy }) {
         )}
       </div>
 
-      <LegalDisclaimer />
     </div>
   );
 }
@@ -1485,7 +1481,6 @@ export function CopyTrading() {
 
       <CopyInfo />
 
-      <LegalDisclaimer />
     </div>
   );
 }

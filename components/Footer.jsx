@@ -1,5 +1,6 @@
 import { TELEGRAM_URL, YOUTUBE_URL, LINKEDIN_URL } from "@/lib/site";
 import JoinButton from "./JoinButton";
+import LegalDisclaimer from "./LegalDisclaimer";
 
 export default function Footer() {
   return (
@@ -79,20 +80,8 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Compliance */}
-        <div className="mt-14 rounded-xl border hairline bg-white/[0.015] p-6">
-          <h4 className="font-mono text-[10px] uppercase tracking-widest2 text-gold/70">
-            Avertissement sur les risques
-          </h4>
-          <p className="mt-3 text-[12.5px] leading-relaxed text-mist/80">
-            Les investissements comportent un risque de perte en capital. Les performances
-            passées ne préjugent pas des performances futures. Le contenu partagé est
-            fourni à titre éducatif et informatif et ne constitue pas un conseil en
-            investissement personnalisé. Les performances mentionnées correspondent à
-            l'historique du portefeuille personnel de Julien Moretto (compte Quantfury). Toute
-            décision d'investissement relève de votre seule responsabilité.
-          </p>
-        </div>
+        {/* Disclaimer réglementaire */}
+        <LegalDisclaimer />
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-mist/60">
           <span>© 2026 Club des Informateurs — Pôle Invest. Tous droits réservés.</span>

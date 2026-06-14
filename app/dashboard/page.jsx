@@ -14,6 +14,7 @@ import Account from "@/components/dashboard/Account";
 import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XStocks } from "@/components/dashboard/Sections";
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
+import LegalDisclaimer from "@/components/LegalDisclaimer";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest } from "@/lib/clientStore";
 
@@ -343,6 +344,11 @@ export default function Dashboard() {
           {tab === "billing" && <Billing />}
           {tab === "account" && <Account />}
         </main>
+      </div>
+
+      {/* Disclaimer réglementaire */}
+      <div className="mx-auto max-w-[860px] px-4 pb-6 lg:pb-10">
+        <LegalDisclaimer />
       </div>
 
       {/* Barre du bas (mobile uniquement) */}

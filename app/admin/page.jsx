@@ -332,9 +332,17 @@ const CRM_FILTERS = [
 function Members({ members, adminKey }) {
   const [filter, setFilter] = useState("all");
   const [copyStates, setCopyStates] = useState({});
+  const [revokeStates, setRevokeStates] = useState({});
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
   const filterFn = CRM_FILTERS.find((f) => f.id === filter)?.fn ?? (() => true);
   const visible = members.filter(filterFn);
+
+  async function revokeAccess(email) {
+    if (!confirm(`Révoquer tous les accès de ${email} ?`)) return;
+    setRevokeStates((s) => ({ ...s, [email]: "loading" }));
+    const r = await adminPost("/api/admin/user/revoke-access", adminKey, { email });
+    setRevokeStates((s) => ({ ...s, [email]: r?.ok ? "revoked" : "error" }));
+  }
 
   async function toggleCopy(email, currentGrant) {
     const grant = !currentGrant;
@@ -384,6 +392,7 @@ function Members({ members, adminKey }) {
               <th className="px-5 py-3">Clé Kraken</th>
               <th className="px-5 py-3">Accès</th>
               <th className="px-5 py-3">Copy Auto</th>
+              <th className="px-5 py-3">Actions</th>
               <th className="px-5 py-3 text-right">Messages</th>
               <th className="px-5 py-3">Academy</th>
               <th className="px-5 py-3">Dernière activité</th>
@@ -436,6 +445,19 @@ function Members({ members, adminKey }) {
                   ) : (
                     <span className="text-mist/30 text-[12px]">—</span>
                   )}
+                </td>
+                <td className="px-5 py-3">
+                  {(() => {
+                    const rs = revokeStates[m.email];
+                    if (rs === "revoked") return <span className="text-mist/50 text-[12px]">révoqué</span>;
+                    return (
+                      <button disabled={rs === "loading"}
+                        onClick={() => revokeAccess(m.email)}
+                        className="text-[11px] text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-full px-2.5 py-1 disabled:opacity-50 transition-colors">
+                        {rs === "loading" ? "…" : "Révoquer"}
+                      </button>
+                    );
+                  })()}
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
                 <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
@@ -704,14 +726,25 @@ function BulkIiban({ adminKey, onReload }) {
 
 function Codes({ adminKey }) {
   const [codes, setCodes] = useState(null);
-  const [form, setForm] = useState({ code: "", days: 7, max_uses: 1, scope: null });
+  const [form, setForm] = useState({ code: "", days: 7, max_uses: 1, scope: "monitoring" });
   const [msg, setMsg] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [deletingCode, setDeletingCode] = useState(null);
 
   const load = useCallback(async () => {
     const r = await adminGet("/api/admin/codes", adminKey);
     setCodes(r?.codes || []);
   }, [adminKey]);
+
+  async function deleteCode(code) {
+    if (!confirm(`Supprimer le code ${code} ?`)) return;
+    setDeletingCode(code);
+    await fetch(`${API_BASE}/api/admin/codes/${encodeURIComponent(code)}`, {
+      method: "DELETE", headers: { "x-admin-key": adminKey },
+    });
+    setDeletingCode(null);
+    load();
+  }
   useEffect(() => { load(); }, [load]);
 
   async function create() {
@@ -785,6 +818,7 @@ function Codes({ adminKey }) {
               <th className="px-5 py-3">Utilisations</th>
               <th className="px-5 py-3">Restantes</th>
               <th className="px-5 py-3">Lien</th>
+              <th className="px-5 py-3"></th>
             </tr>
           </thead>
           <tbody>
@@ -809,6 +843,12 @@ function Codes({ adminKey }) {
                 <td className="px-5 py-3">
                   <button onClick={() => { try { navigator.clipboard.writeText(`${SITE}/dashboard?code=${c.code}`); } catch {} }}
                     className="text-[12px] text-gold hover:text-gold-soft underline">Copier</button>
+                </td>
+                <td className="px-5 py-3">
+                  <button onClick={() => deleteCode(c.code)} disabled={deletingCode === c.code}
+                    className="text-[11px] text-rose-400 hover:text-rose-300 border border-rose-500/30 rounded-full px-2.5 py-1 disabled:opacity-50 transition-colors">
+                    {deletingCode === c.code ? "…" : "Supprimer"}
+                  </button>
                 </td>
               </tr>
             ))}

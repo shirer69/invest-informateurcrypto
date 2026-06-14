@@ -7,7 +7,7 @@ import { KRAKEN_URL, TELEGRAM_URL, API_BASE } from "@/lib/site";
 import TestimonialCarousel from "@/components/TestimonialCarousel";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
 
-const Ctx = createContext({ locked: true, monitoringAccess: false, xstocksAccess: false, openUnlock: () => {}, wallet: null });
+const Ctx = createContext({ locked: true, monitoringAccess: false, xstocksAccess: false, openUnlock: () => {}, refreshAccess: () => {}, wallet: null });
 export const useUnlock = () => useContext(Ctx);
 
 export function UnlockProvider({ children }) {
@@ -58,7 +58,7 @@ export function UnlockProvider({ children }) {
   const onUnlocked = useCallback(() => { setLocked(false); }, []);
 
   return (
-    <Ctx.Provider value={{ locked, monitoringAccess, xstocksAccess, openUnlock, wallet }}>
+    <Ctx.Provider value={{ locked, monitoringAccess, xstocksAccess, openUnlock, refreshAccess: refresh, wallet }}>
       {children}
       {open && (
         <UnlockModal

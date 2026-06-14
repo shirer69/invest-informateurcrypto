@@ -330,7 +330,7 @@ const DEMO_ROWS = [
   { month: "2026-06", spot: 3.2, stock: 1.7, margin: 0.9, perps: 2.6 },
 ].map((r) => ({ ...r, total: r.spot + r.stock + r.margin + r.perps }));
 
-export function Analytics({ copyAccess, copyRequest, onRequestCopy }) {
+export function Analytics({ copyAccess, copyRequest, hasAccess, onRequestCopy }) {
   return (
     <div>
       <div className="flex items-center gap-3 mb-4">
@@ -348,7 +348,7 @@ export function Analytics({ copyAccess, copyRequest, onRequestCopy }) {
             </svg>
             <span className="text-[13px] text-emerald-400 font-medium">Copy auto activé sur votre compte</span>
           </div>
-        ) : copyRequest ? (
+        ) : !hasAccess ? null : copyRequest ? (
           <div className="w-full flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-4 py-2.5">
             <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0 text-amber-400" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />

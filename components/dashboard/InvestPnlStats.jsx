@@ -13,12 +13,31 @@ const DEMO_ROWS = [
 
 const CATS = [
   {
+    k: "spot", label: "Spot crypto", color: "#C9A24B",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 8h4.5a2.5 2.5 0 0 1 0 5H9m0-5v8m0-5h5.5a2.5 2.5 0 0 1 0 5H9" />
+        <line x1="10" y1="6" x2="10" y2="8" /><line x1="10" y1="16" x2="10" y2="18" />
+      </svg>
+    ),
+  },
+  {
     k: "stock", label: "Actions US / ETF", color: "#7C5CFC",
     icon: (
       <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="3 17 8 12 12 16 17 9 21 13" />
         <line x1="3" y1="20" x2="21" y2="20" />
         <line x1="21" y1="9" x2="21" y2="13" />
+      </svg>
+    ),
+  },
+  {
+    k: "margin", label: "Margin Trading", color: "#5BA8FF",
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M7 16V8m0 8-3-3m3 3 3-3M17 8v8m0-8 3 3m-3-3-3 3" />
+        <line x1="3" y1="12" x2="21" y2="12" strokeOpacity="0.3" />
       </svg>
     ),
   },

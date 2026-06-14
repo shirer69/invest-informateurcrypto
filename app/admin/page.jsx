@@ -237,16 +237,17 @@ function Overview({ ov, members }) {
               <th className="px-5 py-3">Source</th>
               <th className="px-5 py-3">Inscription</th>
               <th className="px-5 py-3">Dépôt</th>
+              <th className="px-5 py-3">Code invit.</th>
               <th className="px-5 py-3">Accès</th>
               <th className="px-5 py-3">Dernière activité</th>
             </tr>
           </thead>
           <tbody>
             {!members && (
-              <tr><td colSpan={7} className="px-5 py-6 text-mist/50 text-center text-[13px]">Chargement…</td></tr>
+              <tr><td colSpan={8} className="px-5 py-6 text-mist/50 text-center text-[13px]">Chargement…</td></tr>
             )}
             {members && visible.length === 0 && (
-              <tr><td colSpan={7} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
+              <tr><td colSpan={8} className="px-5 py-6 text-mist/50 text-center text-[13px]">Aucun membre dans ce segment.</td></tr>
             )}
             {visible.map((m) => (
               <tr key={m.email} className="border-b hairline last:border-0">
@@ -265,6 +266,11 @@ function Overview({ ov, members }) {
                   {m.deposit === "active" ? <span className="text-pos">✓ actif</span>
                     : m.deposit === "pending" ? <span className="text-flag">en attente</span>
                     : <span className="text-mist/50">—</span>}
+                </td>
+                <td className="px-5 py-3">
+                  {m.invite_code
+                    ? <span className="font-mono text-[11px] text-gold border gold-line rounded px-1.5 py-0.5">{m.invite_code}</span>
+                    : <span className="text-mist/40">—</span>}
                 </td>
                 <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
                 <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>

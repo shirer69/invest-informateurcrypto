@@ -488,11 +488,11 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
   function openEdit(auto) {
     setEditing(auto.id);
     setForm({
-      trigger:     auto.id,
-      template_id: String(auto.template_id || ""),
-      audience:    auto.audience || "all",
-      delay_min:   auto.delay_min || 0,
-      enabled:     auto.enabled ?? true,
+      trigger:      auto.id,
+      template_id:  String(auto.template_id || ""),
+      audience:     auto.audience || "all",
+      cooldown_min: auto.cooldown_min || 0,
+      enabled:      auto.enabled ?? true,
     });
     setMsg(null);
   }
@@ -501,11 +501,11 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
     if (!form.template_id) { setMsg({ ok: false, t: "Choisissez un template." }); return; }
     setBusy(true);
     const r = await aPost("/api/admin/mail/automations", adminKey, {
-      trigger:     form.trigger,
-      template_id: Number(form.template_id),
-      audience:    form.audience,
-      delay_min:   Number(form.delay_min) || 0,
-      enabled:     form.enabled ? 1 : 0,
+      trigger:      form.trigger,
+      template_id:  Number(form.template_id),
+      audience:     form.audience,
+      cooldown_min: Number(form.cooldown_min) || 0,
+      enabled:      form.enabled ? 1 : 0,
     });
     setBusy(false);
     if (r.ok) { setMsg({ ok: true, t: "Automatisation enregistrée." }); setEditing(null); onReload(); }
@@ -565,6 +565,9 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
                     <div className="mt-1.5 text-[12px] text-mist/60">
                       Template : <span className="text-bone">{auto.template_name}</span>
                       {" · "}Audience : {AUDIENCES.find((a) => a.id === auto.audience)?.label || auto.audience}
+                      {auto.cooldown_min > 0 && (
+                        <> · Cooldown : <span className="text-bone">{auto.cooldown_min} min</span></>
+                      )}
                     </div>
                   )}
                 </div>
@@ -623,10 +626,12 @@ function AutomationsSection({ adminKey, templates, automations, onReload }) {
                       <span className="text-[13px] text-bone">Activé</span>
                     </label>
                     <div className="flex items-center gap-2">
-                      <label className="text-[12px] text-mist/70 whitespace-nowrap">Délai (min)</label>
-                      <input type="number" min={0} value={form.delay_min}
-                        onChange={(e) => setForm((f) => ({ ...f, delay_min: e.target.value }))}
-                        className="w-20 rounded-lg bg-ink-900 border border-white/10 px-3 py-1.5 text-bone text-[13px] font-mono outline-none" />
+                      <label className="text-[12px] text-mist/70 whitespace-nowrap">Cooldown (min)</label>
+                      <input type="number" min={0} value={form.cooldown_min}
+                        onChange={(e) => setForm((f) => ({ ...f, cooldown_min: e.target.value }))}
+                        className="w-20 rounded-lg bg-ink-900 border border-white/10 px-3 py-1.5 text-bone text-[13px] font-mono outline-none"
+                        placeholder="0" />
+                      <span className="text-[11px] text-mist/40">— 0 = sans limite</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">

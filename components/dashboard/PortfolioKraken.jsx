@@ -208,6 +208,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
     setLoading(true);
     // 1) Spot d'abord : affiche le contenu dès le retour (même si erreur).
     const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
+    console.warn("[SPOT-RAW]", JSON.stringify({ totals: s?.totals, holdings: (s?.holdings||[]).map(h=>({sym:h.symbol,val:h.value,cost:h.cost,baseline:h.baseline,kind:h.kind})) }));
     setSpot(s);
     setFirstDone(true); // toujours sortir du spinner après le 1er appel
 

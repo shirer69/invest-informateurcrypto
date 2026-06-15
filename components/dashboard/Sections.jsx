@@ -763,16 +763,16 @@ function Billing({ b }) {
 
       <p className="mt-3 text-[12px] leading-relaxed text-mist">
         Frais de <b>{b.current_rate_pct} %</b> prélevés <b>mensuellement</b> sur les profits réalisés
-        qui dépassent ton plus-haut historique (High-Water Mark) — tu ne paies jamais deux fois le
-        même gain, et rien tant que tu n'as pas de nouveau record. Tarif : <b>{b.rate_low_pct} %</b> si
-        ton wallet Futures est sous {fmtUsd(b.threshold)}, sinon <b>{b.rate_high_pct} %</b>.
+        qui dépassent votre plus-haut historique (High-Water Mark) — vous ne payez jamais deux fois le
+        même gain, et rien tant que vous n'avez pas de nouveau record. Tarif : <b>{b.rate_low_pct} %</b> si
+        votre wallet Futures est sous {fmtUsd(b.threshold)}, sinon <b>{b.rate_high_pct} %</b>.
       </p>
 
       {due && (
         <div className="mt-3 rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-[13px] text-rose-300">
           ⚠️ Frais en attente de paiement : <b>{fmtUsd(b.fee_due)}</b>.{" "}
           {grace != null && grace > 0
-            ? `Recharge ton wallet sous ${grace} jour${grace > 1 ? "s" : ""} pour éviter la suspension de la copie.`
+            ? `Rechargez votre wallet sous ${grace} jour${grace > 1 ? "s" : ""} pour éviter la suspension de la copie.`
             : "Délai dépassé — la copie peut être suspendue."}
         </div>
       )}
@@ -789,7 +789,7 @@ function Billing({ b }) {
             </div>
             <p className="mt-2 text-[11.5px] text-mist/60">
               Envoie de l'USDT (réseau <b>TRC-20 uniquement</b>) à cette adresse de dépôt dédiée.
-              Les dépôts sont <b>détectés et crédités automatiquement</b> sur ton solde prépayé,
+              Les dépôts sont <b>détectés et crédités automatiquement</b> sur votre solde prépayé,
               utilisé pour régler les commissions.
             </p>
           </>
@@ -1210,7 +1210,7 @@ export function Monitoring({ onGoCopy }) {
         </div>
         <FuturesCTAs />
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 text-[14px] text-mist text-center">
-          Connecte-toi pour suivre l'activité du trader en direct.
+          Connectez-vous pour suivre l'activité du trader en direct.
         </div>
       </div>
     );
@@ -1521,7 +1521,7 @@ export function CopyTrading() {
       <div>
         <h3 className="font-display text-[18px] text-bone mb-4">Copy-auto Portefeuille INVEST - LIVE</h3>
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
-          Connecte-toi à ton compte pour activer le copy-trading.
+          Connectez-vous à votre compte pour activer le copy-trading.
         </div>
       </div>
     );
@@ -1533,7 +1533,7 @@ export function CopyTrading() {
       <div>
         <h3 className="font-display text-[18px] text-bone mb-4">Copy-auto Portefeuille INVEST - LIVE</h3>
         <div className="grid place-items-center gap-3 py-24 text-mist">
-          <Spinner className="text-gold" /> <p className="text-[13px]">Chargement de ton compte…</p>
+          <Spinner className="text-gold" /> <p className="text-[13px]">Chargement de votre compte…</p>
         </div>
       </div>
     );
@@ -1572,7 +1572,7 @@ export function CopyTrading() {
     refresh();
   }
   async function doStop() {
-    if (!confirm("Arrêter la copie ferme immédiatement toutes tes positions copiées. Continuer ?")) return;
+    if (!confirm("Arrêter la copie ferme immédiatement toutes vos positions copiées. Continuer ?")) return;
     setStopping(true); setMsg("");
     const r = await copyStop();
     setStopping(false);
@@ -1604,17 +1604,17 @@ export function CopyTrading() {
         /* ---- onboarding : Futures + Spot côte à côte (au moins une requise) ---- */
         <div className="space-y-4 max-w-4xl">
           <div>
-            <h4 className="font-display text-[17px] text-bone mb-1">Connecte ton sous-compte Kraken</h4>
+            <h4 className="font-display text-[17px] text-bone mb-1">Connectez votre sous-compte Kraken</h4>
             <p className="text-[13px] text-mist mb-2">
-              Le copy-trading réplique les positions sur le sous-compte Kraken dédié que tu as créé.
-              Configure au moins un wallet (Futures ou Spot / Margin) pour démarrer — tu pourras ajouter l'autre ensuite.
+              Le copy-trading réplique les positions sur le sous-compte Kraken dédié que vous avez créé.
+              Configurez au moins un wallet (Futures ou Spot / Margin) pour démarrer — vous pourrez ajouter l'autre ensuite.
             </p>
             <p className="text-[12px] text-mist/70 border border-gold/20 bg-gold/[0.04] rounded-lg px-3 py-2">
               💡 <b className="text-bone">Frais de performance : 20 %</b> sur les gains réalisés du compte chaque mois (gains non réalisés exclus). Facturés automatiquement et réglables en crypto depuis le menu <b className="text-bone">Wallet</b>.
             </p>
             {isReal && (
               <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">
-                ⚠️ Mode RÉEL : les ordres sont exécutés avec de l'argent réel sur ton compte.
+                ⚠️ Mode RÉEL : les ordres sont exécutés avec de l'argent réel sur votre compte.
               </p>
             )}
           </div>
@@ -1688,7 +1688,7 @@ export function CopyTrading() {
           {msg && <p className="text-[12.5px] text-mist">{msg}</p>}
 
           <ul className="space-y-2">
-            {["Clés chiffrées au repos", "Jamais de permission de retrait", "Tu gardes le contrôle : start/stop à tout moment"].map((x) => (
+            {["Clés chiffrées au repos", "Jamais de permission de retrait", "Vous gardez le contrôle : start/stop à tout moment"].map((x) => (
               <li key={x} className="flex items-center gap-3 text-[12.5px] text-mist/80">
                 <span className="h-1 w-1 rounded-full bg-gold" /> {x}
               </li>
@@ -1704,13 +1704,13 @@ export function CopyTrading() {
             <div className="rounded-2xl border border-gold/30 bg-gold/[0.04] p-6 max-w-2xl">
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-gold text-[20px]">⚙️</span>
-                <h4 className="font-display text-[17px] text-bone">Connecte ton compte Spot / Margin Kraken</h4>
+                <h4 className="font-display text-[17px] text-bone">Connectez votre compte Spot / Margin Kraken</h4>
                 <button onClick={() => setShowSpotHelp(true)}
                   className="rounded-full border border-gold/40 text-gold text-[11px] font-bold px-2 py-0.5 hover:bg-gold/10 flex-shrink-0"
                   title="Comment créer les clés API Spot">Help</button>
               </div>
               <p className="text-[13px] leading-relaxed text-mist mb-4">
-                Pour copier les positions <b className="text-bone">Spot et Margin</b>, saisis les clés API de ton sous-compte Kraken dédié.
+                Pour copier les positions <b className="text-bone">Spot et Margin</b>, saisissez les clés API de votre sous-compte Kraken dédié.
                 Crée-les sur <a className="text-gold underline" href="https://pro.kraken.com/app/settings/api" target="_blank" rel="noopener noreferrer">pro.kraken.com/app/settings/api</a>.
               </p>
               <div className="space-y-3">
@@ -1813,7 +1813,7 @@ export function CopyTrading() {
           </div>
           <p className="-mt-2 text-[11.5px] text-mist/50">
             La performance affichée provient <b>uniquement</b> des positions déclenchées par le copy
-            (le trader maître) — elle exclut tes éventuels trades manuels et la revalorisation du collatéral.
+            (le trader maître) — elle exclut vos éventuels trades manuels et la revalorisation du collatéral.
           </p>
 
           {/* métriques */}
@@ -1963,7 +1963,7 @@ export function CopyTrading() {
               </div>
               <p className="mt-3 text-[11.5px] text-mist/50">
                 Stop-loss / position : pose un stop automatique à X % de l'entrée. Stop-copy : coupe
-                tout et ferme si ta perte totale atteint X %. Levier max : plafonne ton exposition.
+                tout et ferme si votre perte totale atteint X %. Levier max : plafonne votre exposition.
               </p>
             </div>
           )}
@@ -2004,8 +2004,8 @@ function SpotPlanPanel() {
         <span className="font-mono text-[9px] uppercase tracking-widest2 text-cyan-300 border border-cyan-500/30 rounded px-1.5 py-0.5">suggestion</span>
       </div>
       <p className="mt-2 text-[12.5px] leading-relaxed text-mist">
-        Réplique la <b>composition spot</b> de Julien (hors xStocks) sur le capital de ton choix.
-        <b className="text-bone"> Aucune exécution automatique</b> : tu passes les ordres toi-même sur ton compte Kraken.
+        Réplique la <b>composition spot</b> de Julien (hors xStocks) sur le capital de votre choix.
+        <b className="text-bone"> Aucune exécution automatique</b> : vous passez les ordres vous-même sur votre compte Kraken.
       </p>
       <div className="mt-3 flex items-end gap-2 flex-wrap">
         <div>

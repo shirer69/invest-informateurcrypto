@@ -1452,11 +1452,140 @@ export function Monitoring({ onGoCopy }) {
   );
 }
 
+function KrakenApiGuide({ type, onClose }) {
+  const isSpot = type === "spot";
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm" onClick={onClose}>
+      <div className="relative bg-[#1a1a2e] rounded-2xl w-full max-w-lg shadow-2xl border border-white/10 overflow-hidden"
+           onClick={(e) => e.stopPropagation()}>
+        {/* Header Kraken-style */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
+          <h3 className="text-[15px] font-semibold text-white">
+            {isSpot ? "Ajouter une clé API" : "Ajouter une clé API Futures"}
+            <span className="ml-2 text-[11px] font-normal text-red-400">*</span>
+          </h3>
+          <button onClick={onClose} className="text-white/50 hover:text-white text-[20px] leading-none">×</button>
+        </div>
+
+        <div className="px-6 py-5 space-y-5 max-h-[80vh] overflow-y-auto">
+          {isSpot ? (
+            <>
+              {/* Nom */}
+              <div>
+                <p className="text-[11px] text-white/50 mb-1">Nom</p>
+                <div className="bg-[#2a2a3e] rounded px-3 py-2 text-[13px] text-white/80">Mon Compte Copy</div>
+              </div>
+              <p className="text-[12px] text-white/50">Sélectionnez au moins une autorisation.</p>
+              {/* Grid 3 colonnes */}
+              <div className="grid grid-cols-3 gap-4 text-[12px]">
+                {/* Fonds */}
+                <div>
+                  <p className="font-semibold text-white mb-2">Fonds</p>
+                  <label className="flex items-center gap-2 mb-1">
+                    <span className="h-4 w-4 rounded bg-[#7b5ea7] flex items-center justify-center flex-shrink-0">
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </span>
+                    <span className="text-white/80">Requête</span>
+                  </label>
+                  <label className="flex items-center gap-2 mb-1 opacity-40">
+                    <span className="h-4 w-4 rounded border border-white/30 flex-shrink-0"/>
+                    <span className="text-white/60">Dépôt</span>
+                  </label>
+                  <label className="flex items-center gap-2 mb-1 opacity-40">
+                    <span className="h-4 w-4 rounded border border-white/30 flex-shrink-0"/>
+                    <span className="text-white/60">Retrait</span>
+                  </label>
+                  <label className="flex items-center gap-2 opacity-40">
+                    <span className="h-4 w-4 rounded border border-white/30 flex-shrink-0"/>
+                    <span className="text-white/60">Gains</span>
+                  </label>
+                </div>
+                {/* Ordres */}
+                <div>
+                  <p className="font-semibold text-white mb-2">Ordres et transactions</p>
+                  {["Consulter les ordres et transactions ouverts","Consulter les ordres et les transactions clôturés","Créer et modifier des ordres","Annuler et clôturer des ordres"].map((x) => (
+                    <label key={x} className="flex items-start gap-2 mb-1.5">
+                      <span className="h-4 w-4 rounded bg-[#7b5ea7] flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                      </span>
+                      <span className="text-white/80 leading-tight">{x}</span>
+                    </label>
+                  ))}
+                </div>
+                {/* Données */}
+                <div>
+                  <p className="font-semibold text-white mb-2">Données</p>
+                  <label className="flex items-center gap-2 mb-1 opacity-40">
+                    <span className="h-4 w-4 rounded border border-white/30 flex-shrink-0"/>
+                    <span className="text-white/60">Consulter le registre</span>
+                  </label>
+                  <label className="flex items-center gap-2 opacity-40">
+                    <span className="h-4 w-4 rounded border border-white/30 flex-shrink-0"/>
+                    <span className="text-white/60">Exporter les données</span>
+                  </label>
+                </div>
+              </div>
+              <p className="text-[11px] text-amber-400/80 border border-amber-400/20 bg-amber-400/5 rounded-lg px-3 py-2">
+                ⚠️ Ne jamais activer Dépôt / Retrait — inutile pour le copy.
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-6 text-[13px]">
+                {/* API générale */}
+                <div>
+                  <p className="font-semibold text-white mb-3">API générale</p>
+                  <label className="flex items-center gap-2.5 mb-2 cursor-pointer">
+                    <span className="h-4 w-4 rounded-full border-4 border-[#7b5ea7] flex-shrink-0"/>
+                    <span className="text-white font-medium">Accès complet</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 mb-2 opacity-40">
+                    <span className="h-4 w-4 rounded-full border border-white/40 flex-shrink-0"/>
+                    <span className="text-white/70">Lecture seule</span>
+                  </label>
+                  <label className="flex items-center gap-2.5 opacity-40">
+                    <span className="h-4 w-4 rounded-full border border-white/40 flex-shrink-0"/>
+                    <span className="text-white/70">Aucun accès</span>
+                  </label>
+                </div>
+                {/* API de retrait */}
+                <div>
+                  <p className="font-semibold text-white mb-3">API de retrait</p>
+                  <label className="flex items-center gap-2.5 mb-2 opacity-40">
+                    <span className="h-4 w-4 rounded-full border border-white/40 flex-shrink-0"/>
+                    <span className="text-white/70">Accès complet</span>
+                  </label>
+                  <label className="flex items-center gap-2.5">
+                    <span className="h-4 w-4 rounded-full border-4 border-[#7b5ea7] flex-shrink-0"/>
+                    <span className="text-white font-medium">Aucun accès</span>
+                  </label>
+                </div>
+              </div>
+              <p className="text-[11px] text-amber-400/80 border border-amber-400/20 bg-amber-400/5 rounded-lg px-3 py-2">
+                ⚠️ API de retrait = Aucun accès obligatoire — le copy n'a jamais besoin de retirer des fonds.
+              </p>
+            </>
+          )}
+
+          {/* Bouton bas */}
+          <div className="pt-2 border-t border-white/10">
+            <div className="bg-[#2a2a3e] rounded-xl px-4 py-3 text-center text-[13px] text-white/50 italic">
+              Générer une clé → copier la clé publique et privée
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CopyTrading() {
   const [user, setUser] = useState(null);
   const [s, setS] = useState(null);
   const [keyForm, setKeyForm] = useState({ api_key: "", api_secret: "" });
   const [spotKeyForm, setSpotKeyForm] = useState({ api_key: "", api_secret: "" });
+  const [showFuturesHelp, setShowFuturesHelp] = useState(false);
+  const [showSpotHelp, setShowSpotHelp] = useState(false);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -1623,19 +1752,27 @@ export function CopyTrading() {
         </p>
       </div>
 
+      {showFuturesHelp && <KrakenApiGuide type="futures" onClose={() => setShowFuturesHelp(false)} />}
+      {showSpotHelp && <KrakenApiGuide type="spot" onClose={() => setShowSpotHelp(false)} />}
+
       {!configured ? (
         /* ---- onboarding : saisie des clés ---- */
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 max-w-2xl">
-          <h4 className="font-display text-[18px] text-bone">
-            Connecte ton compte {isReal ? "Kraken Futures" : "démo Futures"}
-          </h4>
+          <div className="flex items-center gap-2">
+            <h4 className="font-display text-[18px] text-bone">
+              Connecte ton compte {isReal ? "Kraken Futures" : "démo Futures"}
+            </h4>
+            <button onClick={() => setShowFuturesHelp(true)}
+              className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
+              title="Comment créer les clés API Futures">?</button>
+          </div>
           <p className="mt-2 text-[13.5px] leading-relaxed text-mist">
             Le copy-trading réplique automatiquement les positions du trader sur <b>ton</b> compte
             Kraken Futures{isReal ? " réel" : " de démonstration"}. Crée deux clés API sur{" "}
             <a className="text-gold underline" href={`https://${futuresHost}`} target="_blank" rel="noopener noreferrer">
               {futuresHost}
             </a>{" "}
-            (Settings → API Keys, droit de trading), puis colle-les ci-dessous.
+            (Connexions et API → Futures PA → Créer une clé), puis colle-les ci-dessous.
           </p>
           {isReal && (
             <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">
@@ -1677,6 +1814,9 @@ export function CopyTrading() {
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-gold text-[20px]">⚙️</span>
                 <h4 className="font-display text-[17px] text-bone">Connecte ton compte Spot / Margin Kraken</h4>
+                <button onClick={() => setShowSpotHelp(true)}
+                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Spot">?</button>
               </div>
               <p className="text-[13px] leading-relaxed text-mist mb-4">
                 Pour copier les positions <b className="text-bone">Spot et Margin</b>, saisis les clés API de ton sous-compte Kraken dédié.

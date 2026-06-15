@@ -72,6 +72,7 @@ export default function TgPosts({ adminKey }) {
   const [previewHtml, setPreviewHtml] = useState("");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const fileInputRef = useRef(null);
 
   /* triggers */
@@ -140,7 +141,7 @@ export default function TgPosts({ adminKey }) {
     try {
       const r = await fetch(`${API_BASE}/api/admin/tg/upload?key=${encodeURIComponent(adminKey)}`, { method: "POST", body: fd });
       const d = await r.json();
-      if (d.ok) { setPhoto(d.url); setMsg({ ok: true, t: `✓ Image uploadée (${Math.round(file.size / 1024)} Ko)` }); }
+      if (d.ok) { setPhoto(d.url); setImgError(false); setMsg({ ok: true, t: `✓ Image uploadée (${Math.round(file.size / 1024)} Ko)` }); }
       else setMsg({ ok: false, t: d.error || "Échec de l'upload." });
     } catch (e) { setMsg({ ok: false, t: "Erreur réseau lors de l'upload." }); }
     finally { setUploading(false); }
@@ -339,10 +340,17 @@ export default function TgPosts({ adminKey }) {
               {photo ? (
                 <div className="relative w-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photo} alt="preview" onError={() => {}} className="w-full max-h-52 object-cover rounded-xl" />
+                  {imgError ? (
+                    <div className="w-full p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-[12px] text-rose-300">
+                      Aperçu indisponible —{" "}
+                      <a href={photo} target="_blank" rel="noopener noreferrer" className="underline text-rose-200">ouvrir l'image</a>
+                    </div>
+                  ) : (
+                    <img src={photo} alt="preview" onError={() => setImgError(true)} className="w-full max-h-52 object-cover rounded-xl" />
+                  )}
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setPhoto(""); }}
+                    onClick={(e) => { e.stopPropagation(); setPhoto(""); setImgError(false); }}
                     className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-rose-500/80 transition-colors text-[14px]"
                   >✕</button>
                   {uploading && (
@@ -381,7 +389,7 @@ export default function TgPosts({ adminKey }) {
               <span className="text-[10.5px] text-mist/40 whitespace-nowrap">ou URL directe</span>
               <input
                 value={photo}
-                onChange={(e) => setPhoto(e.target.value)}
+                onChange={(e) => { setPhoto(e.target.value); setImgError(false); }}
                 placeholder="https://…/image.jpg"
                 className="flex-1 rounded-lg bg-ink-900 border border-white/10 focus:border-gold/50 px-3 py-1.5 text-bone text-[12px] font-mono outline-none"
               />

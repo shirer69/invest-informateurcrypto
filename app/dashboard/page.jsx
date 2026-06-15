@@ -217,12 +217,11 @@ export default function Dashboard() {
   }
 
   // Gating inscription par nombre de connexions (utilisateurs non inscrits) :
-  //  • 1re connexion  → AUCUN gate (accès direct au dashboard verrouillé)
-  //  • 2e connexion   → gate avec « Passer pour l'instant »
-  //  • 3e connexion + → gate OBLIGATOIRE (pas de skip)
+  //  • 1re & 2e connexion → AUCUN gate (accès direct au dashboard verrouillé)
+  //  • 3e connexion +     → gate OBLIGATOIRE (pas de skip)
   // ?code dans l'URL → on EXIGE la saisie du code d'invitation, quel que soit le
-  // nombre de connexions (priorité sur la règle 1re/2e/3e).
-  if (!registered && !gateSkipped && (visitCount >= 2 || forceCode)) {
+  // nombre de connexions (priorité sur la règle des visites).
+  if (!registered && !gateSkipped && (visitCount >= 3 || forceCode)) {
     const isTgUser = emailLc.endsWith("@telegram.local");
 
     let isDirect = false;
@@ -232,7 +231,7 @@ export default function Dashboard() {
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
 
-    // Skip possible uniquement à la 2e connexion ; obligatoire dès la 3e ou si ?code.
+    // Le gate n'apparaît qu'à partir de la 3e connexion → toujours obligatoire (pas de skip).
     const canSkip = visitCount < 3 && !forceCode;
 
     return (

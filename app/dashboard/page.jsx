@@ -250,7 +250,7 @@ export default function Dashboard() {
           <a href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 min-w-0">
             <span className="leading-tight min-w-0">
               <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Club des Informateurs</span>
-              <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">tableau de bord</span>
+              <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">Micro hedge funds</span>
             </span>
           </a>
           <div className="flex items-center gap-3 shrink-0">

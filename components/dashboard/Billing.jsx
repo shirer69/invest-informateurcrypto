@@ -1,9 +1,68 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiBilling } from "@/lib/clientStore";
+import { apiBilling, apiAccessCode } from "@/lib/clientStore";
 import { useUnlock } from "@/components/dashboard/UnlockProvider";
 import { IconArrow } from "@/components/Icons";
+
+function InvestCodeGate() {
+  const { investAccess, refreshAccess } = useUnlock();
+  const [code, setCode] = useState("");
+  const [status, setStatus] = useState("idle");
+  const [msg, setMsg] = useState("");
+
+  if (investAccess) return null;
+
+  async function submit(e) {
+    e.preventDefault();
+    const c = code.trim().toUpperCase();
+    if (!c) return;
+    setStatus("loading");
+    const r = await apiAccessCode(c);
+    if (r.ok && r.scope === "invest") {
+      setStatus("success"); setMsg("Accès débloqué !");
+      await refreshAccess();
+    } else if (r.ok) {
+      setStatus("error"); setMsg("Ce code ne correspond pas à l'accès Portefeuille INVEST.");
+    } else {
+      setStatus("error");
+      const err = r.error || "";
+      setMsg(err === "already_used" ? "Ce code a déjà été utilisé."
+        : err === "expired" ? "Ce code a expiré."
+        : err === "max_uses" ? "Ce code a atteint son nombre maximum d'utilisations."
+        : "Code invalide ou introuvable.");
+    }
+  }
+
+  return (
+    <div className="rounded-2xl border gold-line bg-gold/[0.03] p-5 mb-5">
+      <div className="flex items-center gap-2 mb-2.5">
+        <span className="grid place-items-center h-7 w-7 rounded-full border gold-line text-gold text-sm">🔑</span>
+        <span className="text-[13.5px] text-bone font-medium">Accès Portefeuille INVEST</span>
+      </div>
+      <p className="text-[12px] text-mist/80 mb-4 leading-relaxed">
+        Entrez un code d'activation pour accéder à la page Portefeuille INVEST pendant 7 jours.
+      </p>
+      <form onSubmit={submit} className="flex gap-2">
+        <input
+          value={code}
+          onChange={(e) => { setCode(e.target.value.toUpperCase()); setStatus("idle"); setMsg(""); }}
+          placeholder="Code d'accès"
+          disabled={status === "loading" || status === "success"}
+          autoCapitalize="characters"
+          className="flex-1 min-w-0 rounded-xl bg-ink-900 border border-white/10 focus:border-gold/50 px-4 py-2.5 text-bone placeholder:text-mist/40 font-mono text-[13px] outline-none disabled:opacity-60 uppercase tracking-wider"
+        />
+        <button type="submit"
+          disabled={status === "loading" || status === "success" || !code.trim()}
+          className="btn-gold rounded-xl px-4 py-2.5 text-[13px] font-semibold disabled:opacity-60 min-w-[80px]">
+          {status === "loading" ? "…" : "Valider"}
+        </button>
+      </form>
+      {status === "error" && <p className="mt-2 text-[12px] text-rose-400/90">{msg}</p>}
+      {status === "success" && <p className="mt-2 text-[12px] text-emerald-400/90">✓ {msg}</p>}
+    </div>
+  );
+}
 
 const fmtDate = (sec) =>
   !sec ? "—" : new Date(Number(sec) * 1000).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
@@ -98,6 +157,9 @@ export default function Billing() {
           </>
         )}
       </div>
+
+      {/* Code d'activation Portefeuille INVEST */}
+      <InvestCodeGate />
 
       {/* Wallet dédié */}
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5 mb-5">

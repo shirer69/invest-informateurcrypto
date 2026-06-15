@@ -138,7 +138,7 @@ function Spinner({ size = 16, className = "" }) {
   );
 }
 
-function Table({ rows, cols, mobileMax }) {
+function Table({ rows, cols, mobileMax, blurred }) {
   if (!rows.length) return <p className="px-5 py-4 text-[13px] text-mist">Aucun actif.</p>;
   const hiddenOnMobile = mobileMax ? Math.max(0, rows.length - mobileMax) : 0;
   return (
@@ -151,7 +151,7 @@ function Table({ rows, cols, mobileMax }) {
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody style={blurred ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : undefined}>
           {rows.map((r, i) => (
             <tr key={i}
               className={`border-b hairline last:border-0 ${mobileMax && i >= mobileMax ? "hidden sm:table-row" : ""}`}>
@@ -363,7 +363,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   const header = (
     <div className="mb-4">
       <div className="flex items-center gap-2">
-        <h3 className="font-display text-[18px] text-bone">Tableau de bord</h3>
+        <h3 className="font-display text-[18px] text-bone">Micro hedge funds</h3>
         <LiveTag />
         <button onClick={load} disabled={loading}
           className="ml-auto inline-flex items-center gap-1.5 text-[12px] text-mist hover:text-bone disabled:opacity-60">
@@ -488,6 +488,8 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
 
 /* Tableaux d'actifs réutilisables (Invest tab) */
 export function AssetTables() {
+  const { investAccess } = useUnlock();
+  const blurred = !investAccess;
   const [spot, setSpot] = useState(null);
   const [fut, setFut] = useState(null);
   const [futPos, setFutPos] = useState(null);
@@ -574,7 +576,7 @@ export function AssetTables() {
   return (
     <div className="space-y-5 mt-4">
       <Section title="Spot crypto" dot={CAT.crypto.color} icon={ICONS.crypto}>
-        <Table rows={crypto2} mobileMax={3} cols={[
+        <Table rows={crypto2} mobileMax={3} blurred={blurred} cols={[
           { k: "symbol", h: "Actif" },
           { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
           { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
@@ -583,7 +585,7 @@ export function AssetTables() {
         ]} />
       </Section>
       <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock}>
-        <Table rows={stocks2} cols={[
+        <Table rows={stocks2} blurred={blurred} cols={[
           { k: "symbol", h: "Titre" },
           { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
           { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
@@ -592,7 +594,7 @@ export function AssetTables() {
         ]} />
       </Section>
       <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
-        <Table rows={marginRows2} cols={[
+        <Table rows={marginRows2} blurred={blurred} cols={[
           { k: "pair", h: "Paire" },
           { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
           { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.entry) },
@@ -607,7 +609,7 @@ export function AssetTables() {
         <div className="p-1.5"><RealFuturesPositions /></div>
       </Section>
       <Section title="Cash & stablecoins" dot={CAT.cash.color} icon={ICONS.cash}>
-        <Table rows={cash2} cols={[
+        <Table rows={cash2} blurred={blurred} cols={[
           { k: "symbol", h: "Devise" },
           { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
           { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },

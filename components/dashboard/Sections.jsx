@@ -2335,8 +2335,8 @@ export function XStocks() {
       .filter((h) => h.kind === "stock")
       .map((h, i) => {
         const meta = TICKER_META[h.symbol] || {};
-        const mktVal = h.value ?? 0;
-        const costVal = h.cost ?? 0;
+        const mktVal = (h.value ?? 0) * DISPLAY_MULT;
+        const costVal = (h.cost ?? 0) * DISPLAY_MULT;
         const pnlAbs = costVal > 0 ? mktVal - costVal : null;
         const pnlPct = costVal > 0 ? ((mktVal - costVal) / costVal) * 100 : null;
         return {

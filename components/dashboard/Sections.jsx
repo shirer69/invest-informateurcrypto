@@ -1143,7 +1143,7 @@ function AudioItem({ item, reactions, first }) {
               {first && <span className="font-mono text-[9px] uppercase tracking-widest text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>}
               {item.duration != null && <span className="font-mono text-[10px] text-mist/60">{dur(item.duration)}</span>}
             </div>
-            <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · {relTime(item.date)}</div>
+            <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · <span className={first ? "text-emerald-400" : ""}>{relTime(item.date)}</span></div>
           </div>
         </div>
         <span className="text-[18px]">🎙️</span>
@@ -1157,14 +1157,14 @@ function AudioItem({ item, reactions, first }) {
   );
 }
 
-function PostItem({ item, reactions }) {
+function PostItem({ item, reactions, first }) {
   return (
     <article className="rounded-2xl border border-white/[0.07] bg-ink-800/50 p-4">
       <div className="flex items-center gap-2.5 mb-2">
         <img src="/julien.jpg" alt="" className="h-8 w-8 rounded-full border gold-line object-cover object-top shrink-0" />
         <div>
           <span className="font-display text-[13.5px] text-bone">Julien</span>
-          <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · {relTime(item.date)}</div>
+          <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · <span className={first ? "text-emerald-400" : ""}>{relTime(item.date)}</span></div>
         </div>
         <span className="ml-auto text-[18px]">{item.kind === "photo" ? "📷" : "💬"}</span>
       </div>
@@ -1250,6 +1250,7 @@ export function MonitoringAudio() {
         // pour ne pas le dupliquer s'il est aussi le post le plus récent.
         const latestAudio = items.find((i) => i.kind === "audio");
         const rest = items.filter((i) => i !== latestAudio);
+        const firstPostId = rest.find((i) => i.kind !== "audio")?.id;
         return (
           <>
             {latestAudio && (
@@ -1265,7 +1266,7 @@ export function MonitoringAudio() {
                   {rest.map((item) =>
                     item.kind === "audio"
                       ? <AudioItem key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
-                      : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
+                      : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} first={item.id === firstPostId} />
                   )}
                 </div>
               </>

@@ -391,6 +391,7 @@ function Members({ members, adminKey }) {
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
               <th className="px-5 py-3">Membre</th>
               <th className="px-5 py-3">Email</th>
+              <th className="px-5 py-3">Visites</th>
               <th className="px-5 py-3">UID</th>
               <th className="px-5 py-3">Source</th>
               <th className="px-5 py-3">Inscription</th>
@@ -401,7 +402,6 @@ function Members({ members, adminKey }) {
               <th className="px-5 py-3">Actions</th>
               <th className="px-5 py-3 text-right">Messages</th>
               <th className="px-5 py-3">Academy</th>
-              <th className="px-5 py-3">Visites</th>
             </tr>
           </thead>
           <tbody>
@@ -419,6 +419,7 @@ function Members({ members, adminKey }) {
                   {m.tg_id && <div className="font-mono text-[10px] text-mist/50">tg:{m.tg_id}</div>}
                 </td>
                 <td className="px-5 py-3 font-mono text-[12px] text-mist">{m.email}</td>
+                <td className="px-5 py-3 font-mono text-mist">{m.visits ?? 0}</td>
                 <td className="px-5 py-3 font-mono text-[12px]">
                   {m.uid ? <span className="text-gold">{m.uid}</span> : <span className="text-mist/40">—</span>}
                 </td>
@@ -467,7 +468,6 @@ function Members({ members, adminKey }) {
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
                 <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
-                <td className="px-5 py-3 font-mono text-mist">{m.visits ?? 0}</td>
               </tr>
             );})}
 

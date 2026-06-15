@@ -257,7 +257,7 @@ export default function TgPosts({ adminKey }) {
       trigger_id: trgEventId,
       template_id: Number(trgTpl),
       cooldown_hours: isBroadcast ? Number(trgCooldown) : 0,
-      audience: isBroadcast ? trgAud : "user",
+      audience: trgAud,
     };
     const r = await aPost("/api/admin/tg/triggers", adminKey, body);
     if (r.ok) { setMsg({ ok: true, t: "Déclencheur créé." }); setTrgEventId(""); setTrgTpl(""); reload(); }
@@ -543,18 +543,23 @@ export default function TgPosts({ adminKey }) {
               <option value="">— Template à envoyer —</option>
               {templates.map((t) => <option key={t.id} value={t.id}>{t.name || `#${t.id}`}</option>)}
             </select>
-            {isBroadcast && (
-              <div className="flex items-center gap-2">
-                <select value={trgAud} onChange={(e) => setTrgAud(e.target.value)}
-                  className="flex-1 rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
-                  {AUDIENCES.map((a) => <option key={a.id} value={a.id}>Audience : {a.label}</option>)}
-                </select>
+            <div className="flex items-center gap-2">
+              <select value={trgAud} onChange={(e) => setTrgAud(e.target.value)}
+                className="flex-1 rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
+                {AUDIENCES.map((a) => <option key={a.id} value={a.id}>Audience : {a.label}</option>)}
+              </select>
+              {isBroadcast && (
                 <div className="flex items-center gap-1.5">
                   <input type="number" min={0} value={trgCooldown} onChange={(e) => setTrgCooldown(e.target.value)}
                     className="w-16 rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none" />
                   <span className="text-[12px] text-mist whitespace-nowrap">h min entre envois</span>
                 </div>
-              </div>
+              )}
+            </div>
+            {!isBroadcast && (
+              <p className="text-[11px] text-mist/60 -mt-1">
+                Individuel : envoyé à l'utilisateur concerné <b>s'il correspond à l'audience</b> (ex. « Tous sauf actifs » pour ne pas relancer un membre déjà actif).
+              </p>
             )}
             <button onClick={addTrigger}
               className="w-full rounded-full px-5 py-2.5 text-[13px] font-semibold border border-emerald-500/50 text-emerald-300 hover:bg-emerald-500/10 transition-colors">

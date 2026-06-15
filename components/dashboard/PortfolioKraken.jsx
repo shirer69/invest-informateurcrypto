@@ -452,16 +452,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
         </div>
       </div>
 
-      {/* Carrousel témoignages */}
-      <div className="mb-5"><TestimonialCarousel /></div>
-
-      {/* Courbe equity (dashboard verrouillé uniquement) */}
-      {locked && (
-        <div className="mb-5">
-          <TrackRecord />
-        </div>
-      )}
-
+      {/* Bouton Voir les actifs — juste sous le bloc P&L, avant les témoignages */}
       {onGoInvest && (
         <button
           onClick={onGoInvest}
@@ -475,6 +466,16 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
             </svg>
           </span>
         </button>
+      )}
+
+      {/* Carrousel témoignages */}
+      <div className="mb-5 mt-5"><TestimonialCarousel /></div>
+
+      {/* Courbe equity (dashboard verrouillé uniquement) */}
+      {locked && (
+        <div className="mb-5">
+          <TrackRecord />
+        </div>
       )}
 
       <div className="mt-5">

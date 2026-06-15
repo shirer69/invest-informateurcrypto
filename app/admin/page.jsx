@@ -239,7 +239,7 @@ function Overview({ ov, members }) {
               <th className="px-5 py-3">Dépôt</th>
               <th className="px-5 py-3">Code invit.</th>
               <th className="px-5 py-3">Accès</th>
-              <th className="px-5 py-3">Dernière activité</th>
+              <th className="px-5 py-3">Visites</th>
             </tr>
           </thead>
           <tbody>
@@ -273,7 +273,7 @@ function Overview({ ov, members }) {
                     : <span className="text-mist/40">—</span>}
                 </td>
                 <td className="px-5 py-3">{m.has_access ? <span className="text-pos">ouvert</span> : <span className="text-mist/50">verrouillé</span>}</td>
-                <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
+                <td className="px-5 py-3 font-mono text-mist">{m.visits ?? 0}</td>
               </tr>
             ))}
           </tbody>
@@ -401,7 +401,7 @@ function Members({ members, adminKey }) {
               <th className="px-5 py-3">Actions</th>
               <th className="px-5 py-3 text-right">Messages</th>
               <th className="px-5 py-3">Academy</th>
-              <th className="px-5 py-3">Dernière activité</th>
+              <th className="px-5 py-3">Visites</th>
             </tr>
           </thead>
           <tbody>
@@ -467,7 +467,7 @@ function Members({ members, adminKey }) {
                 </td>
                 <td className="px-5 py-3 text-right font-mono text-mist">{m.messages}</td>
                 <td className="px-5 py-3">{m.academy ? <span className="text-pos">oui</span> : <span className="text-mist/50">—</span>}</td>
-                <td className="px-5 py-3 font-mono text-mist">{relFromMs(m.last_active)}</td>
+                <td className="px-5 py-3 font-mono text-mist">{m.visits ?? 0}</td>
               </tr>
             );})}
 

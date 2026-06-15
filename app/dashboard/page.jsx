@@ -16,7 +16,7 @@ import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
 import { TELEGRAM_URL } from "@/lib/site";
-import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest } from "@/lib/clientStore";
+import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest, apiVisit } from "@/lib/clientStore";
 
 // Logo Kraken (mark) — utilisé comme icône de l'onglet Invest dans le menu.
 function KrakenMark({ className = "" }) {
@@ -194,6 +194,24 @@ export default function Dashboard() {
         setBooted(true);
       }
     }, 100);
+    return () => clearInterval(id);
+  }, []);
+
+  // Ping serveur : 1 visite par session navigateur (attend que le token soit prêt,
+  // car en mini-app il arrive après l'auto-login Telegram).
+  useEffect(() => {
+    try { if (sessionStorage.getItem("pi_visit_pinged")) return; } catch {}
+    let tries = 0;
+    const id = setInterval(() => {
+      tries += 1;
+      if (getToken()) {
+        clearInterval(id);
+        try { sessionStorage.setItem("pi_visit_pinged", "1"); } catch {}
+        apiVisit().catch(() => {});
+      } else if (tries > 50) {
+        clearInterval(id);
+      }
+    }, 200);
     return () => clearInterval(id);
   }, []);
 

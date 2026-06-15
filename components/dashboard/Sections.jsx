@@ -630,7 +630,6 @@ export function ChallengeBlock({ onGoTrading }) {
         <div className="absolute -bottom-6 -left-6 h-32 w-32 rounded-full blur-3xl opacity-10" style={{background:"radial-gradient(circle,#eab308,transparent 70%)"}}/>
       </div>
       <div className="relative p-5">
-        <h3 className="font-display text-[18px] text-bone mb-3">Pôle Trading</h3>
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
@@ -1207,16 +1206,9 @@ export function Monitoring({ onGoCopy }) {
   return (
     <div>
       {/* Titre */}
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
-          <div>
-            <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
-            <p className="text-[11.5px] text-mist/70 mt-0.5">
-              Le Pôle Trading se concentre sur le trading en futures, nous avons 2 copy auto déployés pilotés par Julien en plus d'un groupe privé dédié pour le trading intra-day / scalping.
-            </p>
-          </div>
-        </div>
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+        <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         <LiveTag />
       </div>
 

@@ -15,7 +15,7 @@ import {
   getUser, getToken, copyState, copySaveKeys, copySaveSpotKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
   copyContract, copyContractSign, copySpotPlan, copyMarginPlan,
-  poleTradingAudios, audioStreamUrl, apiAccessCode,
+  poleTradingAudios, audioStreamUrl, poleTradingFeed, photoUrl, apiAccessCode, apiGetLikes, apiToggleReaction,
 } from "@/lib/clientStore";
 import { KPIS, POSITIONS, SIGNALS, MONTHLY, RISK } from "@/lib/dashboardData";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
@@ -1065,35 +1065,199 @@ function LatestVideo() {
   );
 }
 
+/* ── helpers fil d'actu ── */
+function relTime(iso) {
+  if (!iso) return "";
+  const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+  if (s < 60) return "à l'instant";
+  if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
+  if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
+  const d = Math.floor(s / 86400);
+  return d === 1 ? "hier" : `il y a ${d} j`;
+}
+function fmtDate(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("fr-FR", {
+      weekday: "short", day: "numeric", month: "short",
+      hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris",
+    });
+  } catch { return ""; }
+}
+function dur(sec) {
+  if (sec == null) return "";
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}`;
+}
+
+const REACT_STYLE = {
+  like:    { on: "bg-gold/15 border-gold/40 text-gold" },
+  bullish: { on: "bg-emerald-500/15 border-emerald-500/40 text-emerald-400" },
+  bearish: { on: "bg-rose-500/15 border-rose-500/40 text-rose-400" },
+};
+const REACT_ICONS = {
+  like: (a) => <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 ${a ? "scale-110" : ""} transition-transform`} fill={a ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>,
+  bullish: (a) => <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 ${a ? "scale-110" : ""} transition-transform`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,
+  bearish: (a) => <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 ${a ? "scale-110" : ""} transition-transform`} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7"/><polyline points="16 17 22 17 22 11"/></svg>,
+};
+
+function FeedReactions({ contentType, contentId, initial }) {
+  const EMPTY = { like: { count: 0, me: false }, bullish: { count: 0, me: false }, bearish: { count: 0, me: false } };
+  const [data, setData] = useState({ ...EMPTY, ...(initial || {}) });
+  const [busy, setBusy] = useState(false);
+  const authed = typeof window !== "undefined" && !!getToken();
+  async function toggle(e, rk) {
+    e.stopPropagation();
+    if (!authed || busy) return;
+    setBusy(true);
+    const r = await apiToggleReaction(contentType, contentId, rk);
+    if (r?.ok && r.reactions) setData(r.reactions);
+    setBusy(false);
+  }
+  return (
+    <div className="flex items-center gap-1.5 mt-3">
+      {["like","bullish","bearish"].map((rk) => {
+        const d = data[rk] || EMPTY[rk];
+        return (
+          <button key={rk} onClick={(e) => toggle(e, rk)} disabled={!authed || busy}
+            className={`flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[11px] font-mono border transition-all ${
+              d.me ? REACT_STYLE[rk].on : "border-white/10 text-mist/50 hover:border-white/20 hover:text-mist"
+            } disabled:opacity-40 disabled:cursor-default`}>
+            {REACT_ICONS[rk](d.me)}
+            <span>{d.count > 0 ? d.count : ""}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AudioItem({ item, reactions, first }) {
+  return (
+    <article className={`rounded-2xl border bg-ink-800/50 p-4 ${first ? "border-gold/30" : "border-white/[0.07]"}`}>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2.5">
+          <img src="/julien.jpg" alt="" className="h-8 w-8 rounded-full border gold-line object-cover object-top shrink-0" />
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-display text-[13.5px] text-bone">Point audio</span>
+              {first && <span className="font-mono text-[9px] uppercase tracking-widest text-gold border gold-line rounded-full px-1.5 py-0.5">Dernier</span>}
+              {item.duration != null && <span className="font-mono text-[10px] text-mist/60">{dur(item.duration)}</span>}
+            </div>
+            <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · {relTime(item.date)}</div>
+          </div>
+        </div>
+        <span className="text-[18px]">🎙️</span>
+      </div>
+      {item.caption && <p className="text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap mb-2">{item.caption}</p>}
+      <audio controls preload="none" className="w-full" style={{ height: 36 }}>
+        <source src={audioStreamUrl(item.msg_id)} type={item.mime || "audio/ogg"} />
+      </audio>
+      <FeedReactions contentType="audio" contentId={String(item.msg_id)} initial={reactions} />
+    </article>
+  );
+}
+
+function PostItem({ item, reactions }) {
+  return (
+    <article className="rounded-2xl border border-white/[0.07] bg-ink-800/50 p-4">
+      <div className="flex items-center gap-2.5 mb-2">
+        <img src="/julien.jpg" alt="" className="h-8 w-8 rounded-full border gold-line object-cover object-top shrink-0" />
+        <div>
+          <span className="font-display text-[13.5px] text-bone">Julien</span>
+          <div className="font-mono text-[10px] text-mist/60">{fmtDate(item.date)} · {relTime(item.date)}</div>
+        </div>
+        <span className="ml-auto text-[18px]">{item.kind === "photo" ? "📷" : "💬"}</span>
+      </div>
+      {item.text && <p className="text-[13px] leading-relaxed text-slate-200 whitespace-pre-wrap mb-2">{item.text}</p>}
+      {item.has_photo && (
+        <img src={photoUrl(item.msg_id)} alt="" className="w-full rounded-xl border border-white/[0.07] mb-2"
+          onError={(e) => { e.currentTarget.style.display = "none"; }} />
+      )}
+      <FeedReactions contentType="post" contentId={String(item.msg_id)} initial={reactions} />
+    </article>
+  );
+}
+
 export function MonitoringAudio() {
-  const [subTab, setSubTab] = useState("audio");
+  const [items, setItems] = useState(null);
+  const [likes, setLikes] = useState({});
+  const [err, setErr] = useState(null);
+  const authed = typeof window !== "undefined" && !!getToken();
+
+  const load = useEffect.bind ? undefined : undefined; // placeholder
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    async function fetch_() {
+      const r = await poleTradingFeed();
+      if (cancelled) return;
+      if (r.ok) {
+        setItems(r.items);
+        setErr(null);
+        const audioIds = r.items.filter(i => i.kind === "audio").map(i => String(i.msg_id));
+        const postIds  = r.items.filter(i => i.kind !== "audio").map(i => String(i.msg_id));
+        const map = {};
+        if (audioIds.length) {
+          const ld = await apiGetLikes("audio", audioIds);
+          if (ld.ok) Object.assign(map, ld.likes || {});
+        }
+        if (postIds.length) {
+          const ld = await apiGetLikes("post", postIds);
+          if (ld.ok) Object.assign(map, ld.likes || {});
+        }
+        if (!cancelled) setLikes(map);
+      } else {
+        setErr(r.error);
+      }
+    }
+    fetch_();
+    const id = setInterval(fetch_, 90000);
+    return () => { cancelled = true; clearInterval(id); };
+  }, [authed]);
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <div className="flex items-center gap-3">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
+          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0 border gold-line" />
           <div>
-            <h3 className="font-display text-[18px] text-bone">Monitoring - Real-time</h3>
-            <p className="text-[11.5px] text-mist/70 mt-0.5">Analyses vocales de Julien en temps réel</p>
+            <h3 className="font-display text-[18px] text-bone">Monitoring — Fil en direct</h3>
+            <p className="text-[11.5px] text-mist/70 mt-0.5">Audios, analyses et posts de Julien</p>
           </div>
         </div>
         <LiveTag />
       </div>
 
-      {/* Sous-onglets */}
-      <div className="flex gap-1.5 mb-4">
-        {[{ id: "audio", label: "🎙 Audios" }, { id: "video", label: "🎬 Vidéos" }].map((t) => (
-          <button key={t.id} onClick={() => setSubTab(t.id)}
-            className={`rounded-xl px-4 py-2 text-[13px] font-medium transition-colors border ${
-              subTab === t.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist hover:text-bone border-transparent"
-            }`}>
-            {t.label}
-          </button>
-        ))}
-      </div>
+      {!authed ? (
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist">
+          Connectez-vous pour accéder au fil en direct.
+        </div>
+      ) : items === null ? (
+        <div className="flex items-center gap-3 py-12 justify-center text-mist/60">
+          <svg className="h-5 w-5 animate-spin text-gold" viewBox="0 0 24 24" fill="none">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/>
+          </svg>
+          <span className="text-[13px]">Chargement du fil…</span>
+        </div>
+      ) : items.length === 0 ? (
+        <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist/60">
+          {err ? "Fil momentanément indisponible." : "Aucun contenu pour le moment."}
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {items.map((item, idx) =>
+            item.kind === "audio"
+              ? <AudioItem key={item.id} item={item} reactions={likes[String(item.msg_id)]} first={idx === 0} />
+              : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
+          )}
+        </div>
+      )}
 
-      {subTab === "audio" && <LockedAudioPreview />}
-      {subTab === "video" && <LatestVideo />}
+      <p className="mt-5 text-[11px] text-mist/40 leading-relaxed">
+        Contenu du canal Pôle Trading. À titre éducatif — ne constitue pas un conseil en investissement.
+      </p>
     </div>
   );
 }

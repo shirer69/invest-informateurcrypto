@@ -208,7 +208,6 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
     setLoading(true);
     // 1) Spot d'abord : affiche le contenu dès le retour (même si erreur).
     const s = await fetch("/api/kraken/spot/portfolio").then((r) => r.json()).catch(() => null);
-    console.warn("[SPOT-RAW]", JSON.stringify({ totals: s?.totals, holdings: (s?.holdings||[]).map(h=>({sym:h.symbol,val:h.value,cost:h.cost,baseline:h.baseline,kind:h.kind})) }));
     setSpot(s);
     setFirstDone(true); // toujours sortir du spinner après le 1er appel
 
@@ -331,8 +330,6 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   const baselinedTotal = (t.crypto || 0) + (t.stock || 0) + (t.cash || 0) + (Number(futValue) || 0);
   const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) : 0;
   const accountPnlPct = TRACKING_STARTED ? (baselinedTotal > 0 ? (accountAbs / baselinedTotal) * 100 : null) : 0;
-  // DEBUG temporaire — à supprimer
-  if (typeof window !== "undefined" && !loading) console.warn("[PnL-DEBUG]", { accountAbs: accountAbs.toFixed(6), baselinedTotal: baselinedTotal.toFixed(4), pct: accountPnlPct?.toFixed(4), cryptoAbs: sumAbs(crypto).toFixed(6), stocksAbs: sumAbs(stocks).toFixed(6), marginAbsRaw: sumAbs(marginRows).toFixed(6), perpsAbsRaw: sumAbs(perps).toFixed(6), marginCount: marginRows.length, perpsCount: perps.length });
 
   // KPIs Spot (non réalisés = value − cost, basé sur les données Kraken en direct)
   const unrealizedSpot = holdings

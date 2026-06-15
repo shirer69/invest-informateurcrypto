@@ -1981,7 +1981,7 @@ export function CopyTrading() {
           {s.billing && <Billing b={s.billing} />}
 
           {/* code d'activation Portefeuille INVEST */}
-          {!locked && !investAccess && <ScopeCodeGate scope="invest" />}
+          {!investAccess && <ScopeCodeGate scope="invest" />}
         </div>
       )}
 

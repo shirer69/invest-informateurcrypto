@@ -53,9 +53,9 @@ const CATS = [
 
 function Kpi({ label, value, cls }) {
   return (
-    <div className="rounded-2xl border hairline bg-ink-800/50 p-4">
-      <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">{label}</div>
-      <div className={`mt-1.5 font-display text-[20px] ${cls || "text-bone"}`}>{value}</div>
+    <div className="rounded-2xl border hairline bg-ink-800/40 p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
+      <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50">{label}</div>
+      <div className={`mt-2 font-display text-[20px] ${cls || "text-bone"}`}>{value}</div>
     </div>
   );
 }
@@ -104,16 +104,16 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
         {CATS.map((c) => {
           const v = sumCat(c.k);
           return (
-            <div key={c.k} className="rounded-2xl border hairline bg-ink-800/50 p-4">
-              <div className="flex items-center gap-2 mb-2">
+            <div key={c.k} className="rounded-2xl border hairline bg-ink-800/40 p-4 transition-all duration-200 hover:border-white/10" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
+              <div className="flex items-center gap-2 mb-2.5">
                 <span className="grid place-items-center h-7 w-7 shrink-0 rounded-lg"
-                      style={{ background: `${c.color}22`, color: c.color }}>
+                      style={{ background: `${c.color}18`, color: c.color }}>
                   {c.icon}
                 </span>
-                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 leading-tight">{c.label}</div>
+                <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 leading-tight">{c.label}</div>
               </div>
               <div className={`font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
-              <div className={`text-[11px] ${signClass(v)}`}>{pctStr(v)}</div>
+              <div className={`text-[10.5px] mt-0.5 ${signClass(v)}`}>{pctStr(v)}</div>
             </div>
           );
         })}

@@ -704,9 +704,9 @@ function EquityCurve({ points }) {
 
 function CopyKpi({ label, value, cls }) {
   return (
-    <div className="rounded-2xl border hairline bg-ink-800/50 p-4">
-      <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">{label}</div>
-      <div className={`mt-1.5 font-display text-[20px] ${cls || "text-bone"}`}>{value}</div>
+    <div className="rounded-2xl border hairline bg-ink-800/40 p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
+      <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50">{label}</div>
+      <div className={`mt-2 font-display text-[20px] ${cls || "text-bone"}`}>{value}</div>
     </div>
   );
 }
@@ -1264,18 +1264,18 @@ export function Monitoring({ onGoCopy }) {
             cls: "text-rose-400",
           },
         ].map(({ label, value, sub, cls }) => (
-          <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
-            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
+          <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
+            <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 mb-1.5">{label}</div>
             <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-            {sub && <div className="mt-1 font-mono text-[10.5px] text-mist/50">{sub}</div>}
+            {sub && <div className="mt-1 font-mono text-[10px] text-mist/45">{sub}</div>}
           </div>
         ))}
       </div>
 
       {/* Historique des trades */}
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
+      <div className="rounded-2xl border hairline bg-ink-800/40 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>
         <div className="flex items-center justify-between mb-1">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
             Historique des trades (copy)
           </span>
           <span className="font-mono text-[10px] text-mist/40">

@@ -32,7 +32,7 @@ function VipJoinBar() {
   }, []);
 
   return (
-    <div className="rounded-2xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 p-4 mb-5 flex flex-wrap items-center gap-3 justify-between">
+    <div className="rounded-2xl border gold-line bg-gradient-to-r from-ink-800/80 via-ink-800/50 to-ink-900/80 p-4 mb-5 flex flex-wrap items-center gap-3 justify-between" style={{ boxShadow: "0 1px 0 rgba(46,230,168,0.06) inset, 0 4px 20px rgba(0,0,0,0.30)" }}>
       <div className="flex items-center gap-3 min-w-0">
         <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border gold-line text-gold">
           <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
@@ -140,7 +140,7 @@ function Spinner({ size = 16, className = "" }) {
 
 function Table({ rows, cols, mobileMax, blurred }) {
   if (!rows.length) return (
-    <p className="px-5 py-4 text-[13px] text-mist"
+    <p className="px-5 py-4 text-[13px] text-mist/60"
        style={blurred ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : undefined}>
       Aucun actif.
     </p>
@@ -148,11 +148,11 @@ function Table({ rows, cols, mobileMax, blurred }) {
   const hiddenOnMobile = mobileMax ? Math.max(0, rows.length - mobileMax) : 0;
   return (
     <>
-      <table className="w-full text-[13.5px]">
+      <table className="w-full text-[13px]">
         <thead>
-          <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
+          <tr className="text-left font-mono text-[9.5px] uppercase tracking-widest2 text-mist/45 border-b hairline bg-white/[0.015]">
             {cols.map((c) => (
-              <th key={c.k} className={`px-5 py-3 ${c.right ? "text-right" : ""} ${c.hide || ""}`}>{c.h}</th>
+              <th key={c.k} className={`px-5 py-2.5 font-medium ${c.right ? "text-right" : ""} ${c.hide || ""}`}>{c.h}</th>
             ))}
           </tr>
         </thead>
@@ -180,16 +180,16 @@ function Table({ rows, cols, mobileMax, blurred }) {
 
 function Section({ title, dot, icon, badge, children }) {
   return (
-    <div className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden">
-      <div className="px-5 py-3 border-b hairline flex items-center gap-2">
+    <div className="rounded-2xl border hairline bg-ink-800/35 overflow-hidden" style={{ boxShadow: "0 2px 20px rgba(0,0,0,0.25)" }}>
+      <div className="px-5 py-3 border-b hairline flex items-center gap-2 bg-white/[0.02]">
         {icon && (
           <span className="grid place-items-center h-6 w-6 shrink-0 rounded-lg"
-                style={{ background: dot ? `${dot}22` : "rgba(255,255,255,0.05)", color: dot || "currentColor" }}>
+                style={{ background: dot ? `${dot}20` : "rgba(255,255,255,0.05)", color: dot || "currentColor" }}>
             {icon}
           </span>
         )}
         {!icon && dot && <span className="h-2 w-2 rounded-full shrink-0" style={{ background: dot }} />}
-        <span className="font-display text-[15px] text-bone">{title}</span>
+        <span className="font-display text-[14.5px] font-medium text-bone/90">{title}</span>
         {badge}
       </div>
       <div className="overflow-x-auto">{children}</div>

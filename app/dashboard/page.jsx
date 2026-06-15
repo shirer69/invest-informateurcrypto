@@ -245,19 +245,19 @@ export default function Dashboard() {
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
 
       {/* top bar */}
-      <header className="sticky top-0 z-40 glass border-b hairline">
+      <header className="sticky top-0 z-40 glass border-b hairline shadow-[0_8px_32px_-8px_rgba(0,0,0,0.55)]">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-5 h-16 flex items-center justify-between gap-3">
-          <a href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 min-w-0">
+          <a href={user ? "/dashboard" : "/"} className="flex items-center gap-2.5 min-w-0 group">
             <span className="leading-tight min-w-0">
-              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate">Julien - Club des Informateurs</span>
-              <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">Micro hedge funds</span>
+              <span className="block font-display text-[14px] sm:text-[15px] text-bone truncate group-hover:text-white transition-colors duration-200">Julien - Club des Informateurs</span>
+              <span className="block font-mono text-[9px] uppercase tracking-widest2 text-gold/70">Micro hedge funds</span>
             </span>
           </a>
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-[13px] text-mist hidden md:inline">Bonjour, <span className="text-bone">{name}</span></span>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <span className="text-[12.5px] text-mist/70 hidden md:inline">Bonjour, <span className="text-bone font-medium">{name}</span></span>
             {user ? (
               <button onClick={() => { logout(); window.location.href = "/"; }}
-                      className="btn-ghost rounded-full px-4 py-2 text-[12.5px]">Se déconnecter</button>
+                      className="btn-ghost rounded-full px-4 py-2 text-[12px] tracking-wide">Se déconnecter</button>
             ) : (
               <button onClick={() => setLoginOpen(true)}
                       className="btn-gold rounded-full px-4 py-2 text-[12.5px] font-semibold">Se connecter</button>
@@ -270,21 +270,21 @@ export default function Dashboard() {
         {/* sidebar (desktop) */}
         <aside className="hidden lg:block lg:sticky lg:top-24 self-start min-w-0">
           <div className="relative">
-            <nav className="flex lg:flex-col gap-1.5">
+            <nav className="flex lg:flex-col gap-0.5">
               {nav.map((n) => (
                 <button
                   key={n.id}
                   onClick={() => setTab(n.id)}
-                  className={`flex items-center gap-2.5 rounded-xl px-3.5 lg:px-4 py-2.5 text-[13.5px] lg:text-[14px] whitespace-nowrap transition-colors ${
+                  className={`relative flex items-center gap-2.5 rounded-xl px-3.5 lg:px-4 py-2.5 text-[13px] lg:text-[13.5px] whitespace-nowrap transition-all duration-200 ${
                     tab === n.id
-                      ? "bg-gold/[0.10] text-bone border gold-line"
-                      : "text-mist hover:text-bone border border-transparent"
+                      ? "bg-gold/[0.07] text-bone border gold-line shadow-[inset_3px_0_0_rgba(46,230,168,0.55),0_2px_12px_-4px_rgba(0,0,0,0.4)]"
+                      : "text-mist/70 hover:text-bone hover:bg-white/[0.03] border border-transparent"
                   }`}
                 >
-                  <span className={`text-[15px] ${tab === n.id ? "text-gold" : "text-mist/60"}`}>{n.icon}</span>
-                  {n.label}
+                  <span className={`text-[14px] transition-all duration-200 ${tab === n.id ? "text-gold" : "text-mist/40 group-hover:text-mist/70"}`}>{n.icon}</span>
+                  <span className="font-medium">{n.label}</span>
                   {n.badge && (
-                    <span className="lg:ml-auto shrink-0 rounded-full bg-gold/20 border gold-line px-2 py-0.5 text-[9px] font-mono uppercase tracking-wider text-gold">
+                    <span className="lg:ml-auto shrink-0 rounded-full bg-gold/15 border gold-line px-2 py-0.5 text-[8.5px] font-mono uppercase tracking-wider text-gold/90">
                       {n.badge}
                     </span>
                   )}
@@ -388,27 +388,27 @@ export default function Dashboard() {
         const primary = nav.filter((n) => PRIMARY_TABS.includes(n.id));
         const activeInPrimary = primary.some((n) => n.id === tab);
         return (
-          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-800 border-t-2 border-gold/50 shadow-[0_-14px_40px_rgba(0,0,0,0.7)] pb-[env(safe-area-inset-bottom)]">
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900/96 border-t hairline backdrop-blur-xl shadow-[0_-20px_50px_rgba(0,0,0,0.75)] pb-[env(safe-area-inset-bottom)]">
             <div className="grid grid-cols-5">
               {primary.map((n) => {
                 const on = tab === n.id;
                 return (
                   <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
-                    className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors ${
-                      on ? "text-gold bg-gold/[0.10]" : "text-mist"
+                    className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[10.5px] font-medium transition-all duration-200 ${
+                      on ? "text-gold" : "text-mist/50 active:text-mist"
                     }`}>
-                    {on && <span className="absolute top-0 inset-x-3 h-0.5 rounded-full bg-gold" />}
-                    <span className="text-[20px] leading-none">{n.icon}</span>
+                    {on && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-gold shadow-[0_0_8px_rgba(46,230,168,0.8)]" />}
+                    <span className={`text-[20px] leading-none transition-transform duration-200 ${on ? "scale-110" : ""}`}>{n.icon}</span>
                     <span className="truncate max-w-[66px]">{n.label}</span>
                   </button>
                 );
               })}
               <button onClick={() => setMoreOpen(true)}
-                className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[11px] font-medium transition-colors ${
-                  !activeInPrimary ? "text-gold bg-gold/[0.10]" : "text-mist"
+                className={`relative flex flex-col items-center justify-center gap-1 py-3 text-[10.5px] font-medium transition-all duration-200 ${
+                  !activeInPrimary ? "text-gold" : "text-mist/50"
                 }`}>
-                {!activeInPrimary && <span className="absolute top-0 inset-x-3 h-0.5 rounded-full bg-gold" />}
-                <span className="text-[20px] leading-none">⋯</span>
+                {!activeInPrimary && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-gold shadow-[0_0_8px_rgba(46,230,168,0.8)]" />}
+                <span className={`text-[20px] leading-none transition-transform duration-200 ${!activeInPrimary ? "scale-110" : ""}`}>⋯</span>
                 <span>Plus</span>
               </button>
             </div>
@@ -419,26 +419,30 @@ export default function Dashboard() {
       {/* Feuille « Plus » (mobile) — tous les onglets */}
       {moreOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex items-end">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMoreOpen(false)} />
-          <div className="relative w-full rounded-t-3xl border-t gold-line bg-ink-900/98 p-5 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Menu</span>
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={() => setMoreOpen(false)} />
+          <div className="relative w-full rounded-t-[28px] border-t gold-line bg-ink-900/98 backdrop-blur-2xl p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] shadow-[0_-24px_60px_rgba(0,0,0,0.8)]">
+            {/* drag handle */}
+            <div className="mx-auto mb-4 h-[3px] w-10 rounded-full bg-white/15" />
+            <div className="flex items-center justify-between mb-4">
+              <span className="eyebrow">Menu</span>
               <button onClick={() => setMoreOpen(false)} aria-label="Fermer"
-                className="h-8 w-8 grid place-items-center rounded-full border hairline text-mist">
-                <span className="block w-3.5 h-px bg-current rotate-45 translate-y-[0.5px]" />
-                <span className="block w-3.5 h-px bg-current -rotate-45 -translate-y-[0.5px]" />
+                className="h-8 w-8 grid place-items-center rounded-full border hairline text-mist/60 hover:text-bone transition-colors">
+                <span className="block w-3 h-px bg-current rotate-45 translate-y-[0.5px]" />
+                <span className="block w-3 h-px bg-current -rotate-45 -translate-y-[0.5px]" />
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-3 gap-2">
               {nav.map((n) => (
                 <button key={n.id} onClick={() => { setTab(n.id); setMoreOpen(false); }}
-                  className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-4 text-[12px] ${
-                    tab === n.id ? "bg-gold/[0.10] text-bone gold-line" : "text-mist border-white/8 hover:text-bone"
+                  className={`relative flex flex-col items-center justify-center gap-1.5 rounded-2xl border px-2 py-4 text-[12px] transition-all duration-150 ${
+                    tab === n.id
+                      ? "bg-gold/[0.08] text-bone gold-line shadow-[inset_0_1px_0_rgba(46,230,168,0.12)]"
+                      : "text-mist/60 border-white/[0.06] active:bg-white/[0.04]"
                   }`}>
-                  <span className={`text-[20px] leading-none ${tab === n.id ? "text-gold" : "text-mist/70"}`}>{n.icon}</span>
-                  <span className="text-center leading-tight">{n.label}</span>
+                  <span className={`text-[22px] leading-none ${tab === n.id ? "" : "opacity-60"}`}>{n.icon}</span>
+                  <span className="text-center leading-tight font-medium">{n.label}</span>
                   {n.badge && (
-                    <span className="absolute top-1.5 right-1.5 rounded-full bg-gold/20 border gold-line px-1.5 text-[8px] font-mono uppercase tracking-wider text-gold">
+                    <span className="absolute top-1.5 right-1.5 rounded-full bg-gold/20 border gold-line px-1.5 text-[7.5px] font-mono uppercase tracking-wider text-gold">
                       {n.badge}
                     </span>
                   )}

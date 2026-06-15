@@ -1379,7 +1379,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
 
   const FuturesCTAs = () => (
     <div className="mb-5">
-      <
+      <a
         href="https://t.me/clubdesinformateurs"
         target="_blank"
         rel="noopener noreferrer"

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const res = await fetch(VPS_URL, {
+      cache: "no-store",
       signal: AbortSignal.timeout(20_000),
     });
     const data = await res.json();

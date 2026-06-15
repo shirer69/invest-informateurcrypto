@@ -11,6 +11,7 @@ import RealFuturesPositions from "@/components/dashboard/RealFuturesPositions";
 import { AssetTables } from "@/components/dashboard/PortfolioKraken";
 import InvestPnlStats from "@/components/dashboard/InvestPnlStats";
 import LiveTag from "@/components/dashboard/LiveTag";
+import TickerBanner from "@/components/dashboard/TickerBanner";
 import {
   getUser, getToken, copyState, copySaveKeys, copySaveSpotKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
@@ -474,7 +475,8 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
+      <TickerBanner />
+      <div className="flex items-center gap-3 mb-4 mt-4">
         <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
         <h2 className="font-display text-[22px] text-bone tracking-tight">PÔLE INVEST</h2>
       </div>
@@ -1378,7 +1380,8 @@ export function Monitoring({ onGoCopy }) {
   if (!user) {
     return (
       <div>
-        <div className="flex items-center gap-3 mb-4">
+        <TickerBanner />
+        <div className="flex items-center gap-3 mb-4 mt-4">
           <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
           <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         </div>
@@ -1392,8 +1395,9 @@ export function Monitoring({ onGoCopy }) {
 
   return (
     <div>
+      <TickerBanner />
       {/* Titre */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
+      <div className="flex items-center gap-3 mb-4 mt-4 flex-wrap">
         <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
         <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         <LiveTag />

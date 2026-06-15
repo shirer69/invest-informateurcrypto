@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { poleTradingAudios, audioStreamUrl, getToken, apiToggleLike, apiGetLikes } from "@/lib/clientStore";
+import { poleTradingAudios, audioStreamUrl, getToken, apiGetLikes } from "@/lib/clientStore";
 import { Locked } from "./UnlockProvider";
+import Reactions from "./Reactions";
 
 function relTime(iso) {
   if (!iso) return "";
@@ -30,40 +31,6 @@ function dur(sec) {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function LikeButton({ contentType, contentId, initialCount = 0, initialLiked = false }) {
-  const [count, setCount] = useState(initialCount);
-  const [liked, setLiked] = useState(initialLiked);
-  const [loading, setLoading] = useState(false);
-  const authed = typeof window !== "undefined" && !!getToken();
-
-  async function toggle() {
-    if (!authed || loading) return;
-    setLoading(true);
-    const r = await apiToggleLike(contentType, contentId);
-    if (r.ok) { setLiked(r.liked); setCount(r.count); }
-    setLoading(false);
-  }
-
-  return (
-    <button
-      onClick={toggle}
-      disabled={!authed || loading}
-      title={authed ? (liked ? "Retirer mon like" : "J'aime") : "Connectez-vous pour liker"}
-      className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-mono border transition-all ${
-        liked
-          ? "bg-gold/15 border-gold/40 text-gold"
-          : "border-white/10 text-mist/50 hover:border-white/20 hover:text-mist"
-      } disabled:opacity-40 disabled:cursor-default`}
-    >
-      <svg viewBox="0 0 24 24" className={`h-3.5 w-3.5 transition-transform ${liked ? "scale-110" : ""}`} fill={liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
-        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-      </svg>
-      <span>{count > 0 ? count : ""}</span>
-    </button>
-  );
-}
-
 function AudioCard({ a, latest, likeData }) {
   const id = String(a.id);
   return (
@@ -87,11 +54,10 @@ function AudioCard({ a, latest, likeData }) {
             </div>
           </div>
         </div>
-        <LikeButton
+        <Reactions
           contentType="audio"
           contentId={id}
-          initialCount={likeData?.[id]?.count ?? 0}
-          initialLiked={likeData?.[id]?.liked ?? false}
+          initial={likeData?.[id]?.reactions}
         />
       </div>
 

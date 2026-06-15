@@ -1696,7 +1696,8 @@ export function CopyTrading() {
                     className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
                 </div>
                 <button disabled={busy} onClick={saveKeys}
-                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50 inline-flex items-center gap-2">
+                  {busy && <Spinner size={14} className="text-ink-900" />}
                   {busy ? "Vérification…" : "Connecter Futures"}
                 </button>
               </div>
@@ -1727,7 +1728,8 @@ export function CopyTrading() {
                     className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
                 </div>
                 <button disabled={busy} onClick={saveSpotKeys}
-                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50 inline-flex items-center gap-2">
+                  {busy && <Spinner size={14} className="text-ink-900" />}
                   {busy ? "Vérification…" : "Connecter Spot / Margin"}
                 </button>
               </div>
@@ -1774,7 +1776,8 @@ export function CopyTrading() {
                     className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
                 </div>
                 <button disabled={busy} onClick={saveSpotKeys}
-                  className="btn-gold rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-50">
+                  className="btn-gold rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-50 inline-flex items-center gap-2">
+                  {busy && <Spinner size={14} className="text-ink-900" />}
                   {busy ? "Vérification…" : "Connecter Spot / Margin"}
                 </button>
                 {msg && <p className="text-[12.5px] text-mist">{msg}</p>}

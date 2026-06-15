@@ -118,7 +118,6 @@ export function Intelligence() {
     <div>
       <div className="flex items-center gap-2 mb-4">
         <h3 className="font-display text-[18px] text-bone">Intelligence — feed Telegram</h3>
-        <DemoTag />
       </div>
       <div className="grid sm:grid-cols-2 gap-4">
         {SIGNALS.map((s, i) => (

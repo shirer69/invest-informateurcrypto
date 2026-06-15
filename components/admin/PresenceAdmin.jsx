@@ -6,9 +6,9 @@ import { API_BASE } from "@/lib/site";
 const REFRESH_MS = 15_000;
 
 function dur(s) {
-  if (s < 60)  return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}min`;
-  return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}`;
+  if (s < 60)   return `${s}s`;
+  if (s < 3600) return `${Math.floor(s / 60)}m${String(s % 60).padStart(2,"0")}s`;
+  return `${Math.floor(s / 3600)}h${String(Math.floor((s % 3600) / 60)).padStart(2,"0")}`;
 }
 
 function Dot({ last_seen_s }) {
@@ -19,11 +19,9 @@ function Dot({ last_seen_s }) {
 }
 
 export default function PresenceAdmin({ adminKey }) {
-  const [data, setData]     = useState(null);
-  const [error, setError]   = useState(null);
-  const [now, setNow]       = useState(Date.now());
+  const [data, setData]   = useState(null);
+  const [error, setError] = useState(null);
   const iref = useRef(null);
-  const tref = useRef(null);
 
   async function load() {
     try {
@@ -43,14 +41,18 @@ export default function PresenceAdmin({ adminKey }) {
   useEffect(() => {
     load();
     iref.current = setInterval(load, REFRESH_MS);
-    tref.current = setInterval(() => setNow(Date.now()), 1000);
-    return () => { clearInterval(iref.current); clearInterval(tref.current); };
+    return () => clearInterval(iref.current);
   }, []);
 
   const sessions = data?.online ?? [];
-  const members  = sessions.filter(s => s.email && !s.email.endsWith("@telegram.local"));
-  const tgUsers  = sessions.filter(s => s.email?.endsWith("@telegram.local"));
+  const members  = sessions.filter(s => s.active);
+  const tgUsers  = sessions.filter(s => !s.active && s.email?.endsWith("@telegram.local"));
   const anon     = sessions.filter(s => !s.email);
+
+  // Résumé par page
+  const byPage = Object.entries(
+    sessions.reduce((acc, s) => { acc[s.tab_label] = (acc[s.tab_label] || 0) + 1; return acc; }, {})
+  ).sort((a, b) => b[1] - a[1]);
 
   return (
     <div className="space-y-5">
@@ -63,7 +65,7 @@ export default function PresenceAdmin({ adminKey }) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/[0.07] px-4 py-2">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="font-display text-[22px] text-emerald-400 font-black">{data?.total ?? "—"}</span>
+            <span className="font-display text-[28px] text-emerald-400 font-black leading-none">{data?.total ?? "—"}</span>
             <span className="text-[12px] text-mist/60">en ligne</span>
           </div>
           <button onClick={load} className="text-[11px] text-mist hover:text-bone border border-white/10 rounded-lg px-3 py-1.5">
@@ -79,19 +81,12 @@ export default function PresenceAdmin({ adminKey }) {
       )}
 
       {/* Résumé par page */}
-      {sessions.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {Object.entries(
-            sessions.reduce((acc, s) => {
-              acc[s.tab_label] = (acc[s.tab_label] || 0) + 1;
-              return acc;
-            }, {})
-          )
-          .sort((a, b) => b[1] - a[1])
-          .map(([label, count]) => (
+      {byPage.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          {byPage.map(([label, count]) => (
             <div key={label} className="rounded-xl border border-white/10 bg-ink-800/50 px-3 py-2.5 flex items-center justify-between gap-2">
               <span className="text-[12px] text-mist/80 truncate">{label}</span>
-              <span className="font-mono text-[14px] font-bold text-bone shrink-0">{count}</span>
+              <span className="font-mono text-[16px] font-bold text-bone shrink-0">{count}</span>
             </div>
           ))}
         </div>
@@ -108,64 +103,85 @@ export default function PresenceAdmin({ adminKey }) {
             <thead>
               <tr className="border-b border-white/8 text-mist/50 font-mono text-[10px] uppercase tracking-widest">
                 <th className="text-left px-4 py-2.5">Utilisateur</th>
-                <th className="text-left px-4 py-2.5 hidden sm:table-cell">Page</th>
-                <th className="text-left px-4 py-2.5 hidden md:table-cell">Sur cette page</th>
-                <th className="text-left px-4 py-2.5 hidden lg:table-cell">Connecté depuis</th>
+                <th className="text-left px-4 py-2.5">Page</th>
+                <th className="text-right px-4 py-2.5 hidden sm:table-cell">Visites</th>
+                <th className="text-right px-4 py-2.5 hidden md:table-cell">Sur la page</th>
+                <th className="text-right px-4 py-2.5 hidden lg:table-cell">Session</th>
                 <th className="text-right px-4 py-2.5">Statut</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
               {sessions.map((s) => (
                 <tr key={s.session_id} className="hover:bg-white/[0.02] transition-colors">
+
                   {/* Utilisateur */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-[13px] shrink-0">{s.device}</span>
                       <div className="min-w-0">
-                        {s.name ? (
-                          <p className="text-bone font-medium truncate">{s.name}</p>
-                        ) : s.email?.endsWith("@telegram.local") ? (
-                          <p className="text-sky-300/80 truncate">Utilisateur TG</p>
-                        ) : (
-                          <p className="text-mist/40 italic">Visiteur</p>
-                        )}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {s.name ? (
+                            <span className="text-bone font-medium">{s.name}</span>
+                          ) : s.email?.endsWith("@telegram.local") ? (
+                            <span className="text-sky-300/80">Telegram</span>
+                          ) : (
+                            <span className="text-mist/40 italic">Anonyme</span>
+                          )}
+                          {s.active && (
+                            <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-gold/15 border border-gold/30 text-gold/90">Membre</span>
+                          )}
+                        </div>
                         {s.email && !s.email.endsWith("@telegram.local") && (
-                          <p className="text-mist/50 text-[11px] truncate">{s.email}</p>
+                          <p className="text-mist/40 text-[11px] truncate max-w-[140px]">{s.email}</p>
                         )}
                       </div>
                     </div>
                   </td>
+
                   {/* Page */}
-                  <td className="px-4 py-3 hidden sm:table-cell">
+                  <td className="px-4 py-3">
                     <span className="rounded-full bg-gold/10 border border-gold/20 px-2.5 py-0.5 text-gold/90 text-[11px] font-mono whitespace-nowrap">
                       {s.tab_label}
                     </span>
                   </td>
+
+                  {/* Visites */}
+                  <td className="px-4 py-3 text-right hidden sm:table-cell">
+                    {s.visits != null ? (
+                      <span className="font-mono text-[12px] text-bone">{s.visits}</span>
+                    ) : (
+                      <span className="text-mist/30">—</span>
+                    )}
+                  </td>
+
                   {/* Durée sur la page */}
-                  <td className="px-4 py-3 hidden md:table-cell font-mono text-[11px] text-mist/60">
+                  <td className="px-4 py-3 text-right hidden md:table-cell font-mono text-[11px] text-mist/60">
                     {dur(s.tab_since_s)}
                   </td>
-                  {/* Connecté depuis */}
-                  <td className="px-4 py-3 hidden lg:table-cell font-mono text-[11px] text-mist/60">
+
+                  {/* Durée session */}
+                  <td className="px-4 py-3 text-right hidden lg:table-cell font-mono text-[11px] text-mist/60">
                     {dur(s.since_s)}
                   </td>
+
                   {/* Statut */}
                   <td className="px-4 py-3 text-right">
-                    <div className="inline-flex items-center gap-1.5">
+                    <div className="inline-flex items-center gap-1.5 justify-end">
                       <Dot last_seen_s={s.last_seen_s} />
-                      <span className="text-[11px] font-mono text-mist/50">{s.last_seen_s}s</span>
+                      <span className="font-mono text-[11px] text-mist/50">{s.last_seen_s}s</span>
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
           </table>
 
-          {/* Pied de tableau : répartition */}
+          {/* Pied de tableau */}
           <div className="border-t border-white/8 px-4 py-2.5 flex items-center gap-4 text-[11px] text-mist/50 flex-wrap">
-            {members.length  > 0 && <span>👤 {members.length} membre{members.length > 1 ? "s" : ""}</span>}
-            {tgUsers.length  > 0 && <span>✈️ {tgUsers.length} Telegram</span>}
-            {anon.length     > 0 && <span>👻 {anon.length} visiteur{anon.length > 1 ? "s" : ""} anonyme{anon.length > 1 ? "s" : ""}</span>}
+            {members.length > 0 && <span>🟡 {members.length} membre{members.length > 1 ? "s" : ""} actif{members.length > 1 ? "s" : ""}</span>}
+            {tgUsers.length > 0 && <span>✈️ {tgUsers.length} Telegram</span>}
+            {anon.length    > 0 && <span>👻 {anon.length} anonyme{anon.length > 1 ? "s" : ""}</span>}
           </div>
         </div>
       )}

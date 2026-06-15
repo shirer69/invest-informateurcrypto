@@ -47,7 +47,7 @@ export default function TrackRecord() {
   const [open, setOpen] = useState(null); // index de l'année ouverte
 
   return (
-    <div className="relative rounded-2xl glass">
+    <div id="equity" className="relative rounded-2xl glass scroll-mt-24">
       {/* halo — clippé au cadre (l'infobulle, elle, peut déborder) */}
       <div className="pointer-events-none absolute inset-0 rounded-2xl overflow-hidden">
         <div className="absolute -top-24 right-0 h-64 w-64 rounded-full blur-3xl"
@@ -55,11 +55,12 @@ export default function TrackRecord() {
       </div>
 
       <div className="flex items-center justify-between px-6 pt-5">
-        <div className="flex items-center gap-2.5">
+        <div className="group flex items-center gap-2.5">
           <span className="h-2 w-2 rounded-full bg-gold shadow-[0_0_0_4px_rgba(46,230,168,0.18)]" />
           <span className="font-mono text-[10.5px] uppercase tracking-widest2 text-mist">
             Courbe d'equity — compte propre de Julien
           </span>
+          <a href="#equity" className="opacity-0 group-hover:opacity-60 transition-opacity text-mist/60 hover:text-gold text-[11px] leading-none select-none" aria-label="Lien vers cette section">#</a>
         </div>
         <span className="font-mono text-[10.5px] text-mist/70">2023 — 2025</span>
       </div>

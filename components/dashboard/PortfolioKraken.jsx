@@ -324,10 +324,11 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   });
 
   // P&L GLOBAL du compte depuis le 15 juin.
-  // Les positions margin sont exclues : leur `net` remonte à l'ouverture (non basé sur le 15 juin).
+  // Seul le spot (crypto + stocks) a une baseline June 15 fiable depuis le VPS.
+  // Margin (`net` depuis ouverture) et perps (`abs` depuis entrée) sont exclus du calcul hero.
   const sumAbs = (arr) => arr.reduce((s, r) => s + (r._abs || 0), 0);
   const baselinedTotal = (t.crypto || 0) + (t.stock || 0) + (t.cash || 0) + (Number(futValue) || 0);
-  const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) + sumAbs(perps) : 0;
+  const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) : 0;
   const accountPnlPct = TRACKING_STARTED ? (baselinedTotal > 0 ? (accountAbs / baselinedTotal) * 100 : null) : 0;
 
   // KPIs Spot (non réalisés = value − cost, basé sur les données Kraken en direct)

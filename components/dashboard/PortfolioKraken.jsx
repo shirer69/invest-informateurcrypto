@@ -331,7 +331,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   const accountAbs = TRACKING_STARTED ? sumAbs(crypto) + sumAbs(stocks) : 0;
   const accountPnlPct = TRACKING_STARTED ? (baselinedTotal > 0 ? (accountAbs / baselinedTotal) * 100 : null) : 0;
   // DEBUG temporaire — à supprimer
-  if (typeof window !== "undefined") console.debug("[PnL]", { accountAbs, baselinedTotal, accountPnlPct, cryptoAbs: sumAbs(crypto), stocksAbs: sumAbs(stocks), marginAbsRaw: sumAbs(marginRows), perpsAbsRaw: sumAbs(perps), marginCount: marginRows.length, perpsCount: perps.length, loading });
+  if (typeof window !== "undefined" && !loading) console.warn("[PnL-DEBUG]", { accountAbs: accountAbs.toFixed(6), baselinedTotal: baselinedTotal.toFixed(4), pct: accountPnlPct?.toFixed(4), cryptoAbs: sumAbs(crypto).toFixed(6), stocksAbs: sumAbs(stocks).toFixed(6), marginAbsRaw: sumAbs(marginRows).toFixed(6), perpsAbsRaw: sumAbs(perps).toFixed(6), marginCount: marginRows.length, perpsCount: perps.length });
 
   // KPIs Spot (non réalisés = value − cost, basé sur les données Kraken en direct)
   const unrealizedSpot = holdings

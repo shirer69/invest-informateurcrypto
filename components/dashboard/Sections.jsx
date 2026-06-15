@@ -469,7 +469,6 @@ const DEMO_ROWS = [
 export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequestCopy }) {
   const { openUnlock } = useUnlock();
   const [localTgLink, setLocalTgLink] = useState(null);
-  const [moonxModal, setMoonxModal] = useState(false);
   useEffect(() => {
     try { setLocalTgLink(localStorage.getItem("pi_tg_link") || null); } catch {}
   }, []);
@@ -477,7 +476,6 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
 
   return (
     <div>
-      <MoonXCopyModal open={moonxModal} onClose={() => setMoonxModal(false)} />
       <TickerBanner />
       <div className="flex items-center gap-3 mb-4 mt-4">
         <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
@@ -538,8 +536,10 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
             </a>
           </div>
         ) : (
-          <button
-            onClick={() => setMoonxModal(true)}
+          <a
+            href="https://t.me/clubdesinformateurs"
+            target="_blank"
+            rel="noopener noreferrer"
             className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
           >
             <div className="flex items-center gap-2 min-w-0">
@@ -549,9 +549,9 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
               <span className="text-[13px] text-bone font-medium">Activer le copy auto — Pôle Invest</span>
             </div>
             <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
-              Activer <IconArrow className="h-3 w-3" />
+              Rejoindre <IconArrow className="h-3 w-3" />
             </span>
-          </button>
+          </a>
         )}
       </div>
 
@@ -613,7 +613,7 @@ const CHALLENGE_BASELINE_PCT = 29.20;
 const CHALLENGE_TRACKING_SINCE = 1781395200;
 const CHALLENGE_START_TS = 1780617600;
 
-export function ChallengeBlock({ onGoTrading, onCopyAuto }) {
+export function ChallengeBlock({ onGoTrading }) {
   const [forexTrades, setForexTrades] = useState([]);
   useEffect(() => {
     fetch("https://api.informateurcrypto.fr/api/julien/trades")
@@ -662,12 +662,14 @@ export function ChallengeBlock({ onGoTrading, onCopyAuto }) {
             Voir le Pôle Trading <IconArrow className="h-3.5 w-3.5" />
           </button>
         ) : (
-          <button
-            onClick={onCopyAuto ?? (() => {})}
+          <a
+            href="https://t.me/clubdesinformateurs"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
           >
             Activer le copy auto <IconArrow className="h-3.5 w-3.5" />
-          </button>
+          </a>
         )}
       </div>
     </div>
@@ -1405,7 +1407,7 @@ export function Monitoring({ onGoCopy }) {
 
       <FuturesCTAs />
 
-      <ChallengeBlock onCopyAuto={() => setMoonxModal(true)} />
+      <ChallengeBlock />
 
       {/* Titre Portefeuille Trading */}
       <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">

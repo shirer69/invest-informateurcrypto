@@ -65,7 +65,6 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
   const [rows, setRows] = useState(null);
 
   useEffect(() => {
-    if (locked) { setRows(DEMO_ROWS); return; }
     (async () => {
       const [sp, pp] = await Promise.all([
         fetch("/api/kraken/spot-monthly-pnl").then((r) => r.json()).catch(() => null),
@@ -79,9 +78,9 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
         .map(([month, v]) => ({ month, ...v, total: v.perps + v.stock }))
         .filter((r) => r.month >= ANALYTICS_START_MONTH)
         .sort((a, b) => a.month.localeCompare(b.month));
-      setRows(arr);
+      setRows(arr.length > 0 ? arr : []);
     })();
-  }, [locked]);
+  }, []);
 
   if (!rows) return null;
 
@@ -100,7 +99,6 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
       {/* PnL par catégorie */}
       <div className="flex items-center gap-2 flex-wrap mb-3">
         <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">PnL cumulé par stratégie</div>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-400/80 border border-amber-500/30 rounded px-1.5 py-0.5">démo · actif le 16 juin</span>
       </div>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {CATS.map((c) => {

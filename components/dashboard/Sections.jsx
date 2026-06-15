@@ -12,7 +12,7 @@ import { AssetTables } from "@/components/dashboard/PortfolioKraken";
 import InvestPnlStats from "@/components/dashboard/InvestPnlStats";
 import LiveTag from "@/components/dashboard/LiveTag";
 import {
-  getUser, getToken, copyState, copySaveKeys, copySettings, copyStart, copyStop,
+  getUser, getToken, copyState, copySaveKeys, copySaveSpotKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
   copyContract, copyContractSign, copySpotPlan, copyMarginPlan,
   poleTradingAudios, audioStreamUrl, apiAccessCode,
@@ -1456,6 +1456,7 @@ export function CopyTrading() {
   const [user, setUser] = useState(null);
   const [s, setS] = useState(null);
   const [keyForm, setKeyForm] = useState({ api_key: "", api_secret: "" });
+  const [spotKeyForm, setSpotKeyForm] = useState({ api_key: "", api_secret: "" });
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [stopping, setStopping] = useState(false);
@@ -1554,6 +1555,7 @@ export function CopyTrading() {
   }
 
   const configured = s && s.configured;
+  const spotConfigured = s && s.spot_configured;
   const status = (s && s.status) || "idle";
   const meta = STATUS_META[status] || STATUS_META.idle;
   const active = s && s.active;
@@ -1566,6 +1568,13 @@ export function CopyTrading() {
     setBusy(false);
     if (r.ok) { setKeyForm({ api_key: "", api_secret: "" }); setMsg("Clés enregistrées ✓"); refresh(); }
     else setMsg(r.error === "invalid_keys" ? "Clés refusées par le sandbox (vérifie qu'elles sont bien des clés démo Futures)." : "Erreur : " + (r.detail || r.error));
+  }
+  async function saveSpotKeys() {
+    setBusy(true); setMsg("");
+    const r = await copySaveSpotKeys(spotKeyForm.api_key.trim(), spotKeyForm.api_secret.trim());
+    setBusy(false);
+    if (r.ok) { setSpotKeyForm({ api_key: "", api_secret: "" }); setMsg("Clés Spot enregistrées ✓"); refresh(); }
+    else setMsg(r.error === "invalid_keys" ? "Clés Spot refusées (vérifie qu'elles ont bien les permissions Spot/Margin)." : "Erreur : " + (r.detail || r.error));
   }
   async function doStart() {
     setBusy(true); const r = await copyStart(); setBusy(false);
@@ -1661,6 +1670,39 @@ export function CopyTrading() {
       ) : (
         /* ---- tableau de bord investisseur ---- */
         <div className="space-y-5">
+
+          {/* ---- Clés Spot/Margin manquantes ---- */}
+          {!spotConfigured && (
+            <div className="rounded-2xl border border-gold/30 bg-gold/[0.04] p-6 max-w-2xl">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-gold text-[20px]">⚙️</span>
+                <h4 className="font-display text-[17px] text-bone">Connecte ton compte Spot / Margin Kraken</h4>
+              </div>
+              <p className="text-[13px] leading-relaxed text-mist mb-4">
+                Pour copier les positions <b className="text-bone">Spot et Margin</b>, saisis les clés API de ton sous-compte Kraken dédié.
+                Crée-les sur <a className="text-gold underline" href="https://www.kraken.com/u/security/api" target="_blank" rel="noopener noreferrer">kraken.com</a>{" "}
+                avec les permissions <b className="text-bone">Funds : Query, Trade : Create</b>.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique (Spot)</label>
+                  <input value={spotKeyForm.api_key} onChange={(e) => setSpotKeyForm({ ...spotKeyForm, api_key: e.target.value })}
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé privée (Spot)</label>
+                  <input value={spotKeyForm.api_secret} onChange={(e) => setSpotKeyForm({ ...spotKeyForm, api_secret: e.target.value })} type="password"
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <button disabled={busy} onClick={saveSpotKeys}
+                  className="btn-gold rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-50">
+                  {busy ? "Vérification…" : "Connecter Spot / Margin"}
+                </button>
+                {msg && <p className="text-[12.5px] text-mist">{msg}</p>}
+              </div>
+            </div>
+          )}
+
           {/* Contrat de commission à signer (préalable au démarrage) */}
           {contract && !contract.signed && (
             <div className="rounded-2xl border gold-line bg-gold/[0.05] p-5">

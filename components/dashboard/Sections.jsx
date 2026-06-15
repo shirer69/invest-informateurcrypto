@@ -1234,6 +1234,27 @@ export function MonitoringAudio() {
         <LiveTag />
       </div>
 
+      {/* CTA places gratuites */}
+      <a
+        href="https://t.me/clubdesinformateurs"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-5 flex items-center justify-between gap-3 rounded-2xl overflow-hidden border border-emerald-500/40 bg-gradient-to-r from-emerald-900/30 via-ink-800/60 to-ink-900 px-5 py-4 hover:border-emerald-400/60 transition-colors group"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="shrink-0 text-[22px]">🎁</span>
+          <div className="min-w-0">
+            <p className="font-display text-[14px] text-emerald-300 font-bold leading-tight">
+              4 PLACES GRATUITES CETTE SEMAINE
+            </p>
+            <p className="text-[12px] text-mist/70 mt-0.5">pour rejoindre le groupe privé Pôle Trading</p>
+          </div>
+        </div>
+        <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-4 py-2 text-[12px] font-semibold text-ink-900 whitespace-nowrap">
+          Rejoindre <IconArrow className="h-3 w-3" />
+        </span>
+      </a>
+
       {!authed ? (
         <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist">
           Connectez-vous pour accéder au fil en direct.

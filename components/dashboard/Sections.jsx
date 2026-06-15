@@ -400,7 +400,6 @@ function TradeRow({ trade }) {
 
 function TradeHistory() {
   const [data, setData] = useState(null);
-  const [tab, setTab] = useState("all");
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/julien/trade-history`, { cache: "no-store" })
@@ -427,70 +426,17 @@ function TradeHistory() {
     })),
   ].sort((a, b) => (b.close_ts || 0) - (a.close_ts || 0)) : [];
 
-  const filtered = tab === "all" ? rows
-    : tab === "futures" ? rows.filter((r) => r.type === "futures")
-    : tab === "xstocks" ? rows.filter((r) => r.type === "stock")
-    : rows.filter((r) => r.type !== "futures" && r.type !== "stock");
-
-  const spotPositions = (data?.spot_positions || []).filter((p) => p.kind === "crypto");
-  const xstockPositions = (data?.spot_positions || []).filter((p) => p.kind === "stock");
-
-  const TABS = [
-    { id: "all", label: "Tous" },
-    { id: "futures", label: "Futures" },
-    { id: "spot", label: "Spot / Marge" },
-    { id: "xstocks", label: "Actions US" },
-  ];
-
   return (
     <div className="mt-8">
-      <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
-          <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte maître A</span>
-        </div>
-        <div className="flex gap-1">
-          {TABS.map((t) => (
-            <button key={t.id} onClick={() => setTab(t.id)}
-              className={`font-mono text-[10.5px] px-2.5 py-1 rounded-full border transition-colors ${tab === t.id ? "border-gold/50 text-gold bg-gold/10" : "border-white/10 text-mist/60 hover:text-mist"}`}>
-              {t.label}
-            </button>
-          ))}
-        </div>
+      <div className="flex items-center gap-2 mb-4">
+        <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte maître A</span>
       </div>
-
-      {/* Positions ouvertes */}
-      {(tab === "all" || tab === "spot") && spotPositions.length > 0 && (
-        <div className="mb-4 rounded-xl border border-sky-500/20 bg-sky-500/[0.04] p-3">
-          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-sky-400/80 mb-2">Positions spot crypto ouvertes</div>
-          <div className="flex flex-wrap gap-2">
-            {spotPositions.map((p) => (
-              <div key={p.symbol} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/50 px-2.5 py-1.5">
-                <span className="font-mono text-[12px] text-bone">{p.symbol === "XBT" ? "BTC" : p.symbol}</span>
-                <span className="font-mono text-[10px] text-mist/50">@ {fmt_price(p.entry_price)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-      {(tab === "all" || tab === "xstocks") && xstockPositions.length > 0 && (
-        <div className="mb-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
-          <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-2">Positions xStocks ouvertes (Actions US Kraken)</div>
-          <div className="flex flex-wrap gap-2">
-            {xstockPositions.map((p) => (
-              <div key={p.symbol} className="flex items-center gap-1.5 rounded-lg border border-white/10 bg-ink-900/50 px-2.5 py-1.5">
-                <span className="font-mono text-[12px] text-bone">{p.symbol}</span>
-                <span className="font-mono text-[10px] text-mist/50">@ {fmt_price(p.entry_price)}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {data === null ? (
         <div className="text-[13px] text-mist/60">Chargement de l'historique…</div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-xl border border-white/5 bg-ink-900/30 p-5 text-[13px] text-mist/50">Aucun trade enregistré pour ce filtre.</div>
+      ) : rows.length === 0 ? (
+        <div className="rounded-xl border border-white/5 bg-ink-900/30 p-5 text-[13px] text-mist/50">Aucun trade enregistré.</div>
       ) : (
         <div className="rounded-xl border border-white/10 bg-ink-900/30 overflow-x-auto">
           <table className="w-full text-left">
@@ -502,14 +448,9 @@ function TradeHistory() {
               </tr>
             </thead>
             <tbody>
-              {filtered.slice(0, 100).map((t, i) => <TradeRow key={i} trade={t} />)}
+              {rows.map((t, i) => <TradeRow key={i} trade={t} />)}
             </tbody>
           </table>
-          {filtered.length > 100 && (
-            <div className="py-2 px-4 text-[11px] text-mist/40 border-t border-white/5">
-              {filtered.length - 100} trades supplémentaires non affichés.
-            </div>
-          )}
         </div>
       )}
       <p className="mt-3 text-[11px] text-mist/40">

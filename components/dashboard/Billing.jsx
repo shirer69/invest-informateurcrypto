@@ -70,10 +70,16 @@ const fmtUsd = (n) =>
   n == null ? "—" : Number(n).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " $";
 const daysLeft = (sec) => Math.max(0, Math.ceil((Number(sec) * 1000 - Date.now()) / 86400000));
 
+const NETWORKS = [
+  { id: "trc20", label: "USDT", badge: "TRC-20 · Tron",   color: "text-red-400",    warn: "N'envoyez que de l'USDT sur le réseau TRC-20 (Tron)." },
+  { id: "bep20", label: "USDC", badge: "BEP-20 · BSC",    color: "text-yellow-400", warn: "N'envoyez que de l'USDC sur le réseau BEP-20 (Binance Smart Chain)." },
+];
+
 export default function Billing() {
   const { openUnlock } = useUnlock();
   const [b, setB] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [network, setNetwork] = useState("trc20");
 
   useEffect(() => {
     let alive = true;
@@ -102,10 +108,13 @@ export default function Billing() {
     : "Accès 3 mois offert";
   const statusColor = !has ? "text-rose-400" : "text-emerald-400";
 
+  const activeAddr = network === "bep20" ? wallet.deposit_address_evm : wallet.deposit_address;
+  const activeNet  = NETWORKS.find((n) => n.id === network) || NETWORKS[0];
+
   function copyAddr() {
-    if (!wallet.deposit_address) return;
+    if (!activeAddr) return;
     try {
-      navigator.clipboard.writeText(wallet.deposit_address);
+      navigator.clipboard.writeText(activeAddr);
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
     } catch {}
@@ -163,7 +172,7 @@ export default function Billing() {
 
       {/* Wallet dédié */}
       <div className="rounded-2xl border hairline bg-ink-800/50 p-5 mb-5">
-        <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
             Mon wallet de dépôt dédié
           </span>
@@ -171,15 +180,36 @@ export default function Billing() {
             Solde : <span className={wallet.balance > 0 ? "text-emerald-400" : "text-bone"}>{fmtUsd(wallet.balance)}</span>
           </span>
         </div>
-        <p className="mt-2 text-[12.5px] leading-relaxed text-mist">
-          Déposez des fonds en <span className="text-bone">{wallet.network || "USDT (TRC-20)"}</span> sur
-          cette adresse unique. Le solde sert à régler votre <b>abonnement</b> et vos{" "}
+
+        {/* Sélecteur réseau */}
+        <div className="flex gap-2 mb-4">
+          {NETWORKS.map((n) => (
+            <button
+              key={n.id}
+              onClick={() => { setNetwork(n.id); setCopied(false); }}
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-[13px] font-semibold border transition-colors ${
+                network === n.id
+                  ? "bg-gold/[0.10] text-bone gold-line"
+                  : "text-mist/70 border-white/10 hover:text-bone hover:border-white/20"
+              }`}
+            >
+              <span className={`font-mono text-[12px] font-bold ${n.color}`}>{n.label}</span>
+              <span className="text-[11px] text-mist/60 font-normal">{n.badge}</span>
+            </button>
+          ))}
+        </div>
+
+        <p className="mb-3 text-[12.5px] leading-relaxed text-mist">
+          Déposez des fonds en{" "}
+          <span className={`font-semibold ${activeNet.color}`}>{activeNet.label} ({activeNet.badge})</span>{" "}
+          sur cette adresse unique. Le solde sert à régler votre <b>abonnement</b> et vos{" "}
           <b>factures de copy-trading</b>.
         </p>
-        {wallet.deposit_address ? (
-          <div className="mt-3 flex items-stretch gap-2">
+
+        {activeAddr ? (
+          <div className="flex items-stretch gap-2">
             <code className="flex-1 min-w-0 rounded-lg bg-ink-900 border border-white/10 px-3.5 py-2.5 font-mono text-[12.5px] text-bone break-all">
-              {wallet.deposit_address}
+              {activeAddr}
             </code>
             <button onClick={copyAddr}
               className="btn-ghost shrink-0 rounded-lg px-4 text-[12.5px] font-semibold">
@@ -187,8 +217,9 @@ export default function Billing() {
             </button>
           </div>
         ) : (
-          <p className="mt-3 text-[12.5px] text-mist/60">Adresse de dépôt en cours de génération…</p>
+          <p className="text-[12.5px] text-mist/60">Adresse de dépôt en cours de génération…</p>
         )}
+
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-[11.5px] text-mist">
           {b.fee_due > 0 && (
             <span className="text-amber-300/90">Factures dues : <b>{fmtUsd(b.fee_due)}</b></span>
@@ -198,7 +229,7 @@ export default function Billing() {
           )}
         </div>
         <p className="mt-2 text-[10.5px] leading-relaxed text-mist/50">
-          ⚠️ N'envoyez que de l'USDT sur le réseau TRC-20 (Tron). Tout autre actif/réseau serait perdu.
+          ⚠️ {activeNet.warn} Tout autre actif ou réseau serait perdu définitivement.
         </p>
       </div>
 

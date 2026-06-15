@@ -404,6 +404,32 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
 
       <VipJoinBar />
 
+      {/* Courbe equity (dashboard verrouillé uniquement) */}
+      {locked && (
+        <div className="mb-5">
+          <TrackRecord />
+        </div>
+      )}
+
+      {/* Bouton Voir les actifs — juste sous le bloc P&L, avant les témoignages */}
+      {onGoInvest && (
+        <button
+          onClick={onGoInvest}
+          className="mt-4 w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
+        >
+          <span className="text-[13px] text-bone font-medium">Voir les actifs — Pôle Invest</span>
+          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
+            Voir
+            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </span>
+        </button>
+      )}
+
+      {/* Carrousel témoignages */}
+      <div className="mb-5 mt-5"><TestimonialCarousel /></div>
+
       {/* Hero total + composition */}
       <div className="relative rounded-3xl border overflow-hidden p-7 mb-5" style={{ borderColor: "rgba(124,92,252,0.30)" }}>
         <div className="pointer-events-none absolute -top-20 -right-10 h-56 w-56 rounded-full blur-3xl"
@@ -459,32 +485,6 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
           </div>
         </div>
       </div>
-
-      {/* Bouton Voir les actifs — juste sous le bloc P&L, avant les témoignages */}
-      {onGoInvest && (
-        <button
-          onClick={onGoInvest}
-          className="mt-4 w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
-        >
-          <span className="text-[13px] text-bone font-medium">Voir les actifs — Pôle Invest</span>
-          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
-            Voir
-            <svg viewBox="0 0 24 24" className="h-3 w-3" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M5 12h14M12 5l7 7-7 7" />
-            </svg>
-          </span>
-        </button>
-      )}
-
-      {/* Carrousel témoignages */}
-      <div className="mb-5 mt-5"><TestimonialCarousel /></div>
-
-      {/* Courbe equity (dashboard verrouillé uniquement) */}
-      {locked && (
-        <div className="mb-5">
-          <TrackRecord />
-        </div>
-      )}
 
       <div className="mt-5">
         <ChallengeBlock onGoTrading={onGoTrading} />

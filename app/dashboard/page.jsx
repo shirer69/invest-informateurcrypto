@@ -151,6 +151,7 @@ export default function Dashboard() {
       facturation: "billing",
       compte: "account",
       audios: "audio",
+      monitoring: "audio",
       monitoring_audio: "audio",
       video: "videos",
     };

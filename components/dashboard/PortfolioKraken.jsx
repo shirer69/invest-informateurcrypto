@@ -581,7 +581,7 @@ export function AssetTables() {
           { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
         ]} />
       </Section>
-      <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock} badge={<span className="font-mono text-[9px] uppercase tracking-widest2 text-amber-400/90 border border-amber-500/30 rounded px-1.5 py-0.5">démo</span>}>
+      <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock}>
         <Table rows={stocks2} cols={[
           { k: "symbol", h: "Titre" },
           { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
@@ -589,9 +589,6 @@ export function AssetTables() {
           { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
           { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
         ]} />
-        <p className="px-5 py-3 text-[11.5px] text-amber-400/80 border-t hairline">
-          ⏳ Données de démonstration — les xStocks réelles seront affichées à partir du démarrage du portefeuille le <span className="font-semibold">16 juin 2026</span>.
-        </p>
       </Section>
       <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
         <Table rows={marginRows2} cols={[

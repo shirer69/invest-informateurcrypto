@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
-import { spotOpenPositions, getSpotKeys } from "@/lib/krakenSpot";
+
+const VPS_URL = "https://api.informateurcrypto.fr/api/kraken/spot/margin-positions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  if (!getSpotKeys().configured) {
-    return NextResponse.json({ ok: false, error: "not_configured" }, { status: 200 });
+  try {
+    const res = await fetch(VPS_URL, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(15_000),
+    });
+    const data = await res.json();
+    return NextResponse.json({ ok: data.ok, result: data.result ?? {}, error: data.error });
+  } catch (e) {
+    return NextResponse.json({ ok: false, result: {}, error: String(e) });
   }
-  const r = await spotOpenPositions();
-  return NextResponse.json({ ok: r.ok, result: r.result, error: r.error }, { status: 200 });
 }

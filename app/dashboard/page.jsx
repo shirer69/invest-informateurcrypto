@@ -22,15 +22,12 @@ import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest }
 function KrakenMark({ className = "" }) {
   return (
     <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
-      <path
-        d="M32 6C18.7 6 8 16.7 8 30v3.2c0 1 .8 1.8 1.8 1.8h6.4c1 0 1.8-.8 1.8-1.8V30a13.9 13.9 0 0 1 27.9 0v3.2c0 1 .8 1.8 1.8 1.8h6.5c1 0 1.8-.8 1.8-1.8V30C56 16.7 45.3 6 32 6Z"
-        fill="#7C5CFC"
-      />
+      <path d="M6 40V31a26 26 0 0 1 52 0v9Z" fill="#7C5CFC" />
       <g fill="#7C5CFC">
-        <rect x="8" y="39" width="9.9" height="19" rx="4.95" />
-        <rect x="21.5" y="39" width="9.9" height="14" rx="4.95" />
-        <rect x="32.6" y="39" width="9.9" height="19" rx="4.95" />
-        <rect x="46.1" y="39" width="9.9" height="14" rx="4.95" />
+        <rect x="6" y="34" width="9.8" height="25" rx="4.9" />
+        <rect x="20.07" y="34" width="9.8" height="25" rx="4.9" />
+        <rect x="34.13" y="34" width="9.8" height="25" rx="4.9" />
+        <rect x="48.2" y="34" width="9.8" height="25" rx="4.9" />
       </g>
     </svg>
   );

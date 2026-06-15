@@ -643,18 +643,12 @@ export function ChallengeBlock({ onGoTrading }) {
             <div className="font-mono text-[10px] text-gold/60 mt-0.5">en 30-45 jours</div>
           </div>
         </div>
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {[
-            { icon: "📈", label: "Stratégie explosive à haut potentiel" },
-            { icon: "🛡️", label: "Gestion des risques professionnelle" },
-            { icon: "📡", label: "Résultats en temps réel" },
-            { icon: "🏆", label: "Objectif unique +100% en 30-45 j" },
-          ].map(({ icon, label }) => (
-            <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
-              <span className="text-[13px]">{icon}</span>
-              <span>{label}</span>
-            </div>
-          ))}
+        <div className="mt-4 flex items-start gap-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3.5 py-2.5">
+          <span className="text-[13px] leading-none mt-0.5">⚠️</span>
+          <p className="text-[11px] leading-relaxed text-amber-100/80">
+            Un challenge est une stratégie à <span className="text-amber-100">haut risque</span> (effet de levier élevé, objectif agressif) :
+            une perte importante, voire totale, du capital engagé est possible. À l'inverse, notre <span className="text-amber-100">portefeuille trading ci-dessous</span> suit une gestion du risque bien plus prudente.
+          </p>
         </div>
         {onGoTrading ? (
           <button

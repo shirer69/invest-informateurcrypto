@@ -421,7 +421,7 @@ export default function Dashboard() {
         const primary = nav.filter((n) => PRIMARY_TABS.includes(n.id));
         const activeInPrimary = primary.some((n) => n.id === tab);
         return (
-          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900/96 border-t hairline backdrop-blur-xl shadow-[0_-20px_50px_rgba(0,0,0,0.75)] pb-[env(safe-area-inset-bottom)]">
+          <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-ink-900 border-t hairline backdrop-blur-xl shadow-[0_-20px_50px_rgba(0,0,0,0.75)] pb-[env(safe-area-inset-bottom)]">
             <div className="grid grid-cols-5">
               {primary.map((n) => {
                 const on = tab === n.id;

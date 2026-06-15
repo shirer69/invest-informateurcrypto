@@ -1216,47 +1216,6 @@ export function Monitoring({ onGoCopy }) {
 
       <ChallengeBlock />
 
-      {/* Bloc promo — Monitoring quotidien sur groupe privé */}
-      <a
-        href="https://t.me/clubdesinformateurs"
-        target="_blank" rel="noopener noreferrer"
-        className="group mb-5 block rounded-2xl overflow-hidden border gold-line bg-gradient-to-br from-ink-900 via-ink-800/70 to-ink-900 relative hover:border-gold/50 transition-colors"
-      >
-        <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-8 -left-8 h-40 w-40 rounded-full blur-3xl opacity-15" style={{ background: "radial-gradient(circle,#C9A24B,transparent 70%)" }} />
-        </div>
-        <div className="relative p-5">
-          <div className="flex items-center gap-3 mb-3">
-            <img src="/julien.jpg" alt="Julien" className="h-10 w-10 rounded-full object-cover shrink-0 border gold-line" />
-            <div className="min-w-0">
-              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80 mb-0.5">Groupe privé · tous les jours</div>
-              <h4 className="font-display text-[16px] text-bone leading-tight">Le Monitoring quotidien de Julien</h4>
-            </div>
-          </div>
-          <p className="text-[12.5px] leading-relaxed text-mist/80">
-            Chaque jour, Julien anime un <span className="text-bone">monitoring en direct</span> sur un groupe privé :
-            analyses <span className="text-bone">audio</span>, <span className="text-bone">zones à surveiller</span>,
-            <span className="text-bone"> scalping live</span> et <span className="text-bone">trading intraday</span>.
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {[
-              { icon: "🎙️", label: "Analyses audio quotidiennes" },
-              { icon: "🎯", label: "Zones à surveiller" },
-              { icon: "⚡", label: "Scalping en live" },
-              { icon: "📊", label: "Trading intraday" },
-            ].map(({ icon, label }) => (
-              <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
-                <span className="text-[13px]">{icon}</span>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
-          <span className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
-            Rejoindre le groupe privé <IconArrow className="h-3.5 w-3.5" />
-          </span>
-        </div>
-      </a>
-
       {/* Titre Portefeuille Trading */}
       <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">
         <h4 className="font-display text-[16px] text-bone">Portefeuille Trading</h4>
@@ -1298,6 +1257,47 @@ export function Monitoring({ onGoCopy }) {
           </div>
         ))}
       </div>
+
+      {/* Bloc promo — Monitoring quotidien sur groupe privé */}
+      <a
+        href="https://t.me/clubdesinformateurs"
+        target="_blank" rel="noopener noreferrer"
+        className="group mb-5 block rounded-2xl overflow-hidden border gold-line bg-gradient-to-br from-ink-900 via-ink-800/70 to-ink-900 relative hover:border-gold/50 transition-colors"
+      >
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-8 -left-8 h-40 w-40 rounded-full blur-3xl opacity-15" style={{ background: "radial-gradient(circle,#C9A24B,transparent 70%)" }} />
+        </div>
+        <div className="relative p-5">
+          <div className="flex items-center gap-3 mb-3">
+            <img src="/julien.jpg" alt="Julien" className="h-10 w-10 rounded-full object-cover shrink-0 border gold-line" />
+            <div className="min-w-0">
+              <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80 mb-0.5">Groupe privé · tous les jours</div>
+              <h4 className="font-display text-[16px] text-bone leading-tight">Le Monitoring quotidien de Julien</h4>
+            </div>
+          </div>
+          <p className="text-[12.5px] leading-relaxed text-mist/80">
+            Chaque jour, Julien anime un <span className="text-bone">monitoring en direct</span> sur un groupe privé :
+            analyses <span className="text-bone">audio</span>, <span className="text-bone">zones à surveiller</span>,
+            <span className="text-bone"> scalping live</span> et <span className="text-bone">trading intraday</span>.
+          </p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {[
+              { icon: "🎙️", label: "Analyses audio quotidiennes" },
+              { icon: "🎯", label: "Zones à surveiller" },
+              { icon: "⚡", label: "Scalping en live" },
+              { icon: "📊", label: "Trading intraday" },
+            ].map(({ icon, label }) => (
+              <div key={label} className="flex items-center gap-2 text-[11.5px] text-mist/70">
+                <span className="text-[13px]">{icon}</span>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+          <span className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
+            Rejoindre le groupe privé <IconArrow className="h-3.5 w-3.5" />
+          </span>
+        </div>
+      </a>
 
       {/* Historique des trades */}
       <div className="rounded-2xl border hairline bg-ink-800/40 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>

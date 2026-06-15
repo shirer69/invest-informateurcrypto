@@ -733,58 +733,7 @@ function Spinner({ className = "" }) {
 /* Bloc d'information sur la stratégie de copy (objectifs, règles, money management) */
 function CopyInfo() {
   return (
-    <div className="mt-6 grid lg:grid-cols-2 gap-4">
-      <div className="rounded-2xl border gold-line bg-ink-800/40 p-5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Objectifs</span>
-        <div className="mt-3 grid sm:grid-cols-2 gap-3">
-          <div className="rounded-xl border hairline bg-ink-900/40 p-4">
-            <div className="text-[12px] text-mist/70">Performance cible</div>
-            <div className="mt-1 font-display text-[19px] text-emerald-400">5 % à 20 %</div>
-            <div className="text-[12px] text-mist">de profit mensuel</div>
-          </div>
-          <div className="rounded-xl border hairline bg-ink-900/40 p-4">
-            <div className="text-[12px] text-mist/70">Protection capital</div>
-            <div className="mt-1 font-display text-[19px] text-bone">Drawdown max 11 %</div>
-            <div className="text-[12px] text-mist">limite de perte gérée</div>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Règles de sortie</span>
-        <div className="mt-3 space-y-3">
-          <div>
-            <div className="text-[13px] text-bone font-medium">Scalping / Intraday</div>
-            <p className="text-[12.5px] leading-relaxed text-mist">
-              Stop-loss serrés systématiques. Les TP offrent des ratios largement supérieurs aux
-              pertes. Jamais de pertes laissées courir.
-            </p>
-          </div>
-          <div>
-            <div className="text-[13px] text-bone font-medium">Semi-Swing</div>
-            <p className="text-[12.5px] leading-relaxed text-mist">
-              Trades tenus 24/48 h. Plus de marge pour le stop-loss et cibles larges, avec levier réduit.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border hairline bg-ink-800/50 p-5 lg:col-span-2">
-        <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Money management</span>
-        <div className="mt-3 grid sm:grid-cols-3 gap-3">
-          {[
-            ["5 % du capital", "engagé par trade"],
-            ["Toujours un stop-loss", "sur chaque position"],
-            ["1 à 3 TP", "par position"],
-          ].map(([a, b]) => (
-            <div key={a} className="rounded-xl border hairline bg-ink-900/40 p-4">
-              <div className="font-display text-[16px] text-bone">{a}</div>
-              <div className="text-[12px] text-mist">{b}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+    <div />
   );
 }
 

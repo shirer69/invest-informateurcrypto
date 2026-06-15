@@ -1245,15 +1245,34 @@ export function MonitoringAudio() {
         <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist/60">
           {err ? "Fil momentanément indisponible." : "Aucun contenu pour le moment."}
         </div>
-      ) : (
-        <div className="space-y-3">
-          {items.map((item, idx) =>
-            item.kind === "audio"
-              ? <AudioItem key={item.id} item={item} reactions={likes[String(item.msg_id)]} first={idx === 0} />
-              : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
-          )}
-        </div>
-      )}
+      ) : (() => {
+        // Dernier audio mis en avant en haut ; on l'exclut ensuite de la liste
+        // pour ne pas le dupliquer s'il est aussi le post le plus récent.
+        const latestAudio = items.find((i) => i.kind === "audio");
+        const rest = items.filter((i) => i !== latestAudio);
+        return (
+          <>
+            {latestAudio && (
+              <div className="mb-6">
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80 mb-2">Dernier audio</div>
+                <AudioItem item={latestAudio} reactions={likes[String(latestAudio.msg_id)]} first />
+              </div>
+            )}
+            {rest.length > 0 && (
+              <>
+                <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 mb-2">Derniers posts</div>
+                <div className="space-y-3">
+                  {rest.map((item) =>
+                    item.kind === "audio"
+                      ? <AudioItem key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
+                      : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        );
+      })()}
 
       <p className="mt-5 text-[11px] text-mist/40 leading-relaxed">
         Contenu du canal Pôle Trading. À titre éducatif — ne constitue pas un conseil en investissement.

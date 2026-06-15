@@ -18,9 +18,27 @@ import LegalDisclaimer from "@/components/LegalDisclaimer";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest } from "@/lib/clientStore";
 
+// Logo Kraken (mark) — utilisé comme icône de l'onglet Invest dans le menu.
+function KrakenMark({ className = "" }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} aria-hidden="true">
+      <path
+        d="M32 6C18.7 6 8 16.7 8 30v3.2c0 1 .8 1.8 1.8 1.8h6.4c1 0 1.8-.8 1.8-1.8V30a13.9 13.9 0 0 1 27.9 0v3.2c0 1 .8 1.8 1.8 1.8h6.5c1 0 1.8-.8 1.8-1.8V30C56 16.7 45.3 6 32 6Z"
+        fill="#7C5CFC"
+      />
+      <g fill="#7C5CFC">
+        <rect x="8" y="39" width="9.9" height="19" rx="4.95" />
+        <rect x="21.5" y="39" width="9.9" height="14" rx="4.95" />
+        <rect x="32.6" y="39" width="9.9" height="19" rx="4.95" />
+        <rect x="46.1" y="39" width="9.9" height="14" rx="4.95" />
+      </g>
+    </svg>
+  );
+}
+
 const NAV = [
   { id: "portfolio", label: "Accueil", icon: "🏠" },
-  { id: "analytics", label: "Invest", icon: "📊", badge: "New" },
+  { id: "analytics", label: "Invest", icon: "📊", iconNode: KrakenMark, badge: "New" },
   { id: "monitoring", label: "Trading", icon: "⚡" },
   { id: "audio", label: "Monitoring", icon: "📡" },
   { id: "vip", label: "Actions", icon: "📈" },
@@ -281,7 +299,7 @@ export default function Dashboard() {
                       : "text-mist/70 hover:text-bone hover:bg-white/[0.03] border border-transparent"
                   }`}
                 >
-                  <span className={`text-[14px] transition-all duration-200 ${tab === n.id ? "text-gold" : "text-mist/40 group-hover:text-mist/70"}`}>{n.icon}</span>
+                  <span className={`text-[14px] transition-all duration-200 ${tab === n.id ? "text-gold" : "text-mist/40 group-hover:text-mist/70"}`}>{n.iconNode ? <n.iconNode className="h-[15px] w-[15px]" /> : n.icon}</span>
                   <span className="font-medium">{n.label}</span>
                   {n.badge && (
                     <span className="lg:ml-auto shrink-0 rounded-full bg-gold/15 border gold-line px-2 py-0.5 text-[8.5px] font-mono uppercase tracking-wider text-gold/90">
@@ -398,7 +416,7 @@ export default function Dashboard() {
                       on ? "text-gold" : "text-mist/50 active:text-mist"
                     }`}>
                     {on && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-gold shadow-[0_0_8px_rgba(46,230,168,0.8)]" />}
-                    <span className={`text-[20px] leading-none transition-transform duration-200 ${on ? "scale-110" : ""}`}>{n.icon}</span>
+                    <span className={`text-[20px] leading-none transition-transform duration-200 ${on ? "scale-110" : ""}`}>{n.iconNode ? <n.iconNode className="h-5 w-5" /> : n.icon}</span>
                     <span className="truncate max-w-[66px]">{n.label}</span>
                   </button>
                 );
@@ -439,7 +457,7 @@ export default function Dashboard() {
                       ? "bg-gold/[0.08] text-bone gold-line shadow-[inset_0_1px_0_rgba(46,230,168,0.12)]"
                       : "text-mist/60 border-white/[0.06] active:bg-white/[0.04]"
                   }`}>
-                  <span className={`text-[22px] leading-none ${tab === n.id ? "" : "opacity-60"}`}>{n.icon}</span>
+                  <span className={`text-[22px] leading-none ${tab === n.id ? "" : "opacity-60"}`}>{n.iconNode ? <n.iconNode className="h-[22px] w-[22px]" /> : n.icon}</span>
                   <span className="text-center leading-tight font-medium">{n.label}</span>
                   {n.badge && (
                     <span className="absolute top-1.5 right-1.5 rounded-full bg-gold/20 border gold-line px-1.5 text-[7.5px] font-mono uppercase tracking-wider text-gold">

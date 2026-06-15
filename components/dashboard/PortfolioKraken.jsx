@@ -493,7 +493,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
 
 /* Tableaux d'actifs réutilisables (Invest tab) */
 export function AssetTables() {
-  const { investAccess } = useUnlock();
+  const { investAccess, openUnlock } = useUnlock();
   const blurred = !investAccess;
   const [spot, setSpot] = useState(null);
   const [fut, setFut] = useState(null);
@@ -590,13 +590,22 @@ export function AssetTables() {
         ]} />
       </Section>
       <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock}>
-        <Table rows={stocks2} blurred={blurred} cols={[
-          { k: "symbol", h: "Titre" },
-          { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
-          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
-          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
-          { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
-        ]} />
+        <div className="relative">
+          <Table rows={stocks2} blurred={blurred} cols={[
+            { k: "symbol", h: "Titre" },
+            { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+            { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+            { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
+          ]} />
+          {blurred && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <button onClick={openUnlock} className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold shadow-xl">
+                🔒 Déverrouiller
+              </button>
+            </div>
+          )}
+        </div>
       </Section>
       <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
         <Table rows={marginRows2} blurred={blurred} cols={[
@@ -611,7 +620,18 @@ export function AssetTables() {
         ]} />
       </Section>
       <Section title="Futures crypto (perps)" dot={CAT.perps.color} icon={ICONS.perps}>
-        <div className="p-1.5"><RealFuturesPositions /></div>
+        <div className="relative">
+          <div style={blurred ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : undefined}>
+            <div className="p-1.5"><RealFuturesPositions /></div>
+          </div>
+          {blurred && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <button onClick={openUnlock} className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold shadow-xl">
+                🔒 Déverrouiller
+              </button>
+            </div>
+          )}
+        </div>
       </Section>
       <Section title="Cash & stablecoins" dot={CAT.cash.color} icon={ICONS.cash}>
         <Table rows={cash2} blurred={blurred} cols={[

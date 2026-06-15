@@ -2393,7 +2393,7 @@ export function XStocks() {
   const holdings = (() => {
     if (!isUnlocked) return XSTOCKS_DEMO;
     if (!raw?.ok || !raw?.holdings) return [];
-    return raw.holdings
+    const all = raw.holdings
       .filter((h) => h.kind === "stock")
       .map((h, i) => {
         const meta = TICKER_META[h.symbol] || {};
@@ -2413,8 +2413,9 @@ export function XStocks() {
           pnlAbs,
           pnlPct,
         };
-      })
-      .filter((h) => h.mktVal > 0.5);
+      });
+    const grandTotal = all.reduce((s, h) => s + h.mktVal, 0);
+    return all.filter((h) => grandTotal <= 0 || h.mktVal / grandTotal >= 0.005);
   })();
 
   const totalMkt  = holdings.reduce((s, h) => s + h.mktVal, 0);

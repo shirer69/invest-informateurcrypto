@@ -872,9 +872,13 @@ function ScopeCodeGate({ scope }) {
     }
   }
 
-  const label = scope === "monitoring" ? "Monitoring temps réel" : "Actions US (X-Stocks)";
+  const label = scope === "monitoring" ? "Monitoring temps réel"
+    : scope === "invest" ? "Accès Portefeuille INVEST"
+    : "Actions US (X-Stocks)";
   const desc = scope === "monitoring"
     ? "Entrez un code d'accès pour débloquer les analyses vocales en temps réel pendant 7 jours."
+    : scope === "invest"
+    ? "Entrez un code d'activation pour accéder à la page Portefeuille INVEST pendant 7 jours."
     : "Entrez un code d'accès pour débloquer le portefeuille Actions US pendant 7 jours.";
 
   return (
@@ -1470,6 +1474,7 @@ function KrakenApiGuide({ type, onClose }) {
 }
 
 export function CopyTrading() {
+  const { locked, investAccess } = useUnlock();
   const [user, setUser] = useState(null);
   const [s, setS] = useState(null);
   const [keyForm, setKeyForm] = useState({ api_key: "", api_secret: "" });
@@ -1974,6 +1979,9 @@ export function CopyTrading() {
 
           {/* facturation */}
           {s.billing && <Billing b={s.billing} />}
+
+          {/* code d'activation Portefeuille INVEST */}
+          {!locked && !investAccess && <ScopeCodeGate scope="invest" />}
         </div>
       )}
 

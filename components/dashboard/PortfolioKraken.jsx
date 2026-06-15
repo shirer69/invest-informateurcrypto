@@ -139,7 +139,12 @@ function Spinner({ size = 16, className = "" }) {
 }
 
 function Table({ rows, cols, mobileMax, blurred }) {
-  if (!rows.length) return <p className="px-5 py-4 text-[13px] text-mist">Aucun actif.</p>;
+  if (!rows.length) return (
+    <p className="px-5 py-4 text-[13px] text-mist"
+       style={blurred ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : undefined}>
+      Aucun actif.
+    </p>
+  );
   const hiddenOnMobile = mobileMax ? Math.max(0, rows.length - mobileMax) : 0;
   return (
     <>
@@ -588,7 +593,7 @@ export function AssetTables() {
         ]} />
       </Section>
       <Section title="Actions / ETF tokenisés" dot={CAT.stock.color} icon={ICONS.stock}>
-        <div className="relative">
+        <div className="relative min-h-[80px]">
           <Table rows={stocks2} blurred={blurred} cols={[
             { k: "symbol", h: "Titre" },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
@@ -606,19 +611,28 @@ export function AssetTables() {
         </div>
       </Section>
       <Section title="Positions sur marge" dot={CAT.margin.color} icon={ICONS.margin}>
-        <Table rows={marginRows2} blurred={blurred} cols={[
-          { k: "pair", h: "Paire" },
-          { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
-          { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.entry) },
-          { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
-          { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
-          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
-          { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
-          { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
-        ]} />
+        <div className="relative min-h-[80px]">
+          <Table rows={marginRows2} blurred={blurred} cols={[
+            { k: "pair", h: "Paire" },
+            { k: "side", h: "Sens", cls: (r) => (r.side === "buy" ? "text-emerald-400" : "text-rose-400"), render: (r) => (r.side === "buy" ? "Long" : "Short") },
+            { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.entry) },
+            { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
+            { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
+            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
+            { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
+            { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
+          ]} />
+          {blurred && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <button onClick={openUnlock} className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold shadow-xl">
+                🔒 Déverrouiller
+              </button>
+            </div>
+          )}
+        </div>
       </Section>
       <Section title="Futures crypto (perps)" dot={CAT.perps.color} icon={ICONS.perps}>
-        <div className="relative">
+        <div className="relative min-h-[80px]">
           <div style={blurred ? { filter: "blur(5px)", userSelect: "none", pointerEvents: "none" } : undefined}>
             <div className="p-1.5"><RealFuturesPositions /></div>
           </div>

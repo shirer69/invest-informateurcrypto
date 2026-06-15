@@ -1667,9 +1667,12 @@ export function CopyTrading() {
         <div className="space-y-4 max-w-4xl">
           <div>
             <h4 className="font-display text-[17px] text-bone mb-1">Connecte tes comptes Kraken</h4>
-            <p className="text-[13px] text-mist">
-              Le copy-trading réplique les positions du trader sur <b className="text-bone">tes</b> comptes Kraken.
-              Configure au moins un wallet pour démarrer — tu pourras ajouter l'autre ensuite.
+            <p className="text-[13px] text-mist mb-2">
+              Le copy-trading réplique les positions sur le sous-compte Kraken dédié que tu as créé.
+              Configure au moins un wallet (Futures ou Spot / Margin) pour démarrer — tu pourras ajouter l'autre ensuite.
+            </p>
+            <p className="text-[12px] text-mist/70 border border-gold/20 bg-gold/[0.04] rounded-lg px-3 py-2">
+              💡 <b className="text-bone">Frais de performance : 20 %</b> sur les gains réalisés du compte chaque mois (gains non réalisés exclus). Facturés automatiquement et réglables en crypto depuis le menu <b className="text-bone">Wallet</b>.
             </p>
             {isReal && (
               <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">

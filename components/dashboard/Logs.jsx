@@ -30,13 +30,44 @@ export default function Logs() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [sp, fu] = await Promise.all([
-        fetch("/api/kraken/spot/trades").then((r) => r.json()).catch(() => null),
-        fetch(`${API_BASE}/api/kraken/futures/fills`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
-      ]);
+      const d = await fetch(`${API_BASE}/api/julien/trade-history`, { cache: "no-store" })
+        .then((r) => r.json()).catch(() => null);
       if (!alive) return;
-      const all = [...((sp?.trades) || []), ...((fu?.trades) || [])].sort((a, b) => b.ts - a.ts);
-      setTrades(all);
+      if (!d || !d.ok) { setTrades([]); return; }
+
+      const cleanPerp = (s) => {
+        let x = (s || "").toLowerCase().replace(/^p[fi]_/, "").replace(/usd$/, "").toUpperCase();
+        if (x === "XBT") x = "BTC";
+        return x ? `${x}/USD` : (s || "");
+      };
+
+      // Évènements spot / xStocks / marge détectés sur le compte maître
+      const spot = (d.spot_events || []).map((e) => {
+        const price = e.exit_price || e.entry_price || 0;
+        const cat = e.type === "stock" ? "xstocks" : e.type === "margin" ? "marge" : "spot";
+        return {
+          ts: e.created_at,
+          market: e.symbol,
+          cat,
+          side: e.direction === "achat" ? "buy" : "sell",
+          price,
+          vol: e.amount,
+          cost: (e.amount || 0) * price,
+        };
+      });
+
+      // Perps (fills Kraken Futures du compte A)
+      const perps = (Array.isArray(d.kraken_futures) ? d.kraken_futures : []).map((f) => ({
+        ts: Math.floor(new Date(f.fillTime).getTime() / 1000),
+        market: cleanPerp(f.symbol),
+        cat: "perps",
+        side: f.side,
+        price: f.price,
+        vol: f.size,
+        cost: (f.size || 0) * (f.price || 0),
+      }));
+
+      setTrades([...spot, ...perps].sort((a, b) => b.ts - a.ts));
     })();
     return () => { alive = false; };
   }, []);

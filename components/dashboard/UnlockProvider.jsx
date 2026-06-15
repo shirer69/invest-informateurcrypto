@@ -290,16 +290,6 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
           </ol>
         </div>
 
-        {/* Note compte existant */}
-        <p className="mt-3 text-[12px] leading-relaxed text-mist/70">
-          Vous avez déjà un compte Kraken ?{" "}
-          <a href="https://t.me/clubdesinformateurs" target="_blank" rel="noopener noreferrer"
-             className="text-gold hover:text-gold-soft transition-colors underline">
-            Écrivez-nous sur Telegram
-          </a>{" "}
-          pour lier votre compte existant.
-        </p>
-
         {/* Option 1 : IIBAN Kraken */}
         <div className="mt-5 rounded-xl border gold-line bg-gold/[0.05] p-4">
           <div className="flex items-center justify-between">

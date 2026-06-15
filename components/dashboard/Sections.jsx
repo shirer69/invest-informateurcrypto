@@ -1744,13 +1744,12 @@ export function CopyTrading() {
                 <span className="text-[18px]">⚡</span>
                 <h5 className="font-display text-[16px] text-bone">Futures</h5>
                 <button onClick={() => setShowFuturesHelp(true)}
-                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
-                  title="Comment créer les clés API Futures">?</button>
+                  className="rounded-full border border-gold/40 text-gold text-[11px] font-bold px-2 py-0.5 hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Futures">Help</button>
               </div>
               <p className="text-[12.5px] text-mist mb-4 leading-relaxed">
                 Crée les clés sur{" "}
-                <a className="text-gold underline" href={`https://${futuresHost}`} target="_blank" rel="noopener noreferrer">{futuresHost}</a>{" "}
-                (Connexions et API → Futures PA → Créer une clé).
+                <a className="text-gold underline" href="https://pro.kraken.com/app/settings/api" target="_blank" rel="noopener noreferrer">pro.kraken.com/app/settings/api</a>.
               </p>
               <div className="space-y-3">
                 <div>
@@ -1776,13 +1775,12 @@ export function CopyTrading() {
                 <span className="text-[18px]">💎</span>
                 <h5 className="font-display text-[16px] text-bone">Spot / Margin</h5>
                 <button onClick={() => setShowSpotHelp(true)}
-                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
-                  title="Comment créer les clés API Spot">?</button>
+                  className="rounded-full border border-gold/40 text-gold text-[11px] font-bold px-2 py-0.5 hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Spot">Help</button>
               </div>
               <p className="text-[12.5px] text-mist mb-4 leading-relaxed">
                 Crée les clés sur{" "}
-                <a className="text-gold underline" href="https://www.kraken.com/u/security/api" target="_blank" rel="noopener noreferrer">kraken.com</a>{" "}
-                avec les permissions <b className="text-bone">Funds : Query, Trade : Create</b>.
+                <a className="text-gold underline" href="https://pro.kraken.com/app/settings/api" target="_blank" rel="noopener noreferrer">pro.kraken.com/app/settings/api</a>.
               </p>
               <div className="space-y-3">
                 <div>
@@ -1824,13 +1822,12 @@ export function CopyTrading() {
                 <span className="text-gold text-[20px]">⚙️</span>
                 <h4 className="font-display text-[17px] text-bone">Connecte ton compte Spot / Margin Kraken</h4>
                 <button onClick={() => setShowSpotHelp(true)}
-                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
-                  title="Comment créer les clés API Spot">?</button>
+                  className="rounded-full border border-gold/40 text-gold text-[11px] font-bold px-2 py-0.5 hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Spot">Help</button>
               </div>
               <p className="text-[13px] leading-relaxed text-mist mb-4">
                 Pour copier les positions <b className="text-bone">Spot et Margin</b>, saisis les clés API de ton sous-compte Kraken dédié.
-                Crée-les sur <a className="text-gold underline" href="https://www.kraken.com/u/security/api" target="_blank" rel="noopener noreferrer">kraken.com</a>{" "}
-                avec les permissions <b className="text-bone">Funds : Query, Trade : Create</b>.
+                Crée-les sur <a className="text-gold underline" href="https://pro.kraken.com/app/settings/api" target="_blank" rel="noopener noreferrer">pro.kraken.com/app/settings/api</a>.
               </p>
               <div className="space-y-3">
                 <div>

@@ -343,11 +343,38 @@ const CRM_FILTERS = [
 
 function Members({ members, adminKey }) {
   const [filter, setFilter] = useState("all");
+  const [sortField, setSortField] = useState("visits");
+  const [sortDir, setSortDir] = useState("desc");
   const [copyStates, setCopyStates] = useState({});
   const [revokeStates, setRevokeStates] = useState({});
   if (!members) return <div className="text-mist text-[14px]">Chargement…</div>;
   const filterFn = CRM_FILTERS.find((f) => f.id === filter)?.fn ?? (() => true);
-  const visible = members.filter(filterFn);
+
+  const SORT_FNS = {
+    visits:     (a, b) => (a.visits ?? 0) - (b.visits ?? 0),
+    name:       (a, b) => (a.name || "").localeCompare(b.name || ""),
+    created_at: (a, b) => (a.created_at ?? 0) - (b.created_at ?? 0),
+  };
+  const toggleSort = (field) => {
+    if (sortField === field) setSortDir((d) => d === "asc" ? "desc" : "asc");
+    else { setSortField(field); setSortDir("desc"); }
+  };
+  const SortTh = ({ field, children, className = "" }) => (
+    <th
+      className={`px-5 py-3 cursor-pointer select-none hover:text-bone transition-colors ${className}`}
+      onClick={() => toggleSort(field)}
+    >
+      {children}
+      {sortField === field && <span className="ml-1 text-gold">{sortDir === "asc" ? "↑" : "↓"}</span>}
+    </th>
+  );
+
+  const sorted = [...members.filter(filterFn)].sort((a, b) => {
+    const fn = SORT_FNS[sortField];
+    if (!fn) return 0;
+    return sortDir === "asc" ? fn(a, b) : fn(b, a);
+  });
+  const visible = sorted;
 
   async function revokeAccess(email) {
     if (!confirm(`Révoquer tous les accès de ${email} ?`)) return;
@@ -395,12 +422,12 @@ function Members({ members, adminKey }) {
         <table className="w-full min-w-[960px] text-[13.5px]">
           <thead>
             <tr className="text-left font-mono text-[10px] uppercase tracking-widest2 text-mist/60 border-b hairline">
-              <th className="px-5 py-3">Membre</th>
+              <SortTh field="name">Membre</SortTh>
               <th className="px-5 py-3">Email</th>
-              <th className="px-5 py-3">Visites</th>
+              <SortTh field="visits">Visites</SortTh>
               <th className="px-5 py-3">UID</th>
               <th className="px-5 py-3">Source</th>
-              <th className="px-5 py-3">Inscription</th>
+              <SortTh field="created_at">Inscription</SortTh>
               <th className="px-5 py-3">Dépôt</th>
               <th className="px-5 py-3">Clé Kraken</th>
               <th className="px-5 py-3">Accès</th>

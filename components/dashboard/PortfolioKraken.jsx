@@ -120,9 +120,9 @@ const CAT = {
 
 // Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
 const DISPLAY_MULT = 100;
-// Le suivi de performance démarre le 16 juin 2026 → on affiche 0,00 % jusqu'à cette date.
-const TRACKING_STARTED = false;
-const TRACKING_START_LABEL = "16 juin 2026";
+// Le suivi de performance démarre le 15 juin 2026.
+const TRACKING_STARTED = true;
+const TRACKING_START_LABEL = "15 juin 2026";
 const fmtUsd = (x) =>
   x == null || isNaN(x)
     ? "—"

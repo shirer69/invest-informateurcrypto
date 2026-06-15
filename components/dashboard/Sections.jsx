@@ -1590,9 +1590,6 @@ export function CopyTrading() {
   const [busy, setBusy] = useState(false);
   const [stopping, setStopping] = useState(false);
   const [draft, setDraft] = useState(null); // réglages en cours d'édition
-  const [unlocked, setUnlocked] = useState(false);
-  const [pw, setPw] = useState("");
-  const [pwErr, setPwErr] = useState(false);
   const [contract, setContract] = useState(null); // {signed, text, signed_name, ...}
   const [signName, setSignName] = useState("");
   const [signAccept, setSignAccept] = useState(false);
@@ -1622,43 +1619,12 @@ export function CopyTrading() {
 
   useEffect(() => {
     setUser(getUser());
-    try { if (sessionStorage.getItem("copy_unlocked") === "1") setUnlocked(true); } catch {}
     refresh();
     loadContract();
     timer.current = setInterval(refresh, 4000);
     return () => clearInterval(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  function tryUnlock() {
-    if (pw === "patouchka") {
-      setUnlocked(true); setPwErr(false);
-      try { sessionStorage.setItem("copy_unlocked", "1"); } catch {}
-    } else {
-      setPwErr(true);
-    }
-  }
-
-  if (!unlocked) {
-    return (
-      <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading <DemoTag /></h3>
-        <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 max-w-md">
-          <div className="text-[28px]">🔒</div>
-          <h4 className="mt-3 font-display text-[18px] text-bone">Accès protégé</h4>
-          <p className="mt-2 text-[13px] text-mist">Saisis le mot de passe pour accéder au copy-trading.</p>
-          <input type="password" value={pw} autoFocus
-            onChange={(e) => { setPw(e.target.value); setPwErr(false); }}
-            onKeyDown={(e) => { if (e.key === "Enter") tryUnlock(); }}
-            placeholder="Mot de passe"
-            className="mt-4 w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
-          {pwErr && <p className="mt-2 text-[12.5px] text-rose-400">Mot de passe incorrect.</p>}
-          <button onClick={tryUnlock}
-            className="btn-gold mt-4 rounded-full px-6 py-3 text-[14px] font-semibold">Déverrouiller</button>
-        </div>
-      </div>
-    );
-  }
 
   if (!user) {
     return (
@@ -1756,48 +1722,91 @@ export function CopyTrading() {
       {showSpotHelp && <KrakenApiGuide type="spot" onClose={() => setShowSpotHelp(false)} />}
 
       {!configured ? (
-        /* ---- onboarding : saisie des clés ---- */
-        <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 max-w-2xl">
-          <div className="flex items-center gap-2">
-            <h4 className="font-display text-[18px] text-bone">
-              Connecte ton compte {isReal ? "Kraken Futures" : "démo Futures"}
-            </h4>
-            <button onClick={() => setShowFuturesHelp(true)}
-              className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
-              title="Comment créer les clés API Futures">?</button>
-          </div>
-          <p className="mt-2 text-[13.5px] leading-relaxed text-mist">
-            Le copy-trading réplique automatiquement les positions du trader sur <b>ton</b> compte
-            Kraken Futures{isReal ? " réel" : " de démonstration"}. Crée deux clés API sur{" "}
-            <a className="text-gold underline" href={`https://${futuresHost}`} target="_blank" rel="noopener noreferrer">
-              {futuresHost}
-            </a>{" "}
-            (Connexions et API → Futures PA → Créer une clé), puis colle-les ci-dessous.
-          </p>
-          {isReal && (
-            <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">
-              ⚠️ Mode RÉEL : les ordres sont exécutés avec de l'argent réel sur ton compte.
+        /* ---- onboarding : Futures + Spot côte à côte (au moins une requise) ---- */
+        <div className="space-y-4 max-w-4xl">
+          <div>
+            <h4 className="font-display text-[17px] text-bone mb-1">Connecte tes comptes Kraken</h4>
+            <p className="text-[13px] text-mist">
+              Le copy-trading réplique les positions du trader sur <b className="text-bone">tes</b> comptes Kraken.
+              Configure au moins un wallet pour démarrer — tu pourras ajouter l'autre ensuite.
             </p>
-          )}
-          <div className="mt-5 space-y-3">
-            <div>
-              <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique</label>
-              <input value={keyForm.api_key} onChange={(e) => setKeyForm({ ...keyForm, api_key: e.target.value })}
-                className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
-            </div>
-            <div>
-              <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé privée</label>
-              <input value={keyForm.api_secret} onChange={(e) => setKeyForm({ ...keyForm, api_secret: e.target.value })} type="password"
-                className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
-            </div>
-            <button disabled={busy} onClick={saveKeys}
-              className="btn-gold rounded-full px-6 py-3 text-[14px] font-semibold disabled:opacity-50">
-              {busy ? "Vérification…" : "Connecter mon compte"}
-            </button>
-            {msg && <p className="text-[12.5px] text-mist">{msg}</p>}
+            {isReal && (
+              <p className="mt-2 text-[12px] text-rose-300/90 border border-rose-500/30 bg-rose-500/[0.06] rounded-lg px-3 py-2">
+                ⚠️ Mode RÉEL : les ordres sont exécutés avec de l'argent réel sur ton compte.
+              </p>
+            )}
           </div>
-          <ul className="mt-5 space-y-2 border-t hairline pt-4">
-            {["Sandbox démo uniquement — aucun argent réel", "Clés chiffrées au repos", "Jamais de permission de retrait", "Tu gardes le contrôle : start/stop à tout moment"].map((x) => (
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Futures */}
+            <div className="rounded-2xl border gold-line bg-ink-800/40 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[18px]">⚡</span>
+                <h5 className="font-display text-[16px] text-bone">Futures</h5>
+                <button onClick={() => setShowFuturesHelp(true)}
+                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Futures">?</button>
+              </div>
+              <p className="text-[12.5px] text-mist mb-4 leading-relaxed">
+                Crée les clés sur{" "}
+                <a className="text-gold underline" href={`https://${futuresHost}`} target="_blank" rel="noopener noreferrer">{futuresHost}</a>{" "}
+                (Connexions et API → Futures PA → Créer une clé).
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique</label>
+                  <input value={keyForm.api_key} onChange={(e) => setKeyForm({ ...keyForm, api_key: e.target.value })}
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé privée</label>
+                  <input value={keyForm.api_secret} onChange={(e) => setKeyForm({ ...keyForm, api_secret: e.target.value })} type="password"
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <button disabled={busy} onClick={saveKeys}
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+                  {busy ? "Vérification…" : "Connecter Futures"}
+                </button>
+              </div>
+            </div>
+
+            {/* Spot / Margin */}
+            <div className="rounded-2xl border border-sky-500/30 bg-sky-500/[0.04] p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[18px]">💎</span>
+                <h5 className="font-display text-[16px] text-bone">Spot / Margin</h5>
+                <button onClick={() => setShowSpotHelp(true)}
+                  className="h-5 w-5 rounded-full border border-gold/40 text-gold text-[11px] font-bold flex items-center justify-center hover:bg-gold/10 flex-shrink-0"
+                  title="Comment créer les clés API Spot">?</button>
+              </div>
+              <p className="text-[12.5px] text-mist mb-4 leading-relaxed">
+                Crée les clés sur{" "}
+                <a className="text-gold underline" href="https://www.kraken.com/u/security/api" target="_blank" rel="noopener noreferrer">kraken.com</a>{" "}
+                avec les permissions <b className="text-bone">Funds : Query, Trade : Create</b>.
+              </p>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé publique (Spot)</label>
+                  <input value={spotKeyForm.api_key} onChange={(e) => setSpotKeyForm({ ...spotKeyForm, api_key: e.target.value })}
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <div>
+                  <label className="block text-[11px] uppercase tracking-widest2 text-mist/70 mb-1.5">Clé privée (Spot)</label>
+                  <input value={spotKeyForm.api_secret} onChange={(e) => setSpotKeyForm({ ...spotKeyForm, api_secret: e.target.value })} type="password"
+                    className="w-full bg-ink-900/60 border hairline rounded-lg px-3 py-2.5 text-[13px] font-mono text-bone outline-none focus:border-gold/50" />
+                </div>
+                <button disabled={busy} onClick={saveSpotKeys}
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-50">
+                  {busy ? "Vérification…" : "Connecter Spot / Margin"}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {msg && <p className="text-[12.5px] text-mist">{msg}</p>}
+
+          <ul className="space-y-2">
+            {["Clés chiffrées au repos", "Jamais de permission de retrait", "Tu gardes le contrôle : start/stop à tout moment"].map((x) => (
               <li key={x} className="flex items-center gap-3 text-[12.5px] text-mist/80">
                 <span className="h-1 w-1 rounded-full bg-gold" /> {x}
               </li>

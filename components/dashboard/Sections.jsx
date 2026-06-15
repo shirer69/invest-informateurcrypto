@@ -35,25 +35,6 @@ export function Overview({ tgLink }) {
   const { locked } = useUnlock();
   return (
     <div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {KPIS.map((k) => (
-          <div key={k.label} className="rounded-2xl border hairline bg-ink-800/50 p-5">
-            <div className="flex items-center justify-between">
-              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">
-                {k.label}
-              </span>
-              {k.up !== undefined && (
-                <span className={`text-[11px] ${k.up ? "text-emerald-400" : "text-rose-400"}`}>
-                  {k.up ? "▲" : "▼"}
-                </span>
-              )}
-            </div>
-            <div className="mt-2 font-display text-[26px] text-bone">{k.value}</div>
-            {k.sub && <div className="mt-0.5 text-[12px] text-mist">{k.sub}</div>}
-          </div>
-        ))}
-      </div>
-
       <div className={`mt-5 gap-5 items-start ${locked ? "grid lg:grid-cols-[1.6fr_1fr]" : ""}`}>
         {locked && (
           <div>
@@ -252,8 +233,7 @@ function LastInvestment({ kinds }) {
     });
   }, [kinds]);
 
-  if (locked) return <LastInvestmentMockup />;
-  if (!item) return null;
+  if (locked || !item) return null;
 
   const MULT = DISPLAY_MULT;
   const value   = item.value  * MULT;

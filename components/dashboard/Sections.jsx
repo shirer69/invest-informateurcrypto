@@ -1666,7 +1666,7 @@ export function CopyTrading() {
         /* ---- onboarding : Futures + Spot côte à côte (au moins une requise) ---- */
         <div className="space-y-4 max-w-4xl">
           <div>
-            <h4 className="font-display text-[17px] text-bone mb-1">Connecte tes comptes Kraken</h4>
+            <h4 className="font-display text-[17px] text-bone mb-1">Connecte ton sous-compte Kraken</h4>
             <p className="text-[13px] text-mist mb-2">
               Le copy-trading réplique les positions sur le sous-compte Kraken dédié que tu as créé.
               Configure au moins un wallet (Futures ou Spot / Margin) pour démarrer — tu pourras ajouter l'autre ensuite.

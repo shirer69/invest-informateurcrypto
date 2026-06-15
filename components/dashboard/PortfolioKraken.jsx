@@ -287,8 +287,8 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
     h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
   const absOf = (a) => (TRACKING_STARTED ? a : 0);
   const pnlOf = (a) => (TRACKING_STARTED ? (a == null ? null : pnlPctOf(a)) : 0);
-  const crypto = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
-  const stocks = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
+  const crypto = holdings.filter((h) => h.kind === "crypto" && total > 0 && (h.value || 0) / total >= 0.005).map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
+  const stocks = holdings.filter((h) => h.kind === "stock" && total > 0 && (h.value || 0) / total >= 0.005).map((h) => { const a = spotAbs(h); return { ...h, cur: h.price, _abs: absOf(a), _share: shareOf(h.value), _pnl: pnlOf(a) }; });
   const cash = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf(h.value) }));
 
   const marginRows = marginPos.map((p) => ({
@@ -549,8 +549,8 @@ export function AssetTables() {
   const spotAbs2 = (h) => h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
   const absOf2 = (a) => (TRACKING_STARTED ? a : 0);
   const pnlOf2 = (a) => (TRACKING_STARTED ? (a == null ? null : pnlPctOf2(a)) : 0);
-  const crypto2 = holdings.filter((h) => h.kind === "crypto").map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
-  const stocks2 = holdings.filter((h) => h.kind === "stock").map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
+  const crypto2 = holdings.filter((h) => h.kind === "crypto" && total2 > 0 && (h.value || 0) / total2 >= 0.005).map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
+  const stocks2 = holdings.filter((h) => h.kind === "stock" && total2 > 0 && (h.value || 0) / total2 >= 0.005).map((h) => { const a = spotAbs2(h); return { ...h, cur: h.price, _abs: absOf2(a), _share: shareOf2(h.value), _pnl: pnlOf2(a) }; });
   const cash2 = holdings.filter((h) => h.kind === "cash").map((h) => ({ ...h, _share: shareOf2(h.value) }));
   const marginRows2 = marginPos.map((p) => ({
     ...p,

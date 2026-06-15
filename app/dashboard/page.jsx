@@ -361,7 +361,7 @@ export default function Dashboard() {
           {/* Logs : historique de tous les trades (verrou interne) */}
           {tab === "logs" && <Logs />}
           {/* Futures : KPIs copy + historique des trades julien */}
-          {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} />}
+          {tab === "monitoring" && <Monitoring onGoCopy={() => setTab("copy")} onGoMonitoring={() => setTab("audio")} />}
           {/* Monitoring audio : points vocaux de Julien */}
           {tab === "audio" && <MonitoringAudio />}
           {tab === "analytics" && (

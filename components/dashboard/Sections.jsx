@@ -1650,14 +1650,6 @@ export function CopyTrading() {
         </span>
       </div>
 
-      <div className="rounded-xl border gold-line bg-gold/[0.05] px-4 py-3 mb-5 flex items-start gap-2.5">
-        <span className="text-gold mt-0.5">🗓️</span>
-        <p className="text-[12.5px] leading-relaxed text-mist">
-          <span className="text-bone">Déploiement progressif :</span> le copy auto sera
-          <span className="text-bone"> déployé progressivement à partir de la rentrée</span>.
-          Vous pouvez d'ores et déjà préparer votre configuration.
-        </p>
-      </div>
 
       {showFuturesHelp && <KrakenApiGuide type="futures" onClose={() => setShowFuturesHelp(false)} />}
       {showSpotHelp && <KrakenApiGuide type="spot" onClose={() => setShowSpotHelp(false)} />}

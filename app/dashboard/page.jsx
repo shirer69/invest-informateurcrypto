@@ -243,7 +243,7 @@ export default function Dashboard() {
           onDone={() => { window.location.href = "/dashboard?tab=portfolio"; }}
           onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
-          skipCode={!forceCode && (isDirect || isTgUser)}
+          skipCode={!forceCode}
           initialCode={codePrefill}
           tgName={isTgUser ? (user?.name || "") : ""}
           title={forceCode ? "Code d'invitation requis" : (isTgUser && !isDirect ? "Ajouter ton mail" : undefined)}

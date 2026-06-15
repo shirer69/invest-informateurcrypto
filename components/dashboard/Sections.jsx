@@ -1570,7 +1570,7 @@ export function CopyTrading() {
   if (!user) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading</h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Copy-auto Portefeuille INVEST - LIVE</h3>
         <div className="rounded-2xl border gold-line bg-ink-800/40 p-8 text-[14px] text-mist">
           Connecte-toi à ton compte pour activer le copy-trading.
         </div>
@@ -1582,7 +1582,7 @@ export function CopyTrading() {
   if (s === null) {
     return (
       <div>
-        <h3 className="font-display text-[18px] text-bone mb-4">Copy-trading <DemoTag /></h3>
+        <h3 className="font-display text-[18px] text-bone mb-4">Copy-auto Portefeuille INVEST - LIVE</h3>
         <div className="grid place-items-center gap-3 py-24 text-mist">
           <Spinner className="text-gold" /> <p className="text-[13px]">Chargement de ton compte…</p>
         </div>
@@ -1640,10 +1640,7 @@ export function CopyTrading() {
     <div>
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <h3 className="font-display text-[18px] text-bone inline-flex items-center gap-2">
-          Copy-trading
-          {isReal ? (
-            <span className="font-mono text-[9px] uppercase tracking-widest2 text-rose-300 border border-rose-500/40 bg-rose-500/10 rounded px-1.5 py-0.5">réel</span>
-          ) : <DemoTag />}
+          Copy-auto Portefeuille INVEST - LIVE
         </h3>
         <span className={`inline-flex items-center gap-2 text-[12px] ${meta.color}`}>
           <span className={`h-2 w-2 rounded-full ${meta.dot}`} /> {meta.label}

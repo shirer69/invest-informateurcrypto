@@ -12,7 +12,6 @@ import { AssetTables } from "@/components/dashboard/PortfolioKraken";
 import InvestPnlStats from "@/components/dashboard/InvestPnlStats";
 import LiveTag from "@/components/dashboard/LiveTag";
 import TickerBanner from "@/components/dashboard/TickerBanner";
-import MoonXCopyModal from "@/components/dashboard/MoonXCopyModal";
 import {
   getUser, getToken, copyState, copySaveKeys, copySaveSpotKeys, copySettings, copyStart, copyStop,
   copyResetBaseline, copyDeleteKeys, copyMaster, copyMasterPnl,
@@ -1294,7 +1293,6 @@ export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"
 export function Monitoring({ onGoCopy }) {
   const [user, setUser] = useState(null);
   const [forexTrades, setForexTrades] = useState([]);
-  const [moonxModal, setMoonxModal] = useState(false);
 
   useEffect(() => { setUser(getUser()); }, []);
 
@@ -1360,8 +1358,10 @@ export function Monitoring({ onGoCopy }) {
 
   const FuturesCTAs = () => (
     <div className="mb-5">
-      <button
-        onClick={() => setMoonxModal(true)}
+      <a
+        href="https://t.me/clubdesinformateurs"
+        target="_blank"
+        rel="noopener noreferrer"
         className="w-full flex items-center gap-2 justify-between rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
       >
         <div className="flex items-center gap-2 min-w-0">
@@ -1371,16 +1371,15 @@ export function Monitoring({ onGoCopy }) {
           <span className="text-[13px] text-bone font-medium">Rejoindre les copy auto / groupe VIP du Pôle Trading</span>
         </div>
         <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-semibold whitespace-nowrap shrink-0">
-          Activer <IconArrow className="h-3 w-3" />
+          Rejoindre <IconArrow className="h-3 w-3" />
         </span>
-      </button>
+      </a>
     </div>
   );
 
   if (!user) {
     return (
       <div>
-        <MoonXCopyModal open={moonxModal} onClose={() => setMoonxModal(false)} />
         <TickerBanner />
         <div className="flex items-center gap-3 mb-4 mt-4">
           <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
@@ -1396,7 +1395,6 @@ export function Monitoring({ onGoCopy }) {
 
   return (
     <div>
-      <MoonXCopyModal open={moonxModal} onClose={() => setMoonxModal(false)} />
       <TickerBanner />
       {/* Titre */}
       <div className="flex items-center gap-3 mb-4 mt-4 flex-wrap">

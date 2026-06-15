@@ -281,7 +281,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
     return a && p ? `${a} · ${p}` : a || p;
   };
 
-  // P&L ABSOLU par actif (progression depuis le 16 juin), en % de la valeur TOTALE du compte.
+  // P&L ABSOLU par actif (progression depuis le 15 juin), en % de la valeur TOTALE du compte.
   // Tant que le suivi n'a pas démarré (TRACKING_STARTED=false) → 0.
   const spotAbs = (h) =>
     h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
@@ -343,13 +343,13 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
     {
       label: "Gains réalisés",
       value: "—",
-      sub: "Suivi actif 16 juin",
+      sub: "Suivi actif 15 juin",
       cls: "text-mist/60",
     },
     {
       label: "Drawdown max",
       value: "—",
-      sub: "Suivi actif 16 juin",
+      sub: "Suivi actif 15 juin",
       cls: "text-mist/60",
     },
     {

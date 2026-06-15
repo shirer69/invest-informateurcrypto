@@ -28,7 +28,7 @@ const STEPS = [
 
 export default function JoinProvider({ children }) {
   const [isOpen, setOpen] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(true); // pas de code d'invitation sur le site web
   const [code, setCode] = useState("");
   const [error, setError] = useState(false);
 
@@ -46,6 +46,7 @@ export default function JoinProvider({ children }) {
 
   const open = useCallback(() => {
     setOpen(true);
+    setUnlocked(true);
     setError(false);
   }, []);
 
@@ -65,32 +66,24 @@ export default function JoinProvider({ children }) {
       if (typeof window !== "undefined") window.location.href = "/dashboard";
       return;
     }
-    setCode(c);          // pré-remplit le champ
-    setUnlocked(false);  // on reste sur l'étape « code d'invitation »
+    try { localStorage.setItem("pi_pending_code", c); } catch {} // mémorise pour post-inscription
+    setUnlocked(true);   // direct signup, pas de code gate sur le site
     setOpen(true);
   }, []);
 
-  // Ouvre le modal avec le code saisi dans le hero : accepte un code parrain
-  // OU un code d'accès valide (envoyé par Telegram).
+  // Ouvre le modal directement sur le signup (code d'invitation supprimé sur le site web).
   const openWithCode = useCallback(async (c) => {
-    const up = (c || "").trim().toUpperCase();
-    setCode(c || "");
+    if (c) { try { localStorage.setItem("pi_pending_code", c.trim().toUpperCase()); } catch {} }
     setOpen(true);
-    if (REFERRAL_CODES.includes(up)) { setUnlocked(true); setError(false); return; }
-    if (!up) { setUnlocked(false); setError(false); return; }
-    try {
-      const chk = await apiCheckCode(up);
-      if (chk && chk.valid) { setUnlocked(true); setError(false); return; }
-    } catch {}
-    setUnlocked(false);
-    setError(true);
+    setUnlocked(true);
+    setError(false);
   }, []);
 
   const close = useCallback(() => {
     setOpen(false);
     // léger délai avant reset pour ne pas voir le flip pendant la sortie
     setTimeout(() => {
-      setUnlocked(false);
+      setUnlocked(true);
       setCode("");
       setError(false);
       setUid("");

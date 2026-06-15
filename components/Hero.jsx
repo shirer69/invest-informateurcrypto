@@ -17,8 +17,7 @@ import LoginModal from "./dashboard/LoginModal";
 const ease = [0.22, 1, 0.36, 1];
 
 export default function Hero() {
-  const { open: openJoin, openWithCode } = useJoin();
-  const [heroCode, setHeroCode] = useState("");
+  const { open: openJoin } = useJoin();
   const [logged, setLogged] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   useEffect(() => { setLogged(!!getToken()); }, []);
@@ -91,9 +90,9 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.38, ease }}
             className="mt-6"
           >
-            <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
-              {logged ? "Votre espace" : "Accès sur invitation"}
-            </span>
+            {logged && (
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Votre espace</span>
+            )}
             <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
               {logged ? (
                 <a
@@ -104,24 +103,13 @@ export default function Hero() {
                   <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               ) : (
-                <form
-                  onSubmit={(e) => { e.preventDefault(); openWithCode(heroCode); }}
-                  className="flex items-stretch rounded-full border gold-line bg-ink-900/60 overflow-hidden focus-within:border-gold/60 transition-colors"
+                <button
+                  onClick={openJoin}
+                  className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
                 >
-                  <input
-                    value={heroCode}
-                    onChange={(e) => setHeroCode(e.target.value)}
-                    placeholder="CODE D'INVITATION"
-                    className="bg-transparent px-5 py-4 w-[180px] sm:w-[200px] font-mono uppercase tracking-[0.18em] text-bone placeholder:text-mist/40 text-[14px] outline-none"
-                  />
-                  <button
-                    type="submit"
-                    className="btn-gold group inline-flex items-center gap-2 px-6 text-[15px] font-semibold"
-                  >
-                    Accéder
-                    <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                  </button>
-                </form>
+                  S&apos;inscrire
+                  <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
               )}
               {!logged && (
                 <button

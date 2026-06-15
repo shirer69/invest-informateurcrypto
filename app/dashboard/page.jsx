@@ -17,6 +17,7 @@ import SignupGate from "@/components/dashboard/SignupGate";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest, apiVisit } from "@/lib/clientStore";
+import { API_BASE } from "@/lib/site";
 
 // Logo Kraken (mark) — utilisé comme icône de l'onglet Invest dans le menu.
 function KrakenMark({ className = "" }) {
@@ -81,6 +82,27 @@ export default function Dashboard() {
   const [visitCount, setVisitCount] = useState(1); // nb de visites TG (localStorage)
   const [forceCode, setForceCode] = useState(false); // ?code dans l'URL → exiger le code d'invitation
   const [codePrefill, setCodePrefill] = useState(""); // valeur éventuelle du ?code
+
+  // ── Beacon de présence ──────────────────────────────────────────────────────
+  useEffect(() => {
+    let sid = null;
+    try { sid = sessionStorage.getItem("pi_sid"); } catch {}
+    if (!sid) {
+      sid = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+      try { sessionStorage.setItem("pi_sid", sid); } catch {}
+    }
+    function ping() {
+      const token = getToken();
+      fetch(`${API_BASE}/api/presence/ping`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ session_id: sid, tab, page: "dashboard" }),
+      }).catch(() => {});
+    }
+    ping();
+    const iv = setInterval(ping, 30_000);
+    return () => clearInterval(iv);
+  }, [tab]);
 
   useEffect(() => {
     setUser(getUser());

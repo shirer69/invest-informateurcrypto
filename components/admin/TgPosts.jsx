@@ -54,6 +54,7 @@ const AUDIENCES = [
   { id: "all_except_members", label: "Tous sauf actifs" },
   { id: "users",              label: "Telegram" },
   { id: "copy",               label: "Copy actifs" },
+  { id: "admins",             label: "Admins (moi)" },
   { id: "none",               label: "Canaux seulement" },
 ];
 

@@ -430,7 +430,7 @@ function TradeHistory() {
     <div className="mt-8">
       <div className="flex items-center gap-2 mb-4">
         <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte maître A</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte INVEST Kraken</span>
       </div>
 
       {data === null ? (

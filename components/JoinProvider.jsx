@@ -208,20 +208,20 @@ export default function JoinProvider({ children }) {
                 style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }}
               />
 
-              {/* header */}
-              <div className="relative flex items-center justify-between px-7 pt-6">
+              {/* header — sticky pour que la croix reste visible en scroll mobile */}
+              <div className="sticky top-0 z-10 flex items-center justify-between px-7 pt-6 pb-3 bg-ink-800/95 backdrop-blur-sm rounded-t-3xl">
                 <span className="eyebrow">Accès au Pôle Invest</span>
                 <button
                   onClick={close}
                   aria-label="Fermer"
-                  className="h-9 w-9 grid place-items-center rounded-full border hairline text-mist hover:text-bone transition-colors"
+                  className="h-9 w-9 shrink-0 grid place-items-center rounded-full border hairline text-mist hover:text-bone transition-colors"
                 >
                   <span className="block w-3.5 h-px bg-current rotate-45 translate-y-[0.5px]" />
                   <span className="block w-3.5 h-px bg-current -rotate-45 -translate-y-[0.5px]" />
                 </button>
               </div>
 
-              <div className="relative px-7 pb-7 pt-3">
+              <div className="relative px-7 pb-7 pt-1">
                 {!unlocked ? (
                   <motion.div
                     key="gate"

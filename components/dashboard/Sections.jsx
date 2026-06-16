@@ -1187,6 +1187,7 @@ export function MonitoringAudio() {
   const [items, setItems] = useState(null);
   const [likes, setLikes] = useState({});
   const [err, setErr] = useState(null);
+  const [showKraken, setShowKraken] = useState(false);
   const authed = typeof window !== "undefined" && !!getToken();
 
   const load = useEffect.bind ? undefined : undefined; // placeholder
@@ -1262,6 +1263,22 @@ export function MonitoringAudio() {
           </a>
         );
       })()}
+
+      {/* Lien Kraken */}
+      {showKraken && <KrakenApiGuide type="spot" onClose={() => setShowKraken(false)} />}
+      <button
+        onClick={() => setShowKraken(true)}
+        className="mb-5 w-full flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-ink-800/40 hover:border-white/20 px-5 py-3.5 transition-colors text-left"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="shrink-0 text-[20px]">🔑</span>
+          <div className="min-w-0">
+            <p className="text-[13px] text-bone font-medium leading-tight">Ouvrir un compte Kraken</p>
+            <p className="text-[11px] text-mist/50 mt-0.5">Connecter votre compte pour accéder au copy auto</p>
+          </div>
+        </div>
+        <span className="shrink-0 text-mist/40 text-[12px]">Guide →</span>
+      </button>
 
       {!authed ? (
         <div className="rounded-2xl border hairline bg-ink-800/50 p-6 text-[13.5px] text-mist">

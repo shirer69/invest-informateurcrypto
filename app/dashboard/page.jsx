@@ -277,13 +277,14 @@ export default function Dashboard() {
     const canSkip = visitCount < 8 && !forceCode;
 
     const isUnlock = (() => { try { return new URLSearchParams(window.location.search).get("unlock") === "1"; } catch { return false; } })();
+    const doneTab = isUnlock ? "copy" : forceCode ? "audio" : "portfolio";
 
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
-          onDone={() => { window.location.href = isUnlock ? "/dashboard?tab=copy" : "/dashboard?tab=portfolio"; }}
+          onDone={() => { window.location.href = `/dashboard?tab=${doneTab}`; }}
           onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={!forceCode}

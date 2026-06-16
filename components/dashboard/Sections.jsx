@@ -1513,7 +1513,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             ))}
           </div>
           <span className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
-            Rejoindre le groupe privé <IconArrow className="h-3.5 w-3.5" />
+            Rejoindre le groupe privé Pôle Trading <span className="opacity-70 font-normal">(signaux/analyses/copy auto)</span> <IconArrow className="h-3.5 w-3.5" />
           </span>
         </div>
       </button>

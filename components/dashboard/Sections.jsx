@@ -1253,7 +1253,7 @@ export function MonitoringAudio() {
                 <p className="font-display text-[14px] text-emerald-300 font-bold leading-tight">
                   {places === 1 ? "DERNIÈRE PLACE GRATUITE CETTE SEMAINE" : `${places} PLACES GRATUITES CETTE SEMAINE`}
                 </p>
-                <p className="text-[12px] text-mist/70 mt-0.5">pour rejoindre le groupe privé Pôle Trading</p>
+                <p className="text-[12px] text-mist/70 mt-0.5">pour rejoindre le groupe privé Pôle Trading <span className="opacity-80">(signaux/analyses/copy auto)</span></p>
               </div>
             </div>
             <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-4 py-2 text-[12px] font-semibold text-ink-900 whitespace-nowrap">
@@ -1513,7 +1513,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             ))}
           </div>
           <span className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
-            Rejoindre le groupe privé Pôle Trading <span className="opacity-70 font-normal">(signaux/analyses/copy auto)</span> <IconArrow className="h-3.5 w-3.5" />
+            Rejoindre le groupe privé Pôle Trading <IconArrow className="h-3.5 w-3.5" />
           </span>
         </div>
       </button>

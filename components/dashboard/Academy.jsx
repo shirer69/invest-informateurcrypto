@@ -25,9 +25,9 @@ function computeBadges(p) {
   const lvlDone = (lid) =>
     LEVELS.find((l) => l.id === lid).modules.every((m) => done[m.id]);
   const b = new Set();
-  if (lvlDone("l1")) b.add("market-analyst");
-  if (lvlDone("l2")) b.add("liquidity-hunter");
-  if (lvlDone("l3")) b.add("institutional");
+  if (lvlDone("l1")) b.add("investor");
+  if (lvlDone("l2")) b.add("swing-trader");
+  if (lvlDone("l3")) b.add("portfolio-builder");
   const risk = done["l2m3"];
   if (risk && risk.score === risk.total) b.add("risk-manager");
   if ((p.streak || 0) >= 7) b.add("streak-7");
@@ -152,7 +152,7 @@ export default function Academy() {
   return (
     <div>
       <div className="flex items-center gap-2 mb-4">
-        <h3 className="font-display text-[18px] text-bone">Academy Pôle Invest</h3>
+        <h3 className="font-display text-[18px] text-bone">Academy — Investissement & Swing Trading</h3>
         <span className="font-mono text-[9px] uppercase tracking-widest2 text-cyan-400 border border-cyan-500/30 rounded px-1.5 py-0.5">
           formation
         </span>

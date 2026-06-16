@@ -276,12 +276,14 @@ export default function Dashboard() {
     // Skip possible entre la 4e et la 7e visite ; bloquant à partir de la 8e.
     const canSkip = visitCount < 8 && !forceCode;
 
+    const isUnlock = (() => { try { return new URLSearchParams(window.location.search).get("unlock") === "1"; } catch { return false; } })();
+
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
-          onDone={() => { window.location.href = "/dashboard?tab=monitoring"; }}
+          onDone={() => { window.location.href = isUnlock ? "/dashboard?tab=copy" : "/dashboard?tab=portfolio"; }}
           onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={!forceCode}

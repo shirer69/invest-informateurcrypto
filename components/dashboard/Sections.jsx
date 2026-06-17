@@ -391,15 +391,19 @@ function TradeRow({ trade }) {
 
 function TradeHistory() {
   const [data, setData] = useState(null);
+  const [forexData, setForexData] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/julien/trade-history`, { cache: "no-store" })
       .then((r) => r.json()).catch(() => null)
       .then((d) => setData(d || null));
+    fetch(`${API_BASE_URL}/api/julien/trades`, { cache: "no-store" })
+      .then((r) => r.json()).catch(() => null)
+      .then((d) => setForexData(Array.isArray(d?.trades) ? d.trades : null));
   }, []);
 
-  const rows = data ? [
-    ...(data.kraken_futures || []).map((f) => ({
+  const rows = (data !== null || forexData !== null) ? [
+    ...((data?.kraken_futures) || []).map((f) => ({
       type: "futures",
       asset: (f.symbol || "").replace("PF_", "").replace("USD", "/USD"),
       direction: f.side === "buy" ? "Long" : "Short",
@@ -407,7 +411,7 @@ function TradeHistory() {
       pnl_usd: f.realized_pnl ?? null, pnl_pct: null,
       close_ts: f.fillTime ? Math.floor(new Date(f.fillTime).getTime() / 1000) : null,
     })),
-    ...(data.spot_events || []).map((t) => ({
+    ...((data?.spot_events) || []).map((t) => ({
       type: t.type || "crypto", asset: t.symbol === "XBT" ? "BTC" : t.symbol,
       direction: t.direction,
       entry_price: t.entry_price, exit_price: t.exit_price,
@@ -415,16 +419,25 @@ function TradeHistory() {
       close_ts: t.created_at, entry_ts: t.entry_ts,
       duration_s: t.duration_s,
     })),
+    ...(forexData || []).map((t) => ({
+      type: "forex",
+      asset: t.asset || "?",
+      direction: t.direction || "—",
+      entry_price: t.entry_price ?? null, exit_price: t.exit_price ?? null,
+      pnl_usd: t.pnl_usd ?? null,
+      pnl_pct: t.pnl_pct != null ? parseFloat(String(t.pnl_pct)) : null,
+      close_ts: t.created_at || null,
+    })),
   ].sort((a, b) => (b.close_ts || 0) - (a.close_ts || 0)) : [];
 
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2 mb-4">
         <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte INVEST Kraken</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Kraken + MoonX</span>
       </div>
 
-      {data === null ? (
+      {data === null && forexData === null ? (
         <div className="text-[13px] text-mist/60">Chargement de l'historique…</div>
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-white/5 bg-ink-900/30 p-5 text-[13px] text-mist/50">Aucun trade enregistré.</div>
@@ -445,7 +458,7 @@ function TradeHistory() {
         </div>
       )}
       <p className="mt-3 text-[11px] text-mist/40">
-        Trades du compte maître Kraken (spot, marge, xStocks, futures perps).
+        Trades du compte maître Kraken (spot, marge, xStocks, futures perps) et Forex MoonX.
         Données historiques — ne constituent pas un conseil en investissement.
       </p>
     </div>

@@ -542,6 +542,17 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
       </div>
       <LastInvestment kinds={["crypto", "margin"]} />
 
+      {/* Notice démarrage portefeuille INVEST */}
+      <div className="mt-4 flex gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/[0.06] px-4 py-4">
+        <span className="text-[18px] leading-none mt-0.5 shrink-0">⚠️</span>
+        <div>
+          <p className="font-semibold text-[13.5px] text-amber-300 leading-snug">Démarrage du portefeuille INVEST</p>
+          <p className="mt-1 text-[13px] text-slate-300 leading-relaxed">
+            Le suivi de performance démarre le <strong className="text-bone">24 juin 2026</strong>. Les montants sont déjà en direct — le P&amp;L sera calculé à partir de cette date.
+          </p>
+        </div>
+      </div>
+
       {/* CTA copy auto */}
       <div className="mt-5">
         {copyAccess ? (

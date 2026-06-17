@@ -615,7 +615,7 @@ const CHALLENGE_START_TS = 1780617600;
 export function ChallengeBlock({ onGoTrading }) {
   const [forexTrades, setForexTrades] = useState([]);
   useEffect(() => {
-    fetch("https://api.informateurcrypto.fr/api/julien/trades")
+    fetch("https://api.informateurcrypto.fr/api/julien/trades", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
       .catch(() => {});
@@ -1326,7 +1326,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   useEffect(() => { setUser(getUser()); }, []);
 
   useEffect(() => {
-    fetch("https://api.informateurcrypto.fr/api/julien/trades")
+    fetch("https://api.informateurcrypto.fr/api/julien/trades", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
       .catch(() => {});

@@ -56,9 +56,9 @@ function VipJoinBar() {
         <button
           onClick={openUnlock}
           title="Débloquez votre accès pour rejoindre le groupe VIP"
-          className="inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold border hairline text-mist/70 cursor-not-allowed opacity-60"
+          className="btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold ring-2 ring-gold/40 shadow-[0_8px_28px_-6px_rgba(46,230,168,0.55)] hover:scale-[1.02] transition-transform"
         >
-          <span aria-hidden>🔒</span> Rejoindre le groupe Telegram
+          <span aria-hidden>🔒</span> Rejoindre le groupe Telegram <IconArrow className="h-4 w-4" />
         </button>
       ) : link ? (
         <a
@@ -121,8 +121,8 @@ const CAT = {
 // Affichage des montants : multipliés par 100 (échelle d'affichage du compte).
 const DISPLAY_MULT = 100;
 // Le suivi de performance démarre le 15 juin 2026.
-const TRACKING_STARTED = true;
-const TRACKING_START_LABEL = "15 juin 2026";
+const TRACKING_STARTED = false;
+const TRACKING_START_LABEL = "24 juin 2026";
 const fmtUsd = (x) =>
   x == null || isNaN(x)
     ? "—"
@@ -441,7 +441,7 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
         />
         <div className="relative">
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&amp;L compte INVEST{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
+            P&amp;L compte — Pôle Invest{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
           {!TRACKING_STARTED && (
             <> · <span className="text-gold font-semibold">démarrage le {TRACKING_START_LABEL}</span></>
           )}

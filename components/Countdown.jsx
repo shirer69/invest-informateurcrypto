@@ -64,7 +64,7 @@ export default function Countdown({ variant = "hero" }) {
             </div>
             <p className="text-[13px] text-mist/70 leading-snug">
               Le suivi de performance démarre le{" "}
-              <span className="text-bone font-semibold">16 juin 2026</span>.
+              <span className="text-bone font-semibold">24 juin 2026</span>.
               Les montants sont déjà en direct — le P&amp;L sera calculé à partir de cette date.
             </p>
           </div>
@@ -96,7 +96,7 @@ export default function Countdown({ variant = "hero" }) {
       <div className="flex items-center gap-2">
         <span className="text-[11px]">⚠️</span>
         <span className="font-mono text-[10px] uppercase tracking-widest2 text-amber-400/90">
-          Démarrage du portefeuille INVEST · 16 juin 2026
+          Démarrage du portefeuille INVEST · 24 juin 2026
         </span>
       </div>
       <div className="flex items-center gap-1.5">

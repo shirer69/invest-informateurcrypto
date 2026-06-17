@@ -391,19 +391,15 @@ function TradeRow({ trade }) {
 
 function TradeHistory() {
   const [data, setData] = useState(null);
-  const [forexData, setForexData] = useState(null);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/julien/trade-history`, { cache: "no-store" })
       .then((r) => r.json()).catch(() => null)
       .then((d) => setData(d || null));
-    fetch(`${API_BASE_URL}/api/julien/trades`, { cache: "no-store" })
-      .then((r) => r.json()).catch(() => null)
-      .then((d) => setForexData(Array.isArray(d?.trades) ? d.trades : null));
   }, []);
 
-  const rows = (data !== null || forexData !== null) ? [
-    ...((data?.kraken_futures) || []).map((f) => ({
+  const rows = data !== null ? [
+    ...(data.kraken_futures || []).map((f) => ({
       type: "futures",
       asset: (f.symbol || "").replace("PF_", "").replace("USD", "/USD"),
       direction: f.side === "buy" ? "Long" : "Short",
@@ -411,7 +407,7 @@ function TradeHistory() {
       pnl_usd: f.realized_pnl ?? null, pnl_pct: null,
       close_ts: f.fillTime ? Math.floor(new Date(f.fillTime).getTime() / 1000) : null,
     })),
-    ...((data?.spot_events) || []).map((t) => ({
+    ...(data.spot_events || []).map((t) => ({
       type: t.type || "crypto", asset: t.symbol === "XBT" ? "BTC" : t.symbol,
       direction: t.direction,
       entry_price: t.entry_price, exit_price: t.exit_price,
@@ -419,25 +415,16 @@ function TradeHistory() {
       close_ts: t.created_at, entry_ts: t.entry_ts,
       duration_s: t.duration_s,
     })),
-    ...(forexData || []).map((t) => ({
-      type: t.type || "forex",
-      asset: t.asset || "?",
-      direction: t.direction || "—",
-      entry_price: t.entry_price ?? null, exit_price: t.exit_price ?? null,
-      pnl_usd: t.pnl_usd ?? null,
-      pnl_pct: t.pnl_pct != null ? parseFloat(String(t.pnl_pct)) : null,
-      close_ts: t.created_at || null,
-    })),
   ].sort((a, b) => (b.close_ts || 0) - (a.close_ts || 0)) : [];
 
   return (
     <div className="mt-8">
       <div className="flex items-center gap-2 mb-4">
         <h4 className="font-display text-[16px] text-bone">Historique des trades</h4>
-        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Kraken + MoonX</span>
+        <span className="font-mono text-[9px] uppercase tracking-widest2 text-gold/80 border gold-line rounded px-1.5 py-0.5">Compte INVEST Kraken</span>
       </div>
 
-      {data === null && forexData === null ? (
+      {data === null ? (
         <div className="text-[13px] text-mist/60">Chargement de l'historique…</div>
       ) : rows.length === 0 ? (
         <div className="rounded-xl border border-white/5 bg-ink-900/30 p-5 text-[13px] text-mist/50">Aucun trade enregistré.</div>
@@ -458,7 +445,7 @@ function TradeHistory() {
         </div>
       )}
       <p className="mt-3 text-[11px] text-mist/40">
-        Trades du compte maître Kraken (spot, marge, xStocks, futures perps) et Forex MoonX.
+        Trades du compte maître Kraken (spot, marge, xStocks, futures perps).
         Données historiques — ne constituent pas un conseil en investissement.
       </p>
     </div>
@@ -1334,34 +1321,33 @@ export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"
 
 export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const [user, setUser] = useState(null);
-  const [forexTrades, setForexTrades] = useState([]);
+  const [moonxTrades, setMoonxTrades] = useState(null);
 
   useEffect(() => { setUser(getUser()); }, []);
 
   useEffect(() => {
-    fetch("https://api.informateurcrypto.fr/api/julien/trades", { cache: "no-store" })
+    fetch(`${API_BASE_URL}/api/julien/trades`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
-      .catch(() => {});
+      .then((d) => { if (d.ok && Array.isArray(d.trades)) setMoonxTrades(d.trades); })
+      .catch(() => { setMoonxTrades([]); });
   }, []);
 
-  const jTrades = JULIEN_TRADES;
-  const jTotalPnl = jTrades.reduce((s, t) => s + (t.pnlUsd || 0), 0);
-  const jWins = jTrades.filter((t) => (t.pnlUsd || 0) > 0).length;
-  const jWinRate = jTrades.length > 0 ? Math.round((jWins / jTrades.length) * 100) : null;
+  const trades = moonxTrades || [];
   const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-  // Total % = PnL total / capital de départ
-  const J_CAPITAL = 50000;
-  const jTotalPct = jTrades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
+  const jTotalPnl = trades.reduce((s, t) => s + (t.pnl_usd || 0), 0);
+  const jWins = trades.filter((t) => (t.pnl_usd || 0) > 0).length;
+  const jWinRate = trades.length > 0 ? Math.round((jWins / trades.length) * 100) : null;
 
-  // Drawdown max = chute max depuis le pic / capital de départ (50 000$)
+  const J_CAPITAL = 50000;
+  const jTotalPct = trades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
+
   const jDrawdown = (() => {
-    if (jTrades.length === 0) return null;
-    const sorted = [...jTrades].sort((a, b) => a.timestamp - b.timestamp);
+    if (trades.length === 0) return null;
+    const sorted = [...trades].sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
     let equity = 0, peak = 0, maxDd = 0;
     for (const t of sorted) {
-      equity += t.pnlUsd || 0;
+      equity += t.pnl_usd || 0;
       if (equity > peak) peak = equity;
       const dd = ((peak - equity) / J_CAPITAL) * 100;
       if (dd > maxDd) maxDd = dd;
@@ -1369,17 +1355,8 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
     return maxDd;
   })();
 
-  // ── Historique fusionné futures + forex ──
-  const futuresList = jTrades.map((t) => ({
-    source: "futures",
-    asset: t.asset,
-    direction: t.type,
-    pnlUsd: t.pnlUsd,
-    pnlPct: t.pnlPct,
-    ts: t.timestamp,
-  }));
-  const forexList = forexTrades.map((t) => ({
-    source: "forex",
+  const allTrades = trades.map((t) => ({
+    source: t.type || "forex",
     asset: t.asset,
     direction: t.direction,
     pnlUsd: t.pnl_usd,
@@ -1394,9 +1371,8 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       }
       return "—";
     })(),
-    ts: (t.opened_at || t.created_at || 0) * 1000,
-  }));
-  const allTrades = [...futuresList, ...forexList].sort((a, b) => b.ts - a.ts);
+    ts: (t.created_at || 0) * 1000,
+  })).sort((a, b) => b.ts - a.ts);
 
   const FuturesCTAs = () => (
     <div className="mb-5">
@@ -1460,15 +1436,15 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
         {[
           {
             label: "Gains réalisés",
-            value: dUsdJ(jTotalPnl),
-            sub: `${jTrades.length} trades`,
+            value: moonxTrades === null ? "…" : dUsdJ(jTotalPnl),
+            sub: moonxTrades === null ? null : `${trades.length} trades`,
             cls: jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Total %",
-            value: `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
+            value: moonxTrades === null || jTotalPct === null ? "…" : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
             sub: "capital 50 000 $",
-            cls: jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
+            cls: jTotalPct !== null && jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Investisseurs en auto",
@@ -1535,10 +1511,10 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       <div className="rounded-2xl border hairline bg-ink-800/40 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>
         <div className="flex items-center justify-between mb-1">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
-            Historique des trades (copy)
+            Historique MoonX — Forex + Futures
           </span>
           <span className="font-mono text-[10px] text-mist/40">
-            {allTrades.length} op.
+            {moonxTrades === null ? "…" : `${allTrades.length} op.`}
           </span>
         </div>
         {allTrades.length === 0 ? (
@@ -1577,9 +1553,9 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
                       </td>
                       <td className="py-2 text-right">
                         {t.source === "forex" ? (
-                          <span className="inline-flex items-center rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] font-semibold text-emerald-400 uppercase tracking-wide">CHALLENGE</span>
+                          <span className="inline-flex items-center rounded-full bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 text-[9px] font-semibold text-blue-400 uppercase tracking-wide">Forex</span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gold/10 border border-gold/20 px-2 py-0.5 text-[9px] font-semibold text-gold/70 uppercase tracking-wide">PF TRADING</span>
+                          <span className="inline-flex items-center rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[9px] font-semibold text-indigo-400 uppercase tracking-wide">Futures</span>
                         )}
                       </td>
                     </tr>

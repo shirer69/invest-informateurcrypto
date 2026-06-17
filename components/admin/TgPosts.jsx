@@ -51,6 +51,7 @@ const sample = (t) => (t || "").replace(/\{(\w+)\}/g, (_, k) => SAMPLE_VARS[k] ?
 const AUDIENCES = [
   { id: "all",                label: "Tous (DMs)" },
   { id: "members",            label: "Membres (email)" },
+  { id: "membres_actifs",     label: "Membre Actif" },
   { id: "all_except_members", label: "Tous sauf actifs" },
   { id: "users",              label: "Telegram" },
   { id: "copy",               label: "Copy actifs" },
@@ -60,6 +61,8 @@ const AUDIENCES = [
 
 export default function TgPosts({ adminKey }) {
   const editorRef = useRef(null);
+  const previewRef = useRef(null);
+  const previewFocused = useRef(false);
   const [name, setName] = useState("");
   const [photo, setPhoto] = useState("");
   const [buttons, setButtons] = useState([{ text: "", url: "https://t.me/Clubdesinformateurs_bot/unlock" }]);
@@ -112,8 +115,22 @@ export default function TgPosts({ adminKey }) {
 
   useEffect(() => { reload(); }, [reload]);
 
+  useEffect(() => {
+    if (previewRef.current && !previewFocused.current) {
+      previewRef.current.innerHTML = previewHtml || "<span style='opacity:.4'>Votre message…</span>";
+    }
+  }, [previewHtml]);
+
   function refreshPreview() {
-    if (editorRef.current) setPreviewHtml(sample(serialize(editorRef.current)));
+    // Aperçu = contenu BRUT (avec {prenom}) pour permettre l'édition directe sans
+    // perdre les variables. Le rendu « Jean » est montré séparément (lecture seule).
+    if (editorRef.current) setPreviewHtml(serialize(editorRef.current));
+  }
+
+  function onPreviewInput() {
+    if (!previewRef.current || !editorRef.current) return;
+    const text = serialize(previewRef.current);
+    editorRef.current.innerHTML = tgToHtml(text);
   }
 
   function exec(cmd, val) {
@@ -509,8 +526,15 @@ export default function TgPosts({ adminKey }) {
             <div className="rounded-2xl rounded-tl-md bg-[#182533] overflow-hidden">
               {photo ? <img src={photo} alt="" className="w-full max-h-48 object-cover" /> : null}
               <div className="px-3.5 py-2.5">
-                <div className="text-[13.5px] leading-relaxed text-[#e9eef2] whitespace-pre-wrap [&_a]:text-[#6ab3f3] [&_a]:underline"
-                  dangerouslySetInnerHTML={{ __html: previewHtml || "<span style='opacity:.4'>Votre message…</span>" }} />
+                <div
+                  ref={previewRef}
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={onPreviewInput}
+                  onFocus={() => { previewFocused.current = true; }}
+                  onBlur={() => { previewFocused.current = false; refreshPreview(); }}
+                  className="text-[13.5px] leading-relaxed text-[#e9eef2] whitespace-pre-wrap outline-none [&_a]:text-[#6ab3f3] [&_a]:underline"
+                />
               </div>
               {buttons.filter((b) => b.text && b.url).length > 0 && (
                 <div className="px-2 pb-2 space-y-1.5">
@@ -521,7 +545,11 @@ export default function TgPosts({ adminKey }) {
               )}
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-mist/50">{"{prenom}"} est remplacé par le prénom réel de chaque destinataire (ici « Jean »).</p>
+          <p className="mt-2 text-[11px] text-mist/50">✏️ Édite directement dans l'aperçu ci-dessus (ou dans l'éditeur). {"{prenom}"} est remplacé par le prénom réel de chaque destinataire :</p>
+          {previewHtml && /\{prenom\}/i.test(previewHtml) && (
+            <div className="mt-1.5 rounded-lg bg-ink-900/60 border border-white/5 px-3 py-2 text-[12.5px] leading-relaxed text-mist whitespace-pre-wrap [&_a]:text-gold"
+                 dangerouslySetInnerHTML={{ __html: "<span class='opacity-50'>rendu: </span>" + sample(previewHtml) }} />
+          )}
         </div>
 
         {/* déclencheurs (triggers) */}

@@ -1334,7 +1334,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
 
   const trades = moonxTrades || [];
   const futuresTrades = trades.filter((t) => t.type === "futures");
-  const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "-") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
   const jTotalPnl = futuresTrades.reduce((s, t) => s + (t.pnl_usd || 0), 0);
   const jWins = futuresTrades.filter((t) => (t.pnl_usd || 0) > 0).length;

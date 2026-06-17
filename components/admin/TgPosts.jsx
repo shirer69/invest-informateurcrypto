@@ -255,10 +255,16 @@ export default function TgPosts({ adminKey }) {
   const [schEvery, setSchEvery] = useState(24);
   const [schTpl, setSchTpl] = useState("");
   const [schAud, setSchAud] = useState("all");
+  const [schChannels, setSchChannels] = useState([]);
+  const toggleSchChannel = (id) =>
+    setSchChannels((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
 
   async function addSchedule() {
     if (!schTpl) { setMsg({ ok: false, t: "Choisissez un template à planifier." }); return; }
-    const body = { template_id: Number(schTpl), audience: schAud, kind: schKind, at_hhmm: schAt, every_min: schKind === "interval" ? Number(schEvery) * 60 : 1440 };
+    if (schAud === "none" && schChannels.length === 0) {
+      setMsg({ ok: false, t: "« Canaux seulement » : cochez au moins un canal." }); return;
+    }
+    const body = { template_id: Number(schTpl), audience: schAud, channels: schChannels, kind: schKind, at_hhmm: schAt, every_min: schKind === "interval" ? Number(schEvery) * 60 : 1440 };
     const r = await aPost("/api/admin/tg/schedules", adminKey, body);
     if (r.ok) { setMsg({ ok: true, t: "Planification créée." }); reload(); }
   }
@@ -744,6 +750,21 @@ export default function TgPosts({ adminKey }) {
             <select value={schAud} onChange={(e) => setSchAud(e.target.value)} className="w-full rounded-lg bg-ink-900 border border-white/10 px-3 py-2 text-bone text-[13px] outline-none">
               {AUDIENCES.map((a) => <option key={a.id} value={a.id}>Audience : {a.label}</option>)}
             </select>
+            {availableChannels.length > 0 && (
+              <div className={`rounded-lg border px-3 py-2 ${schAud === "none" ? "border-gold/40 bg-gold/[0.04]" : "border-white/10 bg-ink-900/40"}`}>
+                <div className="text-[11.5px] text-mist/60 mb-1.5">
+                  {schAud === "none" ? "Canaux à publier (obligatoire) :" : "Aussi poster dans (optionnel) :"}
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {availableChannels.map((ch) => (
+                    <label key={ch.id} className="flex items-center gap-1.5 cursor-pointer select-none">
+                      <input type="checkbox" checked={schChannels.includes(ch.id)} onChange={() => toggleSchChannel(ch.id)} className="accent-gold" />
+                      <span className="text-[12.5px] text-bone">{ch.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
             <button onClick={addSchedule} className="btn-gold w-full rounded-full px-5 py-2.5 text-[13px] font-semibold">Planifier</button>
           </div>
 

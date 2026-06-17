@@ -420,7 +420,7 @@ function TradeHistory() {
       duration_s: t.duration_s,
     })),
     ...(forexData || []).map((t) => ({
-      type: "forex",
+      type: t.type || "forex",
       asset: t.asset || "?",
       direction: t.direction || "—",
       entry_price: t.entry_price ?? null, exit_price: t.exit_price ?? null,

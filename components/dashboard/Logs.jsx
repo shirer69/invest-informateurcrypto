@@ -15,14 +15,15 @@ const fmtDate = (s) =>
 
 const CATS = [
   { id: "all", label: "Tout" },
-  { id: "forex", label: "Forex" },
+  { id: "forex", label: "Forex MoonX" },
+  { id: "futures", label: "Futures MoonX" },
   { id: "spot", label: "Spot" },
   { id: "xstocks", label: "Actions US (xStocks)" },
   { id: "marge", label: "Marge" },
-  { id: "perps", label: "Perps" },
+  { id: "perps", label: "Perps Kraken" },
 ];
-const CAT_LABEL = { spot: "Spot", xstocks: "xStocks", marge: "Marge", perps: "Perps", forex: "Forex" };
-const CAT_COLOR = { spot: "text-gold", xstocks: "text-violet-400", marge: "text-cyan-400", perps: "text-emerald-400", forex: "text-blue-400" };
+const CAT_LABEL = { spot: "Spot", xstocks: "xStocks", marge: "Marge", perps: "Perps", forex: "Forex", futures: "Futures" };
+const CAT_COLOR = { spot: "text-gold", xstocks: "text-violet-400", marge: "text-cyan-400", perps: "text-emerald-400", forex: "text-blue-400", futures: "text-indigo-400" };
 
 export default function Logs() {
   const [trades, setTrades] = useState(null);
@@ -70,7 +71,7 @@ export default function Logs() {
       const forex = Array.isArray(fx?.trades) ? fx.trades.map((t) => ({
         ts: t.created_at,
         market: t.asset || "?",
-        cat: "forex",
+        cat: t.type || "forex",
         side: (t.direction || "").toUpperCase() === "LONG" ? "buy" : "sell",
         price: t.exit_price ?? t.entry_price ?? null,
         vol: t.lots ?? null,

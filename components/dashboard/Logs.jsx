@@ -15,13 +15,14 @@ const fmtDate = (s) =>
 
 const CATS = [
   { id: "all", label: "Tout" },
+  { id: "forex", label: "Forex" },
   { id: "spot", label: "Spot" },
   { id: "xstocks", label: "Actions US (xStocks)" },
   { id: "marge", label: "Marge" },
   { id: "perps", label: "Perps" },
 ];
-const CAT_LABEL = { spot: "Spot", xstocks: "xStocks", marge: "Marge", perps: "Perps" };
-const CAT_COLOR = { spot: "text-gold", xstocks: "text-violet-400", marge: "text-cyan-400", perps: "text-emerald-400" };
+const CAT_LABEL = { spot: "Spot", xstocks: "xStocks", marge: "Marge", perps: "Perps", forex: "Forex" };
+const CAT_COLOR = { spot: "text-gold", xstocks: "text-violet-400", marge: "text-cyan-400", perps: "text-emerald-400", forex: "text-blue-400" };
 
 export default function Logs() {
   const [trades, setTrades] = useState(null);
@@ -30,10 +31,11 @@ export default function Logs() {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const d = await fetch(`${API_BASE}/api/julien/trade-history`, { cache: "no-store" })
-        .then((r) => r.json()).catch(() => null);
+      const [d, fx] = await Promise.all([
+        fetch(`${API_BASE}/api/julien/trade-history`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+        fetch(`${API_BASE}/api/julien/trades`, { cache: "no-store" }).then((r) => r.json()).catch(() => null),
+      ]);
       if (!alive) return;
-      if (!d || !d.ok) { setTrades([]); return; }
 
       const cleanPerp = (s) => {
         let x = (s || "").toLowerCase().replace(/^p[fi]_/, "").replace(/usd$/, "").toUpperCase();
@@ -41,8 +43,7 @@ export default function Logs() {
         return x ? `${x}/USD` : (s || "");
       };
 
-      // Évènements spot / xStocks / marge détectés sur le compte maître
-      const spot = (d.spot_events || []).map((e) => {
+      const spot = d?.ok ? (d.spot_events || []).map((e) => {
         const price = e.exit_price || e.entry_price || 0;
         const cat = e.type === "stock" ? "xstocks" : e.type === "margin" ? "marge" : "spot";
         return {
@@ -54,10 +55,9 @@ export default function Logs() {
           vol: e.amount,
           cost: (e.amount || 0) * price,
         };
-      });
+      }) : [];
 
-      // Perps (fills Kraken Futures du compte A)
-      const perps = (Array.isArray(d.kraken_futures) ? d.kraken_futures : []).map((f) => ({
+      const perps = d?.ok ? (Array.isArray(d.kraken_futures) ? d.kraken_futures : []).map((f) => ({
         ts: Math.floor(new Date(f.fillTime).getTime() / 1000),
         market: cleanPerp(f.symbol),
         cat: "perps",
@@ -65,9 +65,20 @@ export default function Logs() {
         price: f.price,
         vol: f.size,
         cost: (f.size || 0) * (f.price || 0),
-      }));
+      })) : [];
 
-      setTrades([...spot, ...perps].sort((a, b) => b.ts - a.ts));
+      const forex = Array.isArray(fx?.trades) ? fx.trades.map((t) => ({
+        ts: t.created_at,
+        market: t.asset || "?",
+        cat: "forex",
+        side: (t.direction || "").toUpperCase() === "LONG" ? "buy" : "sell",
+        price: t.exit_price ?? t.entry_price ?? null,
+        vol: t.lots ?? null,
+        pnl: t.pnl_usd ?? null,
+        rawCost: true,
+      })) : [];
+
+      setTrades([...forex, ...spot, ...perps].sort((a, b) => b.ts - a.ts));
     })();
     return () => { alive = false; };
   }, []);
@@ -130,7 +141,9 @@ export default function Logs() {
                     <td className={`px-4 py-2.5 ${buy ? "text-emerald-400" : "text-rose-400"}`}>{buy ? "Achat" : "Vente"}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-mist">{fmtPx(t.price)}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-mist">{fmtPx(t.vol)}</td>
-                    <td className="px-4 py-2.5 text-right font-mono text-bone">{fmtUsd(t.cost)}</td>
+                    <td className={`px-4 py-2.5 text-right font-mono ${t.rawCost ? (t.pnl >= 0 ? "text-emerald-400" : "text-rose-400") : "text-bone"}`}>
+                      {t.rawCost ? (t.pnl != null ? `${t.pnl >= 0 ? "+" : ""}$${Math.abs(t.pnl).toFixed(2)}` : "—") : fmtUsd(t.cost)}
+                    </td>
                   </tr>
                 );
               })}
@@ -138,8 +151,8 @@ export default function Logs() {
           </table>
         </div>
         <p className="mt-4 text-[11px] leading-relaxed text-mist/50">
-          Historique consolidé en lecture seule : trades spot, actions US (xStocks), marge et perps.
-          Montants affichés à l'échelle du compte.
+          Historique consolidé en lecture seule : Forex MoonX (Julien Moretto), spot, actions US (xStocks), marge et perps Kraken.
+          Montants Kraken affichés à l'échelle du compte (×100). PnL Forex en valeur réelle.
         </p>
       </Locked>
     </div>

@@ -134,6 +134,9 @@ export default function PresenceAdmin({ adminKey }) {
                         {s.email && !s.email.endsWith("@telegram.local") && (
                           <p className="text-mist/40 text-[11px] truncate max-w-[140px]">{s.email}</p>
                         )}
+                        {s.tg_id && (
+                          <p className="text-mist/40 text-[10.5px] font-mono">tg:{s.tg_id}</p>
+                        )}
                       </div>
                     </div>
                   </td>

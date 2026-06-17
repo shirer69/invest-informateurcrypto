@@ -32,7 +32,7 @@ function TickerItem({ sym, label, price, change }) {
   );
 }
 
-export default function TickerBanner() {
+export default function TickerBanner({ flush = false }) {
   const [items, setItems] = useState([]);
   const intervalRef = useRef(null);
 
@@ -56,7 +56,9 @@ export default function TickerBanner() {
   const track = [...items, ...items];
 
   return (
-    <div className="w-full overflow-hidden border-b border-white/[0.06] bg-ink-900/80 backdrop-blur-sm h-8 flex items-center">
+    <div className={`w-full overflow-hidden border-b border-white/[0.06] bg-ink-900/80 backdrop-blur-sm h-8 flex items-center ${
+      flush ? "-mt-6 -mx-4 sm:-mx-5 mb-5 lg:mt-0 lg:mx-0 lg:mb-5" : ""
+    }`}>
       <div
         className="flex items-center whitespace-nowrap ticker-scroll"
         style={{ "--item-count": items.length }}

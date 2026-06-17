@@ -1222,7 +1222,7 @@ export function MonitoringAudio() {
 
   return (
     <div>
-      <TickerBanner />
+      <TickerBanner flush />
       {/* Header */}
       <div className="flex items-center justify-between mb-5 flex-wrap gap-2">
         <div className="flex items-center gap-3">
@@ -2494,7 +2494,7 @@ const XSTOCKS_DEMO = [
 ];
 
 export function XStocks() {
-  const { locked, xstocksAccess } = useUnlock();
+  const { locked, xstocksAccess, openUnlock } = useUnlock();
   const isUnlocked = !locked || xstocksAccess;
   const [raw, setRaw] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -2560,12 +2560,16 @@ export function XStocks() {
   const sectorList = Object.values(sectors);
   const tickerData = holdings.map((h) => ({ label: h.ticker, value: h.mktVal, color: h.color }));
 
+  const blurred = !isUnlocked;
+  const bCls = blurred ? "blur-[3px] select-none pointer-events-none" : "";
+
   return (
     <div>
       <LastInvestment kinds={["stock"]} />
       {!locked && !xstocksAccess && <ScopeCodeGate scope="xstocks" />}
-      {(locked || xstocksAccess) && <Locked label="Déverrouiller pour voir les Actions" bypass={xstocksAccess}>
-      {/* Titre */}
+      {(locked || xstocksAccess) && (
+      <>
+      {/* Titre — toujours visible */}
       <div className="mb-5 flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h3 className="font-display text-[20px] text-bone">X-Stocks <span className="text-mist/60 text-[15px] font-normal">(actions tokenisées)</span></h3>
@@ -2578,17 +2582,27 @@ export function XStocks() {
         {!loading && raw && !raw.ok && <span className="text-[10px] font-mono text-rose-400/70 mt-1">⚠ Indisponible</span>}
       </div>
 
-      {/* Hero KPIs */}
+      {/* Bouton déverrouiller — sous le titre, visible uniquement si verrouillé */}
+      {blurred && (
+        <div className="mb-5">
+          <button onClick={openUnlock} className="btn-gold inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold shadow-2xl">
+            <span aria-hidden>🔒</span> Déverrouiller pour voir les Actions
+            <IconArrow className="h-4 w-4" />
+          </button>
+        </div>
+      )}
+
+      {/* Hero KPIs — label visible, valeur floutée */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
-          { label: "Valeur totale",   value: totalMkt > 0 ? fmtUsd(totalMkt) : "—",                                   cls: "text-bone" },
-          { label: "P&L non réalisé", value: totalPnl != null ? signed(totalPnl) : "—",                               cls: totalPnl != null ? signCls(totalPnl) : "text-mist/60" },
-          { label: "Performance",     value: totalPnlPct != null ? signedPct(totalPnlPct) : "—",                       cls: totalPnlPct != null ? signCls(totalPnlPct) : "text-mist/60" },
-          { label: "Positions",       value: loading ? "…" : `${holdings.length}`,                                     cls: "text-bone" },
+          { label: "Valeur totale",   value: totalMkt > 0 ? fmtUsd(totalMkt) : "—",                cls: "text-bone" },
+          { label: "P&L non réalisé", value: totalPnl != null ? signed(totalPnl) : "—",            cls: totalPnl != null ? signCls(totalPnl) : "text-mist/60" },
+          { label: "Performance",     value: totalPnlPct != null ? signedPct(totalPnlPct) : "—",    cls: totalPnlPct != null ? signCls(totalPnlPct) : "text-mist/60" },
+          { label: "Positions",       value: loading ? "…" : `${holdings.length}`,                  cls: "text-bone" },
         ].map(({ label, value, cls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4">
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/60 mb-1">{label}</div>
-            <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
+            <div className={`font-display text-[20px] leading-none ${cls} ${bCls}`}>{value}</div>
           </div>
         ))}
       </div>
@@ -2600,7 +2614,7 @@ export function XStocks() {
           {/* Pie par ticker */}
           <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition par action</span>
-            <div className="flex items-center gap-5 mt-4">
+            <div className={`flex items-center gap-5 mt-4 ${bCls}`}>
               <XStocksPie data={tickerData} />
               <div className="space-y-1.5 flex-1 min-w-0">
                 {holdings.map((h) => (
@@ -2621,7 +2635,7 @@ export function XStocks() {
           {/* Pie sectoriel */}
           <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Répartition sectorielle</span>
-            <div className="flex items-center gap-5 mt-4">
+            <div className={`flex items-center gap-5 mt-4 ${bCls}`}>
               <XStocksPie data={sectorList} />
               <div className="space-y-3 flex-1 min-w-0">
                 {sectorList.map((s) => (
@@ -2645,7 +2659,7 @@ export function XStocks() {
           </div>
         </div>
 
-        {/* Tableau des positions */}
+        {/* Tableau des positions — en-têtes visibles, contenu flouté */}
         <div className="rounded-2xl border hairline bg-ink-800/50 p-5">
           <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Positions en portefeuille</span>
           <div className="mt-3 overflow-x-auto">
@@ -2665,21 +2679,21 @@ export function XStocks() {
                 {holdings.map((h) => (
                   <tr key={h.ticker} className="border-b hairline last:border-0">
                     <td className="py-2.5 pr-4">
-                      <div className="flex items-center gap-1.5">
+                      <div className={`flex items-center gap-1.5 ${bCls}`}>
                         <span className="h-2 w-2 rounded-full shrink-0" style={{ background: h.color }} />
                         <span className="font-semibold text-bone">{h.ticker}</span>
                       </div>
                     </td>
-                    <td className="py-2.5 pr-4 text-mist/70 hidden sm:table-cell text-[12px]">{h.name}</td>
-                    <td className="py-2.5 pr-4 hidden sm:table-cell">
+                    <td className={`py-2.5 pr-4 text-mist/70 hidden sm:table-cell text-[12px] ${bCls}`}>{h.name}</td>
+                    <td className={`py-2.5 pr-4 hidden sm:table-cell ${bCls}`}>
                       <span className="rounded-md px-1.5 py-0.5 text-[10px]"
                         style={{ background: (SECTOR_COLORS[h.sector] || "#C9A24B") + "22", color: SECTOR_COLORS[h.sector] || "#C9A24B" }}>
                         {h.sector}
                       </span>
                     </td>
-                    <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{h.qty.toFixed(4)}</td>
-                    <td className="py-2.5 pr-4 text-right text-mist tabular-nums">{h.price > 0 ? fmtUsd(h.price) : "—"}</td>
-                    <td className="py-2.5 pr-4 text-right text-bone tabular-nums">{fmtUsd(h.mktVal)}</td>
+                    <td className={`py-2.5 pr-4 text-right text-mist tabular-nums ${bCls}`}>{h.qty.toFixed(4)}</td>
+                    <td className={`py-2.5 pr-4 text-right text-mist tabular-nums ${bCls}`}>{h.price > 0 ? fmtUsd(h.price) : "—"}</td>
+                    <td className={`py-2.5 pr-4 text-right text-bone tabular-nums ${bCls}`}>{fmtUsd(h.mktVal)}</td>
                     <td className={`py-2.5 text-right tabular-nums ${h.pnlPct != null ? signCls(h.pnlPct) : "text-mist/40"}`}>
                       {h.pnlPct != null ? signedPct(h.pnlPct) : "—"}
                     </td>
@@ -2706,8 +2720,8 @@ export function XStocks() {
           Chargement des positions…
         </div>
       )}
-
-      </Locked>}
+      </>
+      )}
     </div>
   );
 }

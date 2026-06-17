@@ -155,6 +155,66 @@ const LAST_INVEST_MOCK = {
   cost:  0.0462 / 100,
 };
 
+function LastTradeTeaser({ trades }) {
+  const { locked, openUnlock } = useUnlock();
+  if (!locked) return null;
+
+  const last = [...(trades || [])].sort((a, b) => (b.created_at || 0) - (a.created_at || 0))[0];
+
+  const fmtDate = (ts) => {
+    if (!ts) return null;
+    return new Date(ts * 1000).toLocaleString("fr-FR", {
+      day: "2-digit", month: "short", year: "numeric",
+      hour: "2-digit", minute: "2-digit",
+    });
+  };
+
+  const lastDate = last?.created_at ? fmtDate(last.created_at) : null;
+  const asset = last?.asset || "NAS100";
+  const direction = last?.direction || "LONG";
+  const pnl = last?.pnl_usd ?? 0;
+  const pnlStr = (pnl >= 0 ? "+" : "") + "$" + Math.abs(pnl).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pnlCls = pnl >= 0 ? "text-emerald-400" : "text-rose-400";
+
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/40 px-5 py-3.5 mb-5 flex flex-wrap items-center gap-x-6 gap-y-2">
+      {/* Titre + date — toujours visibles */}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="h-1.5 w-1.5 rounded-full bg-gold" />
+        <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Dernier investissement</span>
+      </div>
+      {lastDate && (
+        <div className="flex items-center gap-1.5 shrink-0">
+          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Le</span>
+          <span className="font-mono text-[12px] text-bone">{lastDate}</span>
+        </div>
+      )}
+      {/* Contenu flouté + bouton déverrouiller */}
+      <div className="relative flex flex-wrap items-center gap-x-6 gap-y-2 flex-1 min-w-[180px]">
+        <div className="pointer-events-none select-none blur-[4px] opacity-60 flex flex-wrap items-center gap-x-6 gap-y-2">
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Actif</span>
+            <span className="font-display text-[15px] text-bone">{asset}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">Direction</span>
+            <span className="font-mono text-[13.5px] text-bone">{direction}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">PnL</span>
+            <span className={`font-mono text-[13.5px] font-semibold ${pnlCls}`}>{pnlStr}</span>
+          </div>
+        </div>
+        <button onClick={openUnlock} className="absolute inset-0 z-10 flex items-center justify-center">
+          <span className="btn-gold inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-[12px] font-semibold shadow-lg">
+            🔒 Obtenir l'accès
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function LastInvestmentMockup() {
   const { openUnlock } = useUnlock();
   const fmtUsd = (v) => "$" + Math.abs(v).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -1329,6 +1389,7 @@ export function MonitoringAudio() {
 export const JULIEN_TRADES = [{"asset":"HYPEUSDT","type":"LONG","pnlUsd":592.3,"pnlPct":"+94.8%","timestamp":1780195228728},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":242.0,"pnlPct":"+38.7%","timestamp":1780067899526},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":219.4,"pnlPct":"+17.6%","timestamp":1780064282553},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":124.9,"pnlPct":"+10.0%","timestamp":1779895625818},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-245.3,"pnlPct":"-19.6%","timestamp":1779893241766},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":61.8,"pnlPct":"+4.9%","timestamp":1779879256419},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-414.0,"pnlPct":"-16.6%","timestamp":1779875700000},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-106.7,"pnlPct":"-4.3%","timestamp":1779825169905},{"asset":"TONUSDT","type":"LONG","pnlUsd":-1596.6,"pnlPct":"-63.9%","timestamp":1779825153357},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":-45.5,"pnlPct":"-3.6%","timestamp":1779825129345},{"asset":"HYPEUSDT","type":"LONG","pnlUsd":113.8,"pnlPct":"+9.1%","timestamp":1779824107027},{"asset":"TAOUSDT","type":"LONG","pnlUsd":270.0,"pnlPct":"+21.6%","timestamp":1779824096343},{"asset":"ONDOUSDT","type":"LONG","pnlUsd":-562.3,"pnlPct":"-22.5%","timestamp":1779473633850},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-239.5,"pnlPct":"-9.6%","timestamp":1779459771518},{"asset":"TAOUSDT","type":"LONG","pnlUsd":1.7,"pnlPct":"+0.1%","timestamp":1779458670223},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-289.9,"pnlPct":"-11.6%","timestamp":1779456172336},{"asset":"XAGUSDT","type":"LONG","pnlUsd":-145.3,"pnlPct":"-5.8%","timestamp":1779284560767},{"asset":"ETH/USDT","type":"SHORT","pnlUsd":10.6,"pnlPct":"+0.8%","timestamp":1779220422907},{"asset":"ETHUSDT","type":"SHORT","pnlUsd":177.0,"pnlPct":"+14.2%","timestamp":1779113991075},{"asset":"ETHUSDT","type":"SHORT","pnlUsd":54.5,"pnlPct":"+4.4%","timestamp":1779111197174},{"asset":"BTCUSDT","type":"LONG","pnlUsd":83.0,"pnlPct":"+6.6%","timestamp":1778886347191},{"asset":"TAOUSDT","type":"LONG","pnlUsd":759.7,"pnlPct":"+121.5%","timestamp":1778852086284},{"asset":"SUIUSDT","type":"LONG","pnlUsd":401.0,"pnlPct":"+32.1%","timestamp":1778529069981},{"asset":"SUIUSDT","type":"LONG","pnlUsd":-142.9,"pnlPct":"-5.7%","timestamp":1778507461935},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-290.5,"pnlPct":"-11.6%","timestamp":1778161818726},{"asset":"TONUSDT","type":"LONG","pnlUsd":-237.7,"pnlPct":"-9.5%","timestamp":1778153768953},{"asset":"TONUSDT","type":"LONG","pnlUsd":878.1,"pnlPct":"+70.2%","timestamp":1778093073606},{"asset":"TONUSDT","type":"LONG","pnlUsd":322.7,"pnlPct":"+25.8%","timestamp":1778082362845},{"asset":"XAUUSDT","type":"LONG","pnlUsd":190.3,"pnlPct":"+15.2%","timestamp":1777987191522},{"asset":"XAUUSDT","type":"LONG","pnlUsd":24.3,"pnlPct":"+1.9%","timestamp":1777958002099},{"asset":"TAOUSDT","type":"LONG","pnlUsd":656.9,"pnlPct":"+105.1%","timestamp":1777749602748},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-124.3,"pnlPct":"-9.9%","timestamp":1777669305357},{"asset":"BTC/USDT","type":"LONG","pnlUsd":90.8,"pnlPct":"+7.3%","timestamp":1777650607163},{"asset":"BTC/USDT","type":"LONG","pnlUsd":123.0,"pnlPct":"+4.9%","timestamp":1777488273946},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-150.4,"pnlPct":"-6.0%","timestamp":1777477659383},{"asset":"SOLUSDT","type":"SHORT","pnlUsd":-97.9,"pnlPct":"-7.8%","timestamp":1777442043758},{"asset":"TAOUSDT","type":"LONG","pnlUsd":646.9,"pnlPct":"+51.8%","timestamp":1777441734192},{"asset":"SOLUSDT","type":"SHORT","pnlUsd":55.6,"pnlPct":"+4.4%","timestamp":1777384817496},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-86.1,"pnlPct":"-6.9%","timestamp":1776697499672},{"asset":"BTC/USDT","type":"LONG","pnlUsd":81.8,"pnlPct":"+6.5%","timestamp":1776695032630},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-124.0,"pnlPct":"-19.8%","timestamp":1776688882557},{"asset":"BTC/USDT","type":"LONG","pnlUsd":209.6,"pnlPct":"+33.5%","timestamp":1776436746186},{"asset":"BTC/USDT","type":"LONG","pnlUsd":157.8,"pnlPct":"+12.6%","timestamp":1776431838942},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-59.4,"pnlPct":"-4.8%","timestamp":1776422992217},{"asset":"SOLUSDT","type":"LONG","pnlUsd":132.8,"pnlPct":"+10.6%","timestamp":1776416091973},{"asset":"SOLUSDT","type":"LONG","pnlUsd":-146.4,"pnlPct":"-11.7%","timestamp":1776347738580},{"asset":"SOLUSDT","type":"LONG","pnlUsd":147.5,"pnlPct":"+11.8%","timestamp":1776345776246},{"asset":"TAOUSDT","type":"LONG","pnlUsd":238.1,"pnlPct":"+19.0%","timestamp":1776265440000},{"asset":"TAOUSDT","type":"LONG","pnlUsd":238.1,"pnlPct":"+19.0%","timestamp":1776265320000},{"asset":"TAOUSDT","type":"LONG","pnlUsd":-380.8,"pnlPct":"-15.2%","timestamp":1776183042364},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-71.6,"pnlPct":"-11.4%","timestamp":1776111927812},{"asset":"BTCUSDT","type":"LONG","pnlUsd":117.7,"pnlPct":"+18.8%","timestamp":1775831152127},{"asset":"BTC/USDT","type":"LONG","pnlUsd":122.1,"pnlPct":"+9.8%","timestamp":1775829883313},{"asset":"BTC/USDT","type":"LONG","pnlUsd":-27.8,"pnlPct":"-4.4%","timestamp":1775726954830},{"asset":"BTC/USDT","type":"LONG","pnlUsd":127.3,"pnlPct":"+20.4%","timestamp":1775670689113},{"asset":"BTC/USDT","type":"LONG","pnlUsd":73.6,"pnlPct":"+5.9%","timestamp":1775661651012},{"asset":"BTC/USDT","type":"LONG","pnlUsd":277.7,"pnlPct":"+22.2%","timestamp":1775583608043},{"asset":"BTCUSDT","type":"LONG","pnlUsd":147.7,"pnlPct":"+11,8%","timestamp":1775578560000},{"asset":"UNIUSDT","type":"LONG","pnlUsd":206.2,"pnlPct":"+16.5%","timestamp":1775210760000},{"asset":"XRPUSDT","type":"SHORT","pnlUsd":108.2,"pnlPct":"+8.7%","timestamp":1775171897171},{"asset":"XRPUSDT","type":"SHORT","pnlUsd":277.7,"pnlPct":"+22.2%","timestamp":1775171892428},{"asset":"BTC/USDT","type":"LONG","pnlUsd":516.0,"pnlPct":"+41.3%","timestamp":1774977427701},{"asset":"BTC/USDT","type":"LONG","pnlUsd":137.7,"pnlPct":"+11.0%","timestamp":1774970123933},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-256.6,"pnlPct":"-10.3%","timestamp":1774969315234},{"asset":"BTCUSDT","type":"LONG","pnlUsd":-140.4,"pnlPct":"-5.6%","timestamp":1774879260000},{"asset":"BTCUSDT","type":"LONG","pnlUsd":295.9,"pnlPct":"+23.7%","timestamp":1774711140000},{"asset":"BCHUSDT","type":"LONG","pnlUsd":8.8,"pnlPct":"+0.4%","timestamp":1774696500000},{"asset":"BTCUSDT","type":"LONG","pnlUsd":53.9,"pnlPct":"+4.3%","timestamp":1774641120000}];
 
 export function Monitoring({ onGoCopy, onGoMonitoring }) {
+  const { locked } = useUnlock();
   const [user, setUser] = useState(null);
   const [moonxTrades, setMoonxTrades] = useState(null);
 
@@ -1430,6 +1491,8 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
         <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
         <LiveTag />
       </div>
+
+      <LastTradeTeaser trades={trades} />
 
       <FuturesCTAs />
 

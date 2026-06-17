@@ -1235,6 +1235,15 @@ export function MonitoringAudio() {
         <LiveTag />
       </div>
 
+      {/* Avertissement : périmètre du monitoring */}
+      <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3.5 py-2.5">
+        <span className="text-[13px] leading-none mt-0.5">ℹ️</span>
+        <p className="text-[11.5px] leading-relaxed text-amber-100/80">
+          Ce monitoring regroupe les <span className="text-amber-100">audios, analyses et posts</span> de Julien.
+          Il <b>n'inclut pas</b> ses <span className="text-amber-100">signaux, calls et positions</span> — ceux-ci sont réservés au <span className="text-amber-100">groupe privé / copy auto</span>.
+        </p>
+      </div>
+
       {/* CTA places gratuites */}
       {(() => {
         const day = new Date().getDay(); // 0=dim, 1=lun … 5=ven, 6=sam
@@ -1503,7 +1512,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             ))}
           </div>
           <span className="btn-gold mt-4 inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-[13px] font-semibold">
-            Rejoindre le groupe privé Pôle Trading <IconArrow className="h-3.5 w-3.5" />
+            Accès monitoring <IconArrow className="h-3.5 w-3.5" />
           </span>
         </div>
       </button>

@@ -37,6 +37,7 @@ const MAIL_TABS = [
   { id: "inbox",       label: "📥 Boîte mail" },
   { id: "templates",   label: "📄 Templates" },
   { id: "campaigns",   label: "📤 Campagnes" },
+  { id: "history",     label: "📜 Historique" },
   { id: "automations", label: "⚙️ Automatisations" },
 ];
 
@@ -84,6 +85,7 @@ export default function EmailAdmin({ adminKey }) {
       {sub === "inbox"       && <InboxSection adminKey={adminKey} />}
       {sub === "templates"   && <TemplatesSection adminKey={adminKey} templates={templates} onReload={reload} />}
       {sub === "campaigns"   && <CampaignsSection adminKey={adminKey} templates={templates} campaigns={campaigns} onReload={reload} />}
+      {sub === "history"     && <HistorySection campaigns={campaigns} onReload={reload} />}
       {sub === "automations" && <AutomationsSection adminKey={adminKey} templates={templates} automations={automations} onReload={reload} />}
     </div>
   );
@@ -103,8 +105,29 @@ function TemplatesSection({ adminKey, templates, onReload }) {
   const [seedBusy, setSeedBusy]   = useState(false);
   const [seedMsg,  setSeedMsg]    = useState(null);
   const previewTimerRef = useRef(null);
+  const iframeRef = useRef(null);
+  const bodyEditingRef = useRef(false);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+
+  // Rend le corps de l'aperçu (iframe) éditable et synchronise vers form.body_html.
+  function wireEditableBody() {
+    try {
+      const doc = iframeRef.current && iframeRef.current.contentDocument;
+      const el = doc && doc.getElementById("pi-edit-body");
+      if (!el || el.dataset.wired) return;
+      el.dataset.wired = "1";
+      el.addEventListener("focus", () => { bodyEditingRef.current = true; });
+      el.addEventListener("blur", () => {
+        bodyEditingRef.current = false;
+        setForm((f) => ({ ...f, body_html: el.innerHTML }));
+        fetchPreview();   // re-rendu propre après édition
+      });
+      el.addEventListener("input", () => {
+        setForm((f) => ({ ...f, body_html: el.innerHTML }));
+      });
+    } catch { /* cross-origin: ignore */ }
+  }
 
   async function fetchPreview(overrideForm) {
     setPreviewBusy(true); setPreviewHtml("");
@@ -124,6 +147,8 @@ function TemplatesSection({ adminKey, templates, onReload }) {
   }
 
   useEffect(() => {
+    // Pas de re-rendu pendant qu'on édite dans l'aperçu (sinon le curseur saute).
+    if (bodyEditingRef.current) return;
     if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     previewTimerRef.current = setTimeout(() => fetchPreview(), 800);
     return () => clearTimeout(previewTimerRef.current);
@@ -252,6 +277,8 @@ function TemplatesSection({ adminKey, templates, onReload }) {
             </div>
           ) : (
             <iframe
+              ref={iframeRef}
+              onLoad={wireEditableBody}
               srcDoc={previewHtml}
               className="w-full border-0 bg-[#07080b]"
               style={{ height: "580px" }}
@@ -472,6 +499,81 @@ function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION — Historique des envois (individuel & campagne)
+   ═══════════════════════════════════════════════════════════════════════════ */
+function _isIndividual(c) {
+  const isTrigger = c.source && c.source !== "manual";
+  return isTrigger && !AUDIENCES.find((a) => a.id === c.audience);
+}
+
+function HistoryRow({ c }) {
+  const isTrigger = c.source && c.source !== "manual";
+  const triggerLabel = isTrigger ? c.source.replace("trigger:", "") : null;
+  const ind = _isIndividual(c);
+  return (
+    <div className="rounded-xl border hairline bg-white/[0.015] px-4 py-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[13.5px] text-bone">{c.template_name || `Template #${c.template_id}`}</span>
+            {ind ? (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-400 border border-sky-500/30">👤 individuel</span>
+            ) : isTrigger ? (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">⚡ {triggerLabel}</span>
+            ) : (
+              <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-gold/10 text-gold/80 border border-gold/20">📣 campagne</span>
+            )}
+          </div>
+          <div className="text-[11px] text-mist/60 mt-0.5">
+            {ind ? <span className="text-sky-400/80">→ {c.audience}</span>
+                 : <>{AUDIENCES.find((a) => a.id === c.audience)?.label || c.audience || "—"}</>}
+            {c.subject_override && <> · <span className="italic">{c.subject_override}</span></>}
+          </div>
+        </div>
+        <div className="text-right shrink-0">
+          <div className="text-[12px] text-pos">✓ {c.count_sent}</div>
+          {c.count_failed > 0 && <div className="text-[11px] text-flag">✗ {c.count_failed}</div>}
+        </div>
+      </div>
+      <div className="mt-1 font-mono text-[10px] text-mist/40">{fmtDate(c.sent_at)}</div>
+    </div>
+  );
+}
+
+function HistorySection({ campaigns, onReload }) {
+  const [filter, setFilter] = useState("all"); // all | broadcast | individual
+  const all = campaigns || [];
+  const nInd = all.filter(_isIndividual).length;
+  const nCamp = all.length - nInd;
+  const rows = all.filter((c) =>
+    filter === "all" ? true : filter === "individual" ? _isIndividual(c) : !_isIndividual(c)
+  );
+  return (
+    <div className="rounded-2xl border hairline bg-ink-800/40 p-5">
+      <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+        <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Historique des envois</div>
+        <button onClick={onReload} className="text-[12px] text-mist hover:text-bone">↻ rafraîchir</button>
+      </div>
+      <div className="flex flex-wrap gap-2 mb-3">
+        {[["all", `Tous (${all.length})`], ["broadcast", `Campagnes (${nCamp})`], ["individual", `Individuels (${nInd})`]].map(([id, label]) => (
+          <button key={id} onClick={() => setFilter(id)}
+            className={`rounded-full px-3 py-1.5 text-[12px] border transition-colors ${
+              filter === id ? "bg-gold/[0.12] text-bone gold-line" : "text-mist border-white/10 hover:text-bone"}`}>
+            {label}
+          </button>
+        ))}
+      </div>
+      {!campaigns ? <p className="text-[13px] text-mist/60">Chargement…</p>
+        : rows.length === 0 ? <p className="text-[13px] text-mist/60">Aucun envoi sur ce filtre.</p>
+        : <div className="space-y-2">{rows.map((c) => <HistoryRow key={c.id} c={c} />)}</div>}
+      <p className="mt-3 text-[11px] text-mist/50 leading-relaxed">
+        50 derniers envois. <b>Individuel</b> = trigger envoyé à un destinataire ; <b>Campagne</b> = envoi groupé ; <b>⚡</b> = déclenché automatiquement.
+      </p>
     </div>
   );
 }

@@ -622,7 +622,7 @@ export function ChallengeBlock({ onGoTrading }) {
   }, []);
 
   const newForexPnl = forexTrades
-    .filter((t) => (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
+    .filter((t) => (t.type === "forex" || !t.type) && (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
     .reduce((s, t) => s + (t.pnl_usd || 0), 0);
   const challengePct = CHALLENGE_BASELINE_PCT + (newForexPnl / CHALLENGE_CAPITAL * 100);
   const daysElapsed = Math.max(0, Math.floor((Date.now() / 1000 - CHALLENGE_START_TS) / 86400));
@@ -1333,18 +1333,19 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   }, []);
 
   const trades = moonxTrades || [];
+  const futuresTrades = trades.filter((t) => t.type === "futures");
   const dUsdJ = (x) => (x == null ? "—" : (x >= 0 ? "+" : "") + "$" + Math.abs(x).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
-  const jTotalPnl = trades.reduce((s, t) => s + (t.pnl_usd || 0), 0);
-  const jWins = trades.filter((t) => (t.pnl_usd || 0) > 0).length;
-  const jWinRate = trades.length > 0 ? Math.round((jWins / trades.length) * 100) : null;
+  const jTotalPnl = futuresTrades.reduce((s, t) => s + (t.pnl_usd || 0), 0);
+  const jWins = futuresTrades.filter((t) => (t.pnl_usd || 0) > 0).length;
+  const jWinRate = futuresTrades.length > 0 ? Math.round((jWins / futuresTrades.length) * 100) : null;
 
   const J_CAPITAL = 50000;
-  const jTotalPct = trades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
+  const jTotalPct = futuresTrades.length > 0 ? (jTotalPnl / J_CAPITAL) * 100 : null;
 
   const jDrawdown = (() => {
-    if (trades.length === 0) return null;
-    const sorted = [...trades].sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
+    if (futuresTrades.length === 0) return null;
+    const sorted = [...futuresTrades].sort((a, b) => (a.created_at || 0) - (b.created_at || 0));
     let equity = 0, peak = 0, maxDd = 0;
     for (const t of sorted) {
       equity += t.pnl_usd || 0;
@@ -1437,7 +1438,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
           {
             label: "Gains réalisés",
             value: moonxTrades === null ? "…" : dUsdJ(jTotalPnl),
-            sub: moonxTrades === null ? null : `${trades.length} trades`,
+            sub: moonxTrades === null ? null : `${futuresTrades.length} trades`,
             cls: jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {

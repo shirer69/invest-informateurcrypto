@@ -440,8 +440,9 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
           className="pointer-events-none absolute -bottom-8 -right-6 opacity-[0.10] [&_svg]:h-44 [&_svg]:w-44"
         />
         <div className="relative">
+          <div className="font-display text-[16px] text-bone mb-3">Pôle Invest</div>
           <div className="font-mono text-[10px] uppercase tracking-widest2" style={{ color: "#7C5CFC" }}>
-            P&amp;L compte — Pôle Invest{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
+            P&amp;L compte INVEST{TRACKING_STARTED ? ` · depuis le ${TRACKING_START_LABEL}` : null}
           {!TRACKING_STARTED && (
             <> · <span className="text-gold font-semibold">démarrage le {TRACKING_START_LABEL}</span></>
           )}

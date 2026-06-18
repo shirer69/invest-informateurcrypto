@@ -15,7 +15,6 @@ import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XSto
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
-import EngageBubble from "@/components/EngageBubble";
 import { TELEGRAM_URL } from "@/lib/site";
 import { getUser, logout, getToken, apiTelegramAuth, apiAccess, apiCopyRequest, apiVisit } from "@/lib/clientStore";
 import { API_BASE } from "@/lib/site";
@@ -513,7 +512,6 @@ export default function Dashboard() {
         </div>
       )}
     </div>
-    <EngageBubble />
     </UnlockProvider>
   );
 }

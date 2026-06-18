@@ -1530,12 +1530,14 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             value: moonxTrades === null ? "…" : dUsdJ(jTotalPnl),
             sub: moonxTrades === null ? null : `${futuresTrades.length} trades`,
             cls: jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
+            subCls: "text-emerald-400/70",
           },
           {
             label: "Gains réalisés %",
             value: moonxTrades === null || jTotalPct === null ? "…" : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
             sub: "capital 50 000 $",
             cls: jTotalPct !== null && jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
+            subCls: "text-emerald-400/70",
           },
           {
             label: "Gains non réalisés",

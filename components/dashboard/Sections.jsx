@@ -1387,6 +1387,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const [user, setUser] = useState(null);
   const [moonxTrades, setMoonxTrades] = useState(null);
   const [openPnl, setOpenPnl] = useState(null);
+  const [openPositions, setOpenPositions] = useState(null);
 
   useEffect(() => { setUser(getUser()); }, []);
 
@@ -1400,7 +1401,12 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/julien/open-pnl`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => { if (d.ok) setOpenPnl(d.pnl_usd ?? null); })
+      .then((d) => {
+        if (d.ok) {
+          setOpenPnl(d.pnl_usd ?? null);
+          setOpenPositions(d.positions ?? []);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -1541,6 +1547,57 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
           </div>
         ))}
       </div>
+
+      {/* Positions en cours */}
+      {openPositions !== null && (
+        <div className="mb-5 rounded-2xl border hairline bg-ink-800/40 overflow-hidden" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Positions en cours</span>
+            </div>
+            <span className="font-mono text-[10px] text-mist/40">{openPositions.length} position{openPositions.length !== 1 ? "s" : ""}</span>
+          </div>
+          {openPositions.length === 0 ? (
+            <div className="px-5 py-6 text-center text-[12.5px] text-mist/40">Aucune position ouverte</div>
+          ) : (
+            <div className="divide-y divide-white/[0.05]">
+              {openPositions.map((pos, i) => {
+                const isLong = pos.side === "LONG";
+                const pnlPos = pos.pnl >= 0;
+                const fmtPrice = (v) => v < 1 ? v.toFixed(5) : v.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                return (
+                  <div key={i} className="px-5 py-4 flex items-center gap-4">
+                    {/* Symbol + side */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-display text-[15px] text-bone font-bold">{pos.symbol}</span>
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded font-mono ${isLong ? "bg-emerald-500/15 text-emerald-400" : "bg-rose-500/15 text-rose-400"}`}>
+                          {pos.side} ×{pos.leverage}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-[11px] text-mist/50 font-mono">
+                        <span>{fmtPrice(pos.entryPrice)}</span>
+                        <span className="text-mist/30">→</span>
+                        <span className="text-bone/70">{fmtPrice(pos.markPrice)}</span>
+                      </div>
+                    </div>
+                    {/* PnL */}
+                    <div className="text-right shrink-0">
+                      <div className={`font-display text-[16px] font-bold ${pnlPos ? "text-emerald-400" : "text-rose-400"}`}>
+                        {pnlPos ? "+" : ""}{pos.pnl.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} $
+                      </div>
+                      <div className={`font-mono text-[11px] ${pnlPos ? "text-emerald-400/70" : "text-rose-400/70"}`}>
+                        {pnlPos ? "+" : ""}{pos.pnlPct.toFixed(2)} %
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Bloc promo — Monitoring quotidien sur groupe privé */}
       <button

@@ -1387,6 +1387,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const [user, setUser] = useState(null);
   const [moonxTrades, setMoonxTrades] = useState(null);
   const [openPnl, setOpenPnl] = useState(null);
+  const [openPnlPct, setOpenPnlPct] = useState(null);
   const [openPositions, setOpenPositions] = useState(null);
 
   useEffect(() => { setUser(getUser()); }, []);
@@ -1404,6 +1405,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       .then((d) => {
         if (d.ok) {
           setOpenPnl(d.pnl_usd ?? null);
+          setOpenPnlPct(d.pnl_pct ?? null);
           setOpenPositions(d.positions ?? []);
         }
       })
@@ -1530,7 +1532,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
           {
             label: "Gains non réalisés",
             value: openPnl === null ? "…" : (openPnl >= 0 ? "+" : "") + "$" + Math.abs(openPnl).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-            sub: "positions en cours",
+            sub: openPnlPct !== null ? `${openPnlPct >= 0 ? "+" : ""}${openPnlPct.toFixed(2)} % du wallet` : "positions en cours",
             cls: openPnl === null ? "text-mist/60" : openPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {

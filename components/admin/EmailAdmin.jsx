@@ -227,7 +227,7 @@ function TemplatesSection({ adminKey, templates, onReload }) {
 
         <div>
           <label className="field-label">Corps HTML <span className="normal-case text-mist/50">(HTML complet autorisé)</span></label>
-          <HtmlToolbar onInsert={(s) => set("body_html", form.body_html + s)} />
+          <HtmlToolbar onInsert={(s) => set("body_html", form.body_html + s)} adminKey={adminKey} />
           <textarea rows={6} value={form.body_html} onChange={(e) => set("body_html", e.target.value)}
             placeholder="<p>Vos <b>gains du mois</b> : …</p>"
             className="field-textarea font-mono text-[12.5px]" />
@@ -1016,7 +1016,7 @@ function Field({ label, value, onChange, placeholder, mono }) {
   );
 }
 
-function HtmlToolbar({ onInsert }) {
+function HtmlToolbar({ onInsert, adminKey = "" }) {
   const fileRef = useRef(null);
   const [uploading, setUploading] = useState(false);
 
@@ -1036,7 +1036,11 @@ function HtmlToolbar({ onInsert }) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload-image", { method: "POST", body: fd });
+      const res = await fetch("/api/admin/upload-image", {
+        method: "POST",
+        headers: { "x-admin-key": adminKey },
+        body: fd,
+      });
       const data = await res.json();
       if (data.url) {
         onInsert(`<img src="${data.url}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`);

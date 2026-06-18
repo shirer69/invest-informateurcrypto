@@ -1017,6 +1017,9 @@ function Field({ label, value, onChange, placeholder, mono }) {
 }
 
 function HtmlToolbar({ onInsert }) {
+  const fileRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+
   const tags = [
     { label: "B",   title: "Gras",       ins: (s) => `<b>${s}</b>` },
     { label: "I",   title: "Italique",   ins: (s) => `<i>${s}</i>` },
@@ -1025,8 +1028,36 @@ function HtmlToolbar({ onInsert }) {
     { label: "P",   title: "Paragraphe", ins: ()  => "<p>…</p>" },
     { label: "{P}", title: "{{Prénom}}", ins: ()  => "{{Prénom}}" },
   ];
+
+  async function handleImageUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload-image", { method: "POST", body: fd });
+      const data = await res.json();
+      if (data.url) {
+        onInsert(`<img src="${data.url}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`);
+      } else {
+        alert("Erreur upload : " + (data.error || "inconnue"));
+      }
+    } catch (err) {
+      alert("Erreur upload : " + err.message);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  function handleImageUrl() {
+    const url = prompt("URL de l'image :", "https://");
+    if (url) onInsert(`<img src="${url}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`);
+  }
+
   return (
-    <div className="flex gap-1.5 mb-1.5 flex-wrap">
+    <div className="flex gap-1.5 mb-1.5 flex-wrap items-center">
       {tags.map((t) => (
         <button key={t.label} type="button" title={t.title}
           onClick={() => {
@@ -1041,6 +1072,20 @@ function HtmlToolbar({ onInsert }) {
           {t.label}
         </button>
       ))}
+      {/* Bouton image — upload */}
+      <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+      <button type="button" title="Insérer une image (upload)"
+        onClick={() => fileRef.current?.click()}
+        disabled={uploading}
+        className="h-7 px-2.5 rounded-md border hairline bg-white/[0.03] text-bone hover:border-gold/40 text-[12px] font-mono disabled:opacity-50">
+        {uploading ? "⏳" : "🖼️"}
+      </button>
+      {/* Bouton image — URL */}
+      <button type="button" title="Insérer une image via URL"
+        onClick={handleImageUrl}
+        className="h-7 px-2.5 rounded-md border hairline bg-white/[0.03] text-bone hover:border-gold/40 text-[12px] font-mono">
+        🔗🖼️
+      </button>
     </div>
   );
 }

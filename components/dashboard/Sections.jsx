@@ -1510,7 +1510,14 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
 
       {/* Titre Portefeuille Trading */}
       <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">
-        <h4 className="font-display text-[16px] text-bone">Portefeuille Trading</h4>
+        <h4 className="font-display text-[16px] text-bone">
+          Portefeuille Trading
+          {futuresTrades.length > 0 && (() => {
+            const first = Math.min(...futuresTrades.map((t) => t.created_at || Infinity));
+            const d = new Date(first * 1000);
+            return <span className="text-mist/45 font-sans font-normal text-[13px]"> (depuis le {d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })})</span>;
+          })()}
+        </h4>
         <LiveTag />
       </div>
 
@@ -1534,6 +1541,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             value: openPnl === null ? "…" : (openPnl >= 0 ? "+" : "") + "$" + Math.abs(openPnl).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
             sub: openPnlPct !== null ? `${openPnlPct >= 0 ? "+" : ""}${openPnlPct.toFixed(2)} % du wallet` : "positions en cours",
             cls: openPnl === null ? "text-mist/60" : openPnl >= 0 ? "text-emerald-400" : "text-rose-400",
+            subCls: openPnlPct !== null && openPnlPct >= 0 ? "text-emerald-400/70" : openPnlPct !== null ? "text-rose-400/70" : "text-mist/45",
           },
           {
             label: "Drawdown max",
@@ -1541,11 +1549,11 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             sub: null,
             cls: "text-rose-400",
           },
-        ].map(({ label, value, sub, cls }) => (
+        ].map(({ label, value, sub, cls, subCls }) => (
           <div key={label} className="rounded-2xl border hairline bg-ink-800/40 p-4" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 mb-1.5">{label}</div>
             <div className={`font-display text-[20px] leading-none ${cls}`}>{value}</div>
-            {sub && <div className="mt-1 font-mono text-[10px] text-mist/45">{sub}</div>}
+            {sub && <div className={`mt-1 font-mono text-[10px] ${subCls || "text-mist/45"}`}>{sub}</div>}
           </div>
         ))}
       </div>

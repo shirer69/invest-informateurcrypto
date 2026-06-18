@@ -1569,7 +1569,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Positions en cours</span>
             </div>
-            <span className="font-mono text-[10px] text-mist/40">{openPositions.length} position{openPositions.length !== 1 ? "s" : ""}</span>
+            <span className="font-mono text-[10px] text-emerald-400/70">{openPositions.length} position{openPositions.length !== 1 ? "s" : ""}</span>
           </div>
           {openPositions.length === 0 ? (
             <div className="px-5 py-6 text-center text-[12.5px] text-mist/40">Aucune position ouverte</div>
@@ -1662,7 +1662,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             {/* Header */}
             <div className="flex items-center justify-between px-5 pt-4 pb-3">
               <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Historique des trades</span>
-              <span className="font-mono text-[10px] text-mist/40">
+              <span className="font-mono text-[10px] text-emerald-400/70">
                 {moonxTrades === null ? "…" : `${visibleTrades.length} op.`}
               </span>
             </div>

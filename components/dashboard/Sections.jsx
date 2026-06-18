@@ -1524,7 +1524,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             cls: jTotalPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Total %",
+            label: "Gains réalisés %",
             value: moonxTrades === null || jTotalPct === null ? "…" : `${jTotalPct >= 0 ? "+" : ""}${jTotalPct.toFixed(2)} %`,
             sub: "capital 50 000 $",
             cls: jTotalPct !== null && jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",

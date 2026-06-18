@@ -1386,6 +1386,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const { locked } = useUnlock();
   const [user, setUser] = useState(null);
   const [moonxTrades, setMoonxTrades] = useState(null);
+  const [openPnl, setOpenPnl] = useState(null);
 
   useEffect(() => { setUser(getUser()); }, []);
 
@@ -1394,6 +1395,16 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       .then((r) => r.json())
       .then((d) => { if (d.ok && Array.isArray(d.trades)) setMoonxTrades(d.trades); })
       .catch(() => { setMoonxTrades([]); });
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/kraken/futures/account`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => {
+        const flex = d?.data?.accounts?.flex;
+        if (flex) setOpenPnl(flex.pnl ?? null);
+      })
+      .catch(() => {});
   }, []);
 
   const trades = moonxTrades || [];
@@ -1514,10 +1525,10 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
             cls: jTotalPct !== null && jTotalPct >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
-            label: "Investisseurs en auto",
-            value: "78",
-            sub: "+200 k€ · depuis 64 j",
-            cls: "text-emerald-400",
+            label: "Gains non réalisés",
+            value: openPnl === null ? "…" : (openPnl >= 0 ? "+" : "") + "$" + Math.abs(openPnl).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+            sub: "positions en cours",
+            cls: openPnl === null ? "text-mist/60" : openPnl >= 0 ? "text-emerald-400" : "text-rose-400",
           },
           {
             label: "Drawdown max",

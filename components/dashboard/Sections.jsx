@@ -1398,12 +1398,9 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   }, []);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/api/kraken/futures/account`, { cache: "no-store" })
+    fetch(`${API_BASE_URL}/api/julien/open-pnl`, { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => {
-        const flex = d?.data?.accounts?.flex;
-        if (flex) setOpenPnl(flex.pnl ?? null);
-      })
+      .then((d) => { if (d.ok) setOpenPnl(d.pnl_usd ?? null); })
       .catch(() => {});
   }, []);
 

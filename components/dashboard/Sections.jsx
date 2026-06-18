@@ -1389,6 +1389,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const [openPnl, setOpenPnl] = useState(null);
   const [openPnlPct, setOpenPnlPct] = useState(null);
   const [openPositions, setOpenPositions] = useState(null);
+  const [histTab, setHistTab] = useState("trading");
 
   useEffect(() => { setUser(getUser()); }, []);
 
@@ -1650,64 +1651,82 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       </button>
 
       {/* Historique des trades */}
-      <div className="rounded-2xl border hairline bg-ink-800/40 p-5" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>
-        <div className="flex items-center justify-between mb-1">
-          <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
-            Historique MoonX — Forex + Futures
-          </span>
-          <span className="font-mono text-[10px] text-mist/40">
-            {moonxTrades === null ? "…" : `${allTrades.length} op.`}
-          </span>
-        </div>
-        {allTrades.length === 0 ? (
-          <div className="mt-3 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
-        ) : (
-          <div className="mt-3 overflow-x-auto">
-            <table className="w-full min-w-[480px] text-[13px] font-mono">
-              <thead>
-                <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Marché</th>
-                  <th className="py-2 pr-4">Sens</th>
-                  <th className="py-2 pr-4 text-right">PnL ($)</th>
-                  <th className="py-2 pr-4 text-right">PnL (%)</th>
-                  <th className="py-2 text-right">Source</th>
-                </tr>
-              </thead>
-              <tbody>
-                {allTrades.map((t, i) => {
-                  const isLong = (t.direction || "").toUpperCase() === "LONG";
-                  const win = (t.pnlUsd || 0) >= 0;
-                  return (
-                    <tr key={i} className="border-b hairline last:border-0">
-                      <td className="py-2 pr-4 text-mist text-[12px]">
-                        {t.ts ? new Date(t.ts).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
-                      </td>
-                      <td className="py-2 pr-4 text-bone">{t.asset || "—"}</td>
-                      <td className={`py-2 pr-4 ${isLong ? "text-emerald-400" : "text-rose-400"}`}>
-                        {isLong ? "Long" : "Short"}
-                      </td>
-                      <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
-                        {(t.pnlUsd >= 0 ? "+" : "") + Number(t.pnlUsd).toFixed(2)}
-                      </td>
-                      <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
-                        {t.pnlPct || "—"}
-                      </td>
-                      <td className="py-2 text-right">
-                        {t.source === "forex" ? (
-                          <span className="inline-flex items-center rounded-full bg-blue-500/15 border border-blue-500/30 px-2 py-0.5 text-[9px] font-semibold text-blue-400 uppercase tracking-wide">Forex</span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2 py-0.5 text-[9px] font-semibold text-indigo-400 uppercase tracking-wide">Futures</span>
-                        )}
-                      </td>
+      {(() => {
+        const tradingTrades = allTrades.filter((t) => t.source === "futures");
+        const challengeTrades = allTrades.filter((t) => t.source === "forex");
+        const visibleTrades = histTab === "trading" ? tradingTrades : challengeTrades;
+        return (
+          <div className="rounded-2xl border hairline bg-ink-800/40 overflow-hidden" style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.25)" }}>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-3">
+              <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">Historique des trades</span>
+              <span className="font-mono text-[10px] text-mist/40">
+                {moonxTrades === null ? "…" : `${visibleTrades.length} op.`}
+              </span>
+            </div>
+            {/* Onglets */}
+            <div className="flex gap-2 px-5 pb-3">
+              {[
+                { key: "trading", label: "Portefeuille Trading" },
+                { key: "challenge", label: "Portefeuille Challenge" },
+              ].map(({ key, label }) => (
+                <button
+                  key={key}
+                  onClick={() => setHistTab(key)}
+                  className={`px-3.5 py-1.5 rounded-full text-[11px] font-semibold transition-colors ${
+                    histTab === key
+                      ? "bg-white/10 text-bone border hairline"
+                      : "text-mist/50 hover:text-mist/80"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {/* Table */}
+            {visibleTrades.length === 0 ? (
+              <div className="px-5 pb-5 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>
+            ) : (
+              <div className="overflow-x-auto px-5 pb-5">
+                <table className="w-full min-w-[480px] text-[13px] font-mono">
+                  <thead>
+                    <tr className="text-left text-mist/60 text-[10px] uppercase tracking-widest2 border-b hairline">
+                      <th className="py-2 pr-4">Date</th>
+                      <th className="py-2 pr-4">Marché</th>
+                      <th className="py-2 pr-4">Sens</th>
+                      <th className="py-2 pr-4 text-right">PnL ($)</th>
+                      <th className="py-2 text-right">PnL (%)</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody>
+                    {visibleTrades.map((t, i) => {
+                      const isLong = (t.direction || "").toUpperCase() === "LONG";
+                      const win = (t.pnlUsd || 0) >= 0;
+                      return (
+                        <tr key={i} className="border-b hairline last:border-0">
+                          <td className="py-2 pr-4 text-mist text-[12px]">
+                            {t.ts ? new Date(t.ts).toLocaleString("fr-FR", { day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—"}
+                          </td>
+                          <td className="py-2 pr-4 text-bone">{t.asset || "—"}</td>
+                          <td className={`py-2 pr-4 ${isLong ? "text-emerald-400" : "text-rose-400"}`}>
+                            {isLong ? "Long" : "Short"}
+                          </td>
+                          <td className={`py-2 pr-4 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
+                            {(t.pnlUsd >= 0 ? "+" : "") + Number(t.pnlUsd).toFixed(2)}
+                          </td>
+                          <td className={`py-2 text-right ${win ? "text-emerald-400" : "text-rose-400"}`}>
+                            {t.pnlPct || "—"}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        );
+      })()}
 
     </div>
   );

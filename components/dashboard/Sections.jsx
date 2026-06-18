@@ -1378,11 +1378,13 @@ export function MonitoringAudio() {
               <>
                 <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 mb-2">Derniers posts</div>
                 <div className="space-y-3">
-                  {rest.map((item) =>
-                    item.kind === "audio"
-                      ? <AudioItem key={item.id} item={item} reactions={likes[String(item.msg_id)]} />
-                      : <PostItem  key={item.id} item={item} reactions={likes[String(item.msg_id)]} first={item.id === firstPostId} />
-                  )}
+                  {rest.map((item) => (
+                    <div key={item.id} className="blur-[3px] select-none pointer-events-none opacity-60">
+                      {item.kind === "audio"
+                        ? <AudioItem item={item} reactions={likes[String(item.msg_id)]} />
+                        : <PostItem  item={item} reactions={likes[String(item.msg_id)]} first={item.id === firstPostId} />}
+                    </div>
+                  ))}
                 </div>
               </>
             )}

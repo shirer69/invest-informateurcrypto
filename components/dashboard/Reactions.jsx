@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getToken, apiToggleReaction } from "@/lib/clientStore";
 
 const EMPTY = {
@@ -43,6 +43,13 @@ export default function Reactions({ contentType, contentId, initial }) {
   const [data, setData] = useState({ ...EMPTY, ...(initial || {}) });
   const [busy, setBusy] = useState(false);
   const authed = typeof window !== "undefined" && !!getToken();
+
+  // `initial` arrive de façon asynchrone (après le fetch des likes) : on
+  // resynchronise l'état quand il devient disponible, sinon les compteurs
+  // restent figés à 0 jusqu'au premier clic.
+  useEffect(() => {
+    if (initial) setData({ ...EMPTY, ...initial });
+  }, [initial]);
 
   async function toggle(e, reaction) {
     if (e) e.stopPropagation();

@@ -1036,12 +1036,25 @@ function HtmlToolbar({ onInsert, adminKey = "" }) {
     try {
       const fd = new FormData();
       fd.append("file", file);
-      const res = await fetch("/api/admin/upload-image", {
+      // Upload DIRECT vers le backend (évite la limite de body de 4,5 Mo des
+      // fonctions serverless Vercel, qui renvoyait une page HTML d'erreur).
+      const res = await fetch(`${API_BASE}/api/admin/upload-image`, {
         method: "POST",
         headers: { "x-admin-key": adminKey },
         body: fd,
       });
-      const data = await res.json();
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        // Réponse non-JSON = page d'erreur (413 nginx « trop gros », 502…)
+        alert(
+          res.status === 413
+            ? "Image trop lourde. Réduis sa taille (ou ses dimensions) et réessaie."
+            : `Erreur upload (HTTP ${res.status}). Réessaie avec une image plus légère.`
+        );
+        return;
+      }
       if (data.url) {
         onInsert(`<img src="${data.url}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto;" />`);
       } else {

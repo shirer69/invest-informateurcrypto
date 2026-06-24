@@ -280,10 +280,8 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
   const pnlPctOf = (net) => (total > 0 ? ((net || 0) / total) * 100 : null);
   const px = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell = (r) => {
-    if (r._abs == null && r._pnl == null) return "—";
-    const a = r._abs != null ? `${r._abs >= 0 ? "+" : ""}${fmtUsd(r._abs)}` : "";
-    const p = r._pnl != null ? `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %` : "";
-    return a && p ? `${a} · ${p}` : a || p;
+    if (r._pnl == null) return "—";
+    return `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`;
   };
 
   // P&L ABSOLU par actif (progression depuis le 15 juin), en % de la valeur TOTALE du compte.
@@ -452,11 +450,8 @@ export default function PortfolioKraken({ onGoInvest, onGoTrading }) {
           }`}>
             {loading ? "…" : accountPnlPct == null ? "—" : `${accountPnlPct >= 0 ? "+" : ""}${accountPnlPct.toFixed(2)} %`}
           </div>
-          <div className="mt-1.5 font-mono text-[12.5px]">
-            <span className={accountAbs >= 0 ? "text-emerald-400" : "text-rose-400"}>
-              {accountAbs >= 0 ? "+" : ""}{fmtUsd(accountAbs)}
-            </span>
-            <span className="text-mist/60"> · valeur totale du compte {fmtUsd(total)}</span>
+          <div className="mt-1.5 font-mono text-[12.5px] text-mist/60">
+            {TRACKING_STARTED ? `Depuis le ${TRACKING_START_LABEL}` : ""}
           </div>
           <div className="mt-4 font-mono text-[10px] uppercase tracking-widest2 text-mist/60">
             Composition du portefeuille
@@ -553,10 +548,8 @@ export function AssetTables() {
   const pnlPctOf2 = (net) => (total2 > 0 ? ((net || 0) / total2) * 100 : null);
   const px2 = (n) => (n && isFinite(n) ? Number(n).toLocaleString("fr-FR", { maximumFractionDigits: 6 }) : "—");
   const pnlCell2 = (r) => {
-    if (r._abs == null && r._pnl == null) return "—";
-    const a = r._abs != null ? `${r._abs >= 0 ? "+" : ""}${fmtUsd(r._abs)}` : "";
-    const p2 = r._pnl != null ? `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %` : "";
-    return a && p2 ? `${a} · ${p2}` : a || p2;
+    if (r._pnl == null) return "—";
+    return `${r._pnl >= 0 ? "+" : ""}${r._pnl.toFixed(2)} %`;
   };
   const spotAbs2 = (h) => h.cost != null && h.cost > 0 && h.value != null ? h.value - h.cost : null;
   const absOf2 = (a) => (TRACKING_STARTED ? a : 0);
@@ -588,7 +581,6 @@ export function AssetTables() {
         <Table rows={crypto2} mobileMax={3} blurred={blurred} cols={[
           { k: "symbol", h: "Actif" },
           { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
-          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
           { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
           { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
         ]} />
@@ -598,7 +590,6 @@ export function AssetTables() {
           <Table rows={stocks2} blurred={blurred} cols={[
             { k: "symbol", h: "Titre" },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
-            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
           ]} />
@@ -619,7 +610,6 @@ export function AssetTables() {
             { k: "entry", h: "Entrée", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.entry) },
             { k: "cur", h: "Prix actuel", right: true, hide: "hidden sm:table-cell", render: (r) => px2(r.cur) },
             { k: "lev", h: "Levier", right: true, hide: "hidden md:table-cell", render: (r) => (r.lev ? `×${r.lev.toFixed(1)}` : "—") },
-            { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
             { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
             { k: "_pnl", h: "P&L", right: true, cls: (r) => (r._pnl == null ? "text-mist" : r._pnl >= 0 ? "text-emerald-400" : "text-rose-400"), render: pnlCell2 },
           ]} />
@@ -649,7 +639,6 @@ export function AssetTables() {
       <Section title="Cash & stablecoins" dot={CAT.cash.color} icon={ICONS.cash}>
         <Table rows={cash2} blurred={blurred} cols={[
           { k: "symbol", h: "Devise" },
-          { k: "value", h: "Valeur", right: true, render: (r) => fmtUsd(r.value) },
           { k: "_share", h: "Part", right: true, cls: () => "text-gold", render: (r) => `${r._share.toFixed(1)} %` },
         ]} />
       </Section>

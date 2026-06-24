@@ -112,8 +112,7 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
                 </span>
                 <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-mist/50 leading-tight">{c.label}</div>
               </div>
-              <div className={`font-display text-[20px] ${signClass(v)}`}>{dUsdSigned(v)}</div>
-              <div className={`text-[10.5px] mt-0.5 ${signClass(v)}`}>{pctStr(v)}</div>
+              <div className={`font-display text-[20px] ${signClass(v)}`}>{pctStr(v)}</div>
             </div>
           );
         })}
@@ -121,7 +120,7 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
 
       {/* KPI global */}
       <div className="mb-5">
-        <Kpi label="PnL cumulé" value={`${dUsdSigned(totalAll)} · ${pctStr(totalAll)}`} cls={`font-display text-[20px] ${signClass(totalAll)}`} />
+        <Kpi label="PnL cumulé" value={pctStr(totalAll)} cls={`font-display text-[20px] ${signClass(totalAll)}`} />
       </div>
 
       {/* Bouton Voir les actifs */}

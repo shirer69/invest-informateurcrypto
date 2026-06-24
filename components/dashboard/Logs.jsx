@@ -76,6 +76,7 @@ export default function Logs() {
         price: t.exit_price ?? t.entry_price ?? null,
         vol: t.lots ?? null,
         pnl: t.pnl_usd ?? null,
+        pnlPct: t.pnl_pct ?? null,
         rawCost: true,
       })) : [];
 
@@ -122,7 +123,7 @@ export default function Logs() {
                 <th className="px-4 py-3">Sens</th>
                 <th className="px-4 py-3 text-right">Prix</th>
                 <th className="px-4 py-3 text-right">Volume</th>
-                <th className="px-4 py-3 text-right">Montant</th>
+                <th className="px-4 py-3 text-right">PnL</th>
               </tr>
             </thead>
             <tbody>
@@ -142,8 +143,10 @@ export default function Logs() {
                     <td className={`px-4 py-2.5 ${buy ? "text-emerald-400" : "text-rose-400"}`}>{buy ? "Achat" : "Vente"}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-mist">{fmtPx(t.price)}</td>
                     <td className="px-4 py-2.5 text-right font-mono text-mist">{fmtPx(t.vol)}</td>
-                    <td className={`px-4 py-2.5 text-right font-mono ${t.rawCost ? (t.pnl >= 0 ? "text-emerald-400" : "text-rose-400") : "text-bone"}`}>
-                      {t.rawCost ? (t.pnl != null ? `${t.pnl >= 0 ? "+" : ""}$${Math.abs(t.pnl).toFixed(2)}` : "—") : fmtUsd(t.cost)}
+                    <td className={`px-4 py-2.5 text-right font-mono ${t.rawCost && t.pnl != null ? (t.pnl >= 0 ? "text-emerald-400" : "text-rose-400") : "text-mist/40"}`}>
+                      {t.rawCost
+                        ? (t.pnlPct != null ? `${t.pnlPct >= 0 ? "+" : ""}${Number(t.pnlPct).toFixed(2)} %` : t.pnl != null ? `${t.pnl >= 0 ? "+" : ""}${Math.abs(t.pnl).toFixed(1)} %` : "—")
+                        : "—"}
                     </td>
                   </tr>
                 );

@@ -173,7 +173,10 @@ function LastTradeTeaser({ trades }) {
   const asset = last?.asset || "NAS100";
   const direction = last?.direction || "LONG";
   const pnl = last?.pnl_usd ?? 0;
-  const pnlStr = (pnl >= 0 ? "+" : "") + "$" + Math.abs(pnl).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const pnlPct = last?.pnl_pct ?? null;
+  const pnlStr = pnlPct != null
+    ? `${pnlPct >= 0 ? "+" : ""}${Number(pnlPct).toFixed(2)} %`
+    : (pnl >= 0 ? "+" : "") + pnl.toFixed(1) + " %";
   const pnlCls = pnl >= 0 ? "text-emerald-400" : "text-rose-400";
 
   return (
@@ -437,10 +440,9 @@ function TradeRow({ trade }) {
       <td className="py-2 pr-3 font-mono text-[11px] text-mist/70">{fmt_price(trade.entry_price)}</td>
       <td className="py-2 pr-3 font-mono text-[11px] text-mist/70">{fmt_price(trade.exit_price)}</td>
       <td className="py-2 pr-3">
-        {pnl != null ? (
+        {pnlPct != null ? (
           <span className={`font-mono text-[11px] font-medium ${isPos ? "text-emerald-400" : "text-rose-400"}`}>
-            {fmt_pnl_usd(pnl)}
-            {pnlPct != null && <span className="text-[10px] ml-1 opacity-70">({pnlPct >= 0 ? "+" : ""}{pnlPct.toFixed(1)}%)</span>}
+            {pnlPct >= 0 ? "+" : ""}{Number(pnlPct).toFixed(2)} %
           </span>
         ) : <span className="text-mist/30">—</span>}
       </td>

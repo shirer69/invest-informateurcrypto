@@ -85,7 +85,7 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
   if (!rows) return null;
 
   const totalAll = rows.reduce((s, r) => s + r.total, 0);
-  const denomAbs = rows.reduce((s, r) => s + Math.abs(r.stock) + Math.abs(r.perps), 0);
+  const denomAbs = rows.reduce((s, r) => s + Math.abs(r.spot) + Math.abs(r.stock) + Math.abs(r.margin) + Math.abs(r.perps), 0);
   const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
   const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
   const DISPLAY_MULT = 100;

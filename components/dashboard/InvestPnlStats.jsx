@@ -71,11 +71,22 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
         copyMasterPnl().catch(() => ({ months: [] })),
       ]);
       const map = {};
-      const ensure = (m) => (map[m] = map[m] || { spot: 0, margin: 0, perps: 0, stock: 0 });
-      (sp?.months || []).forEach((m) => { ensure(m.month).spot = m.spot; map[m.month].margin = m.margin; map[m.month].stock = m.stock || 0; });
-      (pp?.months || []).forEach((m) => { ensure(m.month).perps = m.pnl; });
+      const ensure = (m) => (map[m] = map[m] || { spot: 0, spot_pct: 0, margin: 0, perps: 0, perps_pct: 0, stock: 0, stock_pct: 0 });
+      (sp?.months || []).forEach((m) => {
+        ensure(m.month);
+        map[m.month].spot = m.spot;
+        map[m.month].spot_pct = m.spot_pct ?? 0;
+        map[m.month].margin = m.margin;
+        map[m.month].stock = m.stock || 0;
+        map[m.month].stock_pct = m.stock_pct ?? 0;
+      });
+      (pp?.months || []).forEach((m) => {
+        ensure(m.month);
+        map[m.month].perps = m.pnl;
+        map[m.month].perps_pct = m.pct ?? 0;
+      });
       const arr = Object.entries(map)
-        .map(([month, v]) => ({ month, ...v, total: v.perps + v.stock }))
+        .map(([month, v]) => ({ month, ...v }))
         .filter((r) => r.month >= ANALYTICS_START_MONTH)
         .sort((a, b) => a.month.localeCompare(b.month));
       setRows(arr.length > 0 ? arr : []);
@@ -84,13 +95,10 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
 
   if (!rows) return null;
 
-  const totalAll = rows.reduce((s, r) => s + r.total, 0);
-  const denomAbs = rows.reduce((s, r) => s + Math.abs(r.spot) + Math.abs(r.stock) + Math.abs(r.margin) + Math.abs(r.perps), 0);
-  const pct = (v) => (denomAbs > 0 ? (v / denomAbs) * 100 : 0);
-  const pctStr = (v) => `${v >= 0 ? "+" : ""}${pct(v).toFixed(1)} %`;
-  const DISPLAY_MULT = 100;
-  const dUsd = (v) => "$" + Math.abs(Number(v) * DISPLAY_MULT).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const dUsdSigned = (v) => `${v >= 0 ? "+" : "−"}${dUsd(v)}`;
+  // Vrais % de return par catégorie (pnl / cost_basis, calculé côté backend)
+  const sumPct = (k) => rows.reduce((s, r) => s + (r[`${k}_pct`] || 0), 0);
+  const totalPct = sumPct("spot") + sumPct("stock") + sumPct("margin") + sumPct("perps");
+  const pctStr = (v) => `${v >= 0 ? "+" : ""}${Number(v).toFixed(1)} %`;
   const signClass = (v) => (Number(v) >= 0 ? "text-emerald-400" : "text-rose-400");
   const sumCat = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
 
@@ -102,7 +110,7 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
       </div>
       <div className="grid grid-cols-2 gap-3 mb-4">
         {CATS.map((c) => {
-          const v = sumCat(c.k);
+          const v = sumPct(c.k);
           return (
             <div key={c.k} className="rounded-2xl border hairline bg-ink-800/40 p-4 transition-all duration-200 hover:border-white/10" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.20)" }}>
               <div className="flex items-center gap-2 mb-2.5">
@@ -120,7 +128,7 @@ export default function InvestPnlStats({ onGoInvest, showButton = true }) {
 
       {/* KPI global */}
       <div className="mb-5">
-        <Kpi label="PnL cumulé" value={pctStr(totalAll)} cls={`font-display text-[20px] ${signClass(totalAll)}`} />
+        <Kpi label="PnL cumulé" value={pctStr(totalPct)} cls={`font-display text-[20px] ${signClass(totalPct)}`} />
       </div>
 
       {/* Bouton Voir les actifs */}

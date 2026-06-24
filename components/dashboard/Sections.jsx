@@ -678,24 +678,18 @@ const STATUS_META = {
 };
 
 /* ── Challenge Forex (bloc partagé) ── */
-const CHALLENGE_CAPITAL = 5000;
-const CHALLENGE_BASELINE_PCT = 29.20;
-const CHALLENGE_TRACKING_SINCE = 1781395200;
 const CHALLENGE_START_TS = 1780617600;
 
 export function ChallengeBlock({ onGoTrading }) {
-  const [forexTrades, setForexTrades] = useState([]);
+  const [walletData, setWalletData] = useState(null);
   useEffect(() => {
-    fetch("https://api.informateurcrypto.fr/api/julien/trades", { cache: "no-store" })
+    fetch("https://api.informateurcrypto.fr/api/julien/wallet", { cache: "no-store" })
       .then((r) => r.json())
-      .then((d) => { if (d.ok && Array.isArray(d.trades)) setForexTrades(d.trades); })
+      .then((d) => { if (d.ok) setWalletData(d); })
       .catch(() => {});
   }, []);
 
-  const newForexPnl = forexTrades
-    .filter((t) => (t.type === "forex" || !t.type) && (t.created_at || 0) >= CHALLENGE_TRACKING_SINCE)
-    .reduce((s, t) => s + (t.pnl_usd || 0), 0);
-  const challengePct = CHALLENGE_BASELINE_PCT + (newForexPnl / CHALLENGE_CAPITAL * 100);
+  const challengePct = walletData?.pnl_pct ?? null;
   const daysElapsed = Math.max(0, Math.floor((Date.now() / 1000 - CHALLENGE_START_TS) / 86400));
 
   return (
@@ -709,7 +703,7 @@ export function ChallengeBlock({ onGoTrading }) {
         <div className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <div className="font-mono text-[9.5px] uppercase tracking-widest2 text-emerald-400/80 mb-1">Challenge en cours</div>
-            <div className="font-display text-[28px] leading-none text-emerald-400 font-black">{challengePct >= 0 ? "+" : ""}{challengePct.toFixed(2)} %</div>
+            <div className="font-display text-[28px] leading-none text-emerald-400 font-black">{challengePct == null ? "…" : `${challengePct >= 0 ? "+" : ""}${challengePct.toFixed(2)} %`}</div>
             <div className="font-mono text-[11px] text-mist/70 mt-1">après {daysElapsed} jour{daysElapsed > 1 ? "s" : ""}</div>
           </div>
           <div className="rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-center shrink-0">

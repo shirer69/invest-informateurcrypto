@@ -1390,6 +1390,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const [openPnlPct, setOpenPnlPct] = useState(null);
   const [openPositions, setOpenPositions] = useState(null);
   const [histTab, setHistTab] = useState("trading");
+  const [forexWallet, setForexWallet] = useState(null);
 
   useEffect(() => { setUser(getUser()); }, []);
 
@@ -1410,6 +1411,13 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
           setOpenPositions(d.positions ?? []);
         }
       })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/api/julien/wallet`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((d) => { if (d.ok) setForexWallet(d); })
       .catch(() => {});
   }, []);
 
@@ -1685,6 +1693,40 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
                 </button>
               ))}
             </div>
+            {/* Stats Challenge */}
+            {histTab === "challenge" && (
+              <div className="grid grid-cols-3 gap-2 px-5 pb-4">
+                {[
+                  {
+                    label: "Balance",
+                    value: forexWallet ? "$" + forexWallet.balance.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "…",
+                    subCls: "text-emerald-400/70",
+                    sub: "capital 5 000 $",
+                    cls: "text-emerald-400",
+                  },
+                  {
+                    label: "Gains réalisés %",
+                    value: forexWallet ? (forexWallet.pnl_pct >= 0 ? "+" : "") + forexWallet.pnl_pct.toFixed(2) + " %" : "…",
+                    sub: forexWallet ? (forexWallet.pnl_usd >= 0 ? "+" : "") + "$" + Math.abs(forexWallet.pnl_usd).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : null,
+                    cls: forexWallet ? (forexWallet.pnl_pct >= 0 ? "text-emerald-400" : "text-rose-400") : "text-mist/60",
+                    subCls: forexWallet ? (forexWallet.pnl_pct >= 0 ? "text-emerald-400/70" : "text-rose-400/70") : "text-mist/45",
+                  },
+                  {
+                    label: "Trades",
+                    value: forexWallet ? String(challengeTrades.length) : "…",
+                    sub: challengeTrades.filter((t) => (t.pnlUsd || 0) > 0).length + " gagnants",
+                    cls: "text-bone",
+                    subCls: "text-emerald-400/70",
+                  },
+                ].map(({ label, value, sub, cls, subCls }) => (
+                  <div key={label} className="rounded-xl border hairline bg-ink-800/40 px-3 py-3">
+                    <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/50 mb-1">{label}</div>
+                    <div className={`font-display text-[17px] leading-none ${cls}`}>{value}</div>
+                    {sub && <div className={`mt-1 font-mono text-[10px] ${subCls || "text-mist/45"}`}>{sub}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
             {/* Table */}
             {visibleTrades.length === 0 ? (
               <div className="px-5 pb-5 text-[13px] text-mist/60">Aucune opération pour l'instant.</div>

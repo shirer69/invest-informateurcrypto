@@ -106,12 +106,12 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
   const [bal, setBal] = useState(wallet);
   const [done, setDone] = useState(null); // { invite } après déblocage réussi
 
-  // Étape 1 = inscription (si compte non encore enregistré : email @telegram.local ou vide).
   const _needsSignup = () => {
     const em = (getUser()?.email || "").toLowerCase();
     return !em || em.endsWith("@telegram.local");
   };
-  const [step, setStep] = useState(() => (_needsSignup() ? "signup" : "options"));
+  // Toujours démarrer sur les options Kraken (signup demandé seulement au moment de valider).
+  const [step, setStep] = useState("options");
   const [firstName, setFirstName] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPwd, setSuPwd] = useState("");
@@ -134,11 +134,12 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
       return;
     }
     setSuBusy(false);
-    setStep("options"); // → étape Kraken / IIBAN / abonnement
+    setStep("options");
   }
 
   async function verify(e) {
     e.preventDefault();
+    if (_needsSignup()) { setStep("signup"); return; }
     const trimmed = uid.trim().replace(/\s+/g, "");
     if (trimmed.length < 4) { setState("notfound"); return; }
     setState("checking");
@@ -160,6 +161,7 @@ function UnlockModal({ wallet, onClose, onUnlocked }) {
   }
 
   async function pay() {
+    if (_needsSignup()) { setStep("signup"); return; }
     setPaying(true); setPayMsg("");
     const r = await apiAccessPay();
     setPaying(false);

@@ -14,6 +14,15 @@ function AutoUnlock() {
   useEffect(() => { openUnlock(); }, [openUnlock]);
   return null;
 }
+
+function CopyNoAccessCta() {
+  const { openUnlock } = useUnlock();
+  return (
+    <button onClick={openUnlock} className="mt-5 btn-gold inline-flex items-center gap-2 rounded-full px-6 py-3 text-[14px] font-semibold">
+      🔒 Déverrouiller l'accès <span>→</span>
+    </button>
+  );
+}
 import Billing from "@/components/dashboard/Billing";
 import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
@@ -135,7 +144,10 @@ export default function Dashboard() {
       if (d?.copy_access) setCopyAccess(true);
       if (d?.copy_request) setCopyRequest(true);
       if (d?.has_access) setHasAccess(true);
-      if (d?.tg_invite) setTgInvite(d.tg_invite);
+      if (d?.tg_invite) {
+        setTgInvite(d.tg_invite);
+        try { localStorage.setItem("pi_tg_link", d.tg_invite); } catch {}
+      }
     }).catch(() => {});
     // Hors mini-app Telegram : on peut statuer immédiatement.
     let inTg = false;
@@ -401,6 +413,7 @@ export default function Dashboard() {
                     <p className="mt-2 text-[13.5px] leading-relaxed text-mist max-w-prose2 mx-auto">
                       Le copy-trading automatique est réservé aux membres actifs (IIBAN validé ou abonnement).
                     </p>
+                    <CopyNoAccessCta />
                   </>
                 ) : copyRequest ? (
                   <>

@@ -173,7 +173,7 @@ export default function Contest() {
     );
   }
 
-  const isWinner = contest.winner_user_id && user && contest.winner_user_id === user.id;
+  const isWinner = !!contest.user_prediction?.is_winner;
   const isResolved = contest.status === "resolved";
   const isClosed = contest.status === "closed";
   const alreadyPredicted = !!contest.user_prediction;

@@ -2359,6 +2359,11 @@ export function CopyTrading() {
                   checked={draft.copy_margin === true}
                   onChange={(v) => setDraft({ ...draft, copy_margin: v })} />
               </div>
+              {(draft.copy_spot || draft.copy_margin) && (
+                <div className="mt-3 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3.5 py-2.5 text-[12px] text-amber-200/90 leading-relaxed">
+                  ⚠️ <b>Spot et Marge s'exécutent sur votre compte Kraken réel</b> (à la différence des perps, en démo). Cela nécessite des clés API Spot avec la permission de <b>trading</b>. Seules les <b>nouvelles</b> positions ouvertes après votre activation sont copiées, au prorata de votre capital.
+                </div>
+              )}
               <div className="mt-3 flex items-center gap-3 flex-wrap">
                 <span className="inline-flex items-center gap-1.5 text-[11.5px] text-mist/70">
                   <span className="h-1.5 w-1.5 rounded-full bg-rose-400" />

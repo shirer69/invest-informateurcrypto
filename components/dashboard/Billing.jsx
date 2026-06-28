@@ -216,8 +216,10 @@ export default function Billing() {
               {copied ? "Copié ✓" : "Copier"}
             </button>
           </div>
-        ) : (
+        ) : has ? (
           <p className="text-[12.5px] text-mist/60">Adresse de dépôt en cours de génération…</p>
+        ) : (
+          <p className="text-[12.5px] text-mist/50">Disponible après activation de votre accès membre.</p>
         )}
 
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-[11.5px] text-mist">

@@ -982,19 +982,28 @@ function LockedAudioPreview() {
     const load = async () => {
       const tok = getToken();
       if (!tok) {
-        // Pas encore de token — réessaye dans 800ms (max 5 fois)
-        if (retries < 5) setTimeout(() => setRetries((n) => n + 1), 800);
+        if (retries < 5) { setTimeout(() => setRetries((n) => n + 1), 800); return; }
+        // Après 5 essais sans token (invité) → données placeholder pour l'aperçu flouté
+        const now = Date.now();
+        setAudios([
+          { id: "p1", duration: 187, date: new Date(now - 3600000).toISOString(), caption: "Point de marché — BTC tient le support clé, positionnement en cours." },
+          { id: "p2", duration: 234, date: new Date(now - 86400000).toISOString(), caption: "Analyse macro hebdomadaire et prochains catalyseurs du cycle." },
+          { id: "p3", duration: 156, date: new Date(now - 172800000).toISOString(), caption: "Alerte position — entrée en cours sur narrative IA." },
+          { id: "p4", duration: 298, date: new Date(now - 259200000).toISOString(), caption: "Recap du cycle — les niveaux clés à surveiller cette semaine." },
+        ]);
         return;
       }
       const r = await poleTradingAudios();
       if (r.ok) setAudios(r.audios);
-      else if (r.audios) setAudios(r.audios); // [] si vide
+      else if (r.audios) setAudios(r.audios);
     };
     load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retries]);
 
   const preview = audios ? audios.slice(0, 2) : [];
+  // Pour les invités (placeholder), on floute tout (pas de token = pas d'écoute réelle)
+  const isGuest = !getToken();
 
   function relTime(iso) {
     if (!iso) return "";
@@ -1020,9 +1029,9 @@ function LockedAudioPreview() {
     return <ScopeCodeGate scope="monitoring" />;
   }
 
-  // Verrouillé : 2 derniers vocaux écoutables librement, les suivants floutés + overlay
-  const latestTwo = audios ? audios.slice(0, 2) : [];
-  const rest = audios ? audios.slice(2, 4) : [];
+  // Verrouillé : 2 derniers vocaux écoutables librement (membre), tous floutés si invité
+  const latestTwo = audios && !isGuest ? audios.slice(0, 2) : [];
+  const rest = audios ? (isGuest ? audios.slice(0, 4) : audios.slice(2, 4)) : [];
 
   function AudioCardPreview({ a, i }) {
     return (
@@ -1487,22 +1496,6 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
       </a>
     </div>
   );
-
-  if (!user) {
-    return (
-      <div>
-          <TickerBanner />
-        <div className="flex items-center gap-3 mb-4 mt-4">
-          <img src="/julien.jpg" alt="Julien" className="h-9 w-9 rounded-full object-cover shrink-0" />
-          <h3 className="font-display text-[18px] text-bone">PÔLE TRADING</h3>
-        </div>
-        <FuturesCTAs />
-        <div className="rounded-2xl border gold-line bg-ink-800/40 p-6 text-[14px] text-mist text-center">
-          Connectez-vous pour suivre l'activité du trader en direct.
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div>

@@ -18,6 +18,7 @@ import Billing from "@/components/dashboard/Billing";
 import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
 import { Intelligence, Analytics, CopyTrading, Monitoring, MonitoringAudio, XStocks } from "@/components/dashboard/Sections";
+import Contest from "@/components/dashboard/Contest";
 import Logs from "@/components/dashboard/Logs";
 import SignupGate from "@/components/dashboard/SignupGate";
 import LegalDisclaimer from "@/components/LegalDisclaimer";
@@ -45,6 +46,7 @@ const NAV = [
   { id: "analytics", label: "Invest", icon: "📊", iconNode: KrakenMark, badge: "New" },
   { id: "monitoring", label: "Trading", icon: "⚡" },
   { id: "audio", label: "Monitoring", icon: "📡" },
+  { id: "contest", label: "Concours", icon: "🎯", badge: "New" },
   { id: "vip", label: "Actions", icon: "📈" },
   { id: "logs", label: "Logs", icon: "🧾" },
   { id: "academy", label: "Academy", icon: "🎓" },
@@ -59,7 +61,7 @@ const NAV = [
 const COPY_ALLOWED_EMAIL = "linformateurcrypto@gmail.com";
 
 // Onglets principaux de la barre du bas (mobile) — les autres sont sous « Plus ».
-const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio"];
+const PRIMARY_TABS = ["portfolio", "analytics", "monitoring", "audio", "contest"];
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
@@ -355,6 +357,7 @@ export default function Dashboard() {
         <main className="min-w-0">
           {/* Portefeuille : chaque tableau est verrouillé individuellement (verrou interne) */}
           {tab === "portfolio" && <PortfolioKraken onGoInvest={() => setTab("analytics")} onGoTrading={() => setTab("monitoring")} />}
+          {tab === "contest" && <Contest />}
           {tab === "vip" && <XStocks />}
           {/* Academy : seuls les modules sont verrouillés (verrou interne) */}
           {tab === "academy" && <Academy />}

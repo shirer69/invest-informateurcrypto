@@ -43,7 +43,7 @@ export default function Hero() {
           >
             <span className="h-1.5 w-1.5 rounded-full bg-gold animate-pulse" />
             <span className="eyebrow !text-[10px] !tracking-[0.24em]">
-              Desk d'investissement privé · sur invitation
+              Desk d&apos;investissement actif
             </span>
           </motion.div>
 

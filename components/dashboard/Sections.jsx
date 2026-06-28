@@ -1022,11 +1022,8 @@ function LockedAudioPreview() {
     return `${m}:${String(s).padStart(2, "0")}`;
   }
 
-  if (monitoringAccess) {
+  if (!locked || monitoringAccess) {
     return <AudioFeed hideHeader />;
-  }
-  if (!locked) {
-    return <ScopeCodeGate scope="monitoring" />;
   }
 
   // Verrouillé : 2 derniers vocaux écoutables librement (membre), tous floutés si invité

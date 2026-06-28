@@ -263,35 +263,27 @@ export default function Dashboard() {
     );
   }
 
-  // Gating inscription par nombre de connexions (utilisateurs non inscrits) :
-  //  • 1re–5e connexion → AUCUN gate (accès direct au dashboard en invité)
-  //  • 6e connexion +   → gate OBLIGATOIRE email (pas de skip)
-  // ?code dans l'URL → on EXIGE la saisie du code d'invitation, quel que soit le
-  // nombre de connexions (priorité sur la règle des visites).
-  if (!registered && !gateSkipped && (visitCount >= 6 || forceCode)) {
+  // ?code dans l'URL → gate OBLIGATOIRE pour saisir le code d'invitation.
+  // Tous les autres visiteurs (inscrits ou non) voient le dashboard verrouillé.
+  if (forceCode && !registered && !gateSkipped) {
     const isTgUser = emailLc.endsWith("@telegram.local");
-
     let isDirect = false;
     try {
       const p = new URLSearchParams(window.location.search);
       const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
-
-    const isUnlock = (() => { try { return new URLSearchParams(window.location.search).get("unlock") === "1"; } catch { return false; } })();
-    const doneTab = isUnlock ? "copy" : forceCode ? "audio" : "portfolio";
-
     return (
       <div className="min-h-screen aura">
         <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
-          onDone={() => { window.location.href = `/dashboard?tab=${doneTab}`; }}
+          onDone={() => { window.location.href = `/dashboard?tab=audio`; }}
           onLogin={() => setLoginOpen(true)}
-          skipCode={!forceCode}
+          skipCode={false}
           initialCode={codePrefill}
           tgName={isTgUser ? (user?.name || "") : ""}
-          title={forceCode ? "Code d'invitation requis" : (isTgUser && !isDirect ? "Ajouter ton mail" : undefined)}
+          title="Code d'invitation requis"
           noPassword={isTgUser}
         />
       </div>

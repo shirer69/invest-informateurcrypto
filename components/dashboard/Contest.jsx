@@ -313,28 +313,23 @@ export default function Contest() {
               const isW = p.is_winner;
               return (
                 <div key={p.id}
-                  className={`px-5 py-3.5 flex items-center gap-3 ${isMine ? "bg-gold/[0.04]" : ""} ${isW ? "bg-emerald-500/[0.06]" : ""}`}>
-                  <Medal rank={i + 1} />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className={`text-[13.5px] font-medium ${isMine ? "text-gold" : "text-bone"}`}>
-                        {p.display_name}
-                      </span>
-                      {isMine && <span className="text-[10px] text-gold/70 font-mono">(vous)</span>}
-                      {isW && <span className="text-[11px] text-emerald-400 font-semibold">🏆 Gagnant</span>}
+                  className={`px-5 py-3.5 flex items-center gap-3 ${isW ? "bg-emerald-500/[0.07]" : isMine ? "bg-gold/[0.04]" : ""}`}>
+                  {isW
+                    ? <span className="text-[22px] leading-none">🏆</span>
+                    : <Medal rank={i + 1} />
+                  }
+                  <span className={`flex-1 text-[14px] font-medium truncate ${isW ? "text-emerald-300" : isMine ? "text-gold" : "text-bone"}`}>
+                    {p.display_name}
+                    {isMine && <span className="ml-1.5 text-[10px] text-gold/60 font-mono">(vous)</span>}
+                  </span>
+                  <div className="text-right shrink-0">
+                    <div className={`font-display text-[15px] ${isW ? "text-emerald-300 font-semibold" : isMine ? "text-gold" : "text-bone"}`}>
+                      {fmtPrice(p.predicted_price)}
                     </div>
                     {isResolved && p.delta != null && (
-                      <div className="text-[11.5px] text-mist/60 mt-0.5">
-                        Écart : {p.delta < 1 ? "< $1" : fmtPrice(p.delta)}
+                      <div className="text-[10.5px] text-mist/50">
+                        écart {p.delta < 1 ? "< $1" : fmtPrice(p.delta)}
                       </div>
-                    )}
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className={`font-display text-[15px] ${isMine ? "text-gold" : "text-bone"}`}>
-                      {isResolved ? fmtPrice(p.predicted_price) : (isMine || alreadyPredicted ? fmtPrice(p.predicted_price) : "—")}
-                    </div>
-                    {!isResolved && !isMine && !alreadyPredicted && (
-                      <div className="text-[10px] text-mist/40">révélé après</div>
                     )}
                   </div>
                 </div>

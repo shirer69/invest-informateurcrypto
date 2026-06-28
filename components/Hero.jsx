@@ -92,7 +92,7 @@ export default function Hero() {
           >
             <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
               <a
-                href="/dashboard"
+                href="/dashboard?tab=portfolio"
                 className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
               >
                 Démarrer l&apos;app

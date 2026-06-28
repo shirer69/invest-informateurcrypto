@@ -44,7 +44,7 @@ const Disclaimer = ({ children }) => (
 
 /* ---------------- Vue d'ensemble ---------------- */
 export function Overview({ tgLink }) {
-  const { locked } = useUnlock();
+  const { locked, openUnlock } = useUnlock();
   return (
     <div>
       <div className={`mt-5 gap-5 items-start ${locked ? "grid lg:grid-cols-[1.6fr_1fr]" : ""}`}>
@@ -58,16 +58,23 @@ export function Overview({ tgLink }) {
           <div className="pointer-events-none absolute -top-16 -right-10 h-44 w-44 rounded-full blur-3xl"
                style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }} />
           <div className="relative">
-            <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Groupe privé</div>
-            <h3 className="mt-2 font-display text-[20px] text-bone">VIP Pôle Invest</h3>
+            <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Espace investisseurs</div>
+            <h3 className="mt-2 font-display text-[20px] text-bone">Cycle Partners — Accès privé</h3>
             <p className="mt-2 text-[13px] leading-relaxed text-mist">
-              Accès au groupe Telegram privé et aux analyses en direct.
+              Validez votre compte Kraken pour débloquer l&apos;accès complet au portefeuille et aux analyses en direct.
             </p>
           </div>
-          <a href={tgLink} target="_blank" rel="noopener noreferrer"
-             className="btn-gold relative mt-5 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[14.5px] font-semibold">
-            Rejoindre le groupe VIP <IconArrow className="h-4 w-4" />
-          </a>
+          {locked ? (
+            <button onClick={openUnlock}
+               className="btn-gold relative mt-5 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[14.5px] font-semibold">
+              Devenir membre <IconArrow className="h-4 w-4" />
+            </button>
+          ) : (
+            <a href={tgLink} target="_blank" rel="noopener noreferrer"
+               className="btn-gold relative mt-5 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[14.5px] font-semibold">
+              Rejoindre le groupe VIP <IconArrow className="h-4 w-4" />
+            </a>
+          )}
         </div>
       </div>
       {/* Posts VIP en direct + discussion membres */}

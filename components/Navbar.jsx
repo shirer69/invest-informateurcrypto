@@ -74,10 +74,10 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           {showAccessBtn && (
             <button
-              onClick={() => setLoginOpen(true)}
+              onClick={openJoin}
               className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
             >
-              Connexion dashboard
+              Devenir membre
             </button>
           )}
           {showAccessBtn && (
@@ -90,7 +90,7 @@ export default function Navbar() {
           )}
           {!showAccessBtn && (
             <a
-              href="/dashboard"
+              href="/dashboard?tab=portfolio"
               className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
             >
               Démarrer l&apos;app
@@ -126,10 +126,10 @@ export default function Navbar() {
             {showAccessBtn ? (
               <>
                 <button
-                  onClick={() => { setOpen(false); setLoginOpen(true); }}
+                  onClick={() => { setOpen(false); openJoin(); }}
                   className="btn-ghost rounded-full px-5 py-3 text-center text-sm mt-1"
                 >
-                  Connexion dashboard
+                  Devenir membre
                 </button>
                 <button
                   onClick={() => { setOpen(false); openJoin(); }}
@@ -140,7 +140,7 @@ export default function Navbar() {
               </>
             ) : (
               <a
-                href="/dashboard"
+                href="/dashboard?tab=portfolio"
                 onClick={() => setOpen(false)}
                 className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold mt-1"
               >

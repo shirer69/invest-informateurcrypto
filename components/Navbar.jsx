@@ -20,6 +20,7 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [loginOpen, setLoginOpen] = useState(false);
   const [logged, setLogged] = useState(false);
+  const [visitCount, setVisitCount] = useState(0);
   const { open: openJoin } = useJoin();
 
   useEffect(() => {
@@ -27,8 +28,13 @@ export default function Navbar() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     setLogged(!!getToken());
+    try {
+      setVisitCount(parseInt(localStorage.getItem("pi_tg_visit_count") || "0", 10));
+    } catch {}
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const showAccessBtn = !logged && visitCount >= 6;
 
   return (
     <motion.header
@@ -66,28 +72,29 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          {logged ? (
+          {showAccessBtn && (
+            <button
+              onClick={() => setLoginOpen(true)}
+              className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
+            >
+              Connexion dashboard
+            </button>
+          )}
+          {showAccessBtn && (
+            <button
+              onClick={openJoin}
+              className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
+            >
+              Demander mon accès
+            </button>
+          )}
+          {!showAccessBtn && (
             <a
               href="/dashboard"
               className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
             >
-              Accéder au dashboard
+              Démarrer l&apos;app
             </a>
-          ) : (
-            <>
-              <button
-                onClick={() => setLoginOpen(true)}
-                className="btn-ghost hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px]"
-              >
-                Connexion dashboard
-              </button>
-              <button
-                onClick={openJoin}
-                className="btn-gold hidden sm:inline-flex rounded-full px-5 py-2.5 text-[13px] font-semibold"
-              >
-                Demander mon accès
-              </button>
-            </>
           )}
           <button
             onClick={() => setOpen((v) => !v)}
@@ -116,15 +123,7 @@ export default function Navbar() {
                 {l.label}
               </a>
             ))}
-            {logged ? (
-              <a
-                href="/dashboard"
-                onClick={() => setOpen(false)}
-                className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold mt-1"
-              >
-                Accéder au dashboard
-              </a>
-            ) : (
+            {showAccessBtn ? (
               <>
                 <button
                   onClick={() => { setOpen(false); setLoginOpen(true); }}
@@ -133,15 +132,20 @@ export default function Navbar() {
                   Connexion dashboard
                 </button>
                 <button
-                  onClick={() => {
-                    setOpen(false);
-                    openJoin();
-                  }}
+                  onClick={() => { setOpen(false); openJoin(); }}
                   className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold"
                 >
                   Demander mon accès au Pôle Invest
                 </button>
               </>
+            ) : (
+              <a
+                href="/dashboard"
+                onClick={() => setOpen(false)}
+                className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold mt-1"
+              >
+                Démarrer l&apos;app
+              </a>
             )}
           </div>
         </motion.div>

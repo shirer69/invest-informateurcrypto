@@ -95,7 +95,7 @@ export default function Hero() {
                 href="/dashboard"
                 className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
               >
-                Mon dashboard
+                Démarrer l&apos;app
                 <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
               </a>
               {!logged && (

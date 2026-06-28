@@ -17,24 +17,23 @@ export default function WhyNow() {
             <Reveal>
               <span className="eyebrow">Le bon moment</span>
               <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
-                Pourquoi nous ouvrons le Pôle Invest maintenant
+                Pourquoi nous lançons Cycle Partners maintenant
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="mt-8 space-y-5 text-[16px] leading-relaxed text-mist max-w-prose2">
-                <p>Cela fait plusieurs mois que nous préparons ce moment.</p>
+                <p>Cycle Partners est un micro edge fund co-fondé par Julien Moretto, gérant de portefeuille et conseiller financier indépendant.</p>
                 <p>
-                  Notre conviction est simple :{" "}
+                  Notre thèse est simple :{" "}
                   <span className="text-bone">
-                    les plus grandes opportunités ne se construisent pas lorsque tout le
-                    monde parle déjà d'un marché.
-                  </span>{" "}
-                  Elles se construisent avant.
+                    les rendements asymétriques se capturent avant que le consensus
+                    ne valide une tendance — pas après.
+                  </span>
                 </p>
                 <p>
-                  Nous pensons que les prochaines années pourraient créer des opportunités
-                  majeures autour d'un nombre restreint de tendances structurelles —
-                  l'objectif étant d'y construire un portefeuille discipliné et intelligent.
+                  Nous gérons un portefeuille concentré sur un nombre restreint de thèses
+                  structurelles à fort différentiel d&apos;information, avec une discipline
+                  de gestion du risque empruntée à l&apos;institutional trading.
                 </p>
               </div>
             </Reveal>

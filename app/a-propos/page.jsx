@@ -7,8 +7,8 @@ import { LINKEDIN_URL } from "@/lib/site";
 import JoinProvider from "@/components/JoinProvider";
 
 export const metadata = {
-  title: "À propos — Julien Moretto | Club des Informateurs",
-  description: "Conseiller financier indépendant, analyste crypto, trader financé. Découvrez le parcours de Julien Moretto, fondateur du Pôle Invest.",
+  title: "À propos — Julien Moretto | Cycle Partners",
+  description: "Conseiller financier indépendant, analyste crypto, trader financé. Découvrez le parcours de Julien Moretto, co-fondateur de Cycle Partners.",
 };
 
 const CREDENTIALS = [

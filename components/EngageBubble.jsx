@@ -2,7 +2,7 @@
 
 import { usePageEngagement } from "@/lib/usePageEngagement";
 
-const TG_URL = "https://t.me/clubdesinformateurs";
+const TG_URL = "https://t.me/cyclepartners";
 
 export default function EngageBubble() {
   const { showBubble, dismissBubble } = usePageEngagement();
@@ -27,7 +27,7 @@ export default function EngageBubble() {
             <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 border-2 border-ink-800" />
           </div>
           <div>
-            <p className="text-[13px] font-semibold text-bone leading-tight">Support Pôle Invest</p>
+            <p className="text-[13px] font-semibold text-bone leading-tight">Support Cycle Partners</p>
             <p className="text-[11px] text-emerald-400">En ligne</p>
           </div>
         </div>

@@ -40,7 +40,7 @@ export function renderOgImage() {
               CI
             </div>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "21px", fontWeight: 700 }}>Club des Informateurs</div>
+              <div style={{ fontSize: "21px", fontWeight: 700 }}>Cycle Partners</div>
               <div
                 style={{
                   fontSize: "12px",

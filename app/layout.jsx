@@ -30,8 +30,8 @@ const SITE_URL = "https://invest.informateurcrypto.fr";
 export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Club des Informateurs — Pôle Invest",
-    template: "%s · Pôle Invest",
+    default: "Cycle Partners — Micro Edge Fund",
+    template: "%s · Cycle Partners",
   },
   description:
     "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
@@ -52,14 +52,14 @@ export const metadata = {
     type: "website",
     locale: "fr_FR",
     url: SITE_URL,
-    siteName: "Club des Informateurs — Pôle Invest",
+    siteName: "Cycle Partners — Micro Edge Fund",
     title: "Le prochain cycle se prépare avant qu'il ne commence.",
     description:
       "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Club des Informateurs — Pôle Invest",
+    title: "Cycle Partners — Micro Edge Fund",
     description:
       "Le prochain cycle se prépare avant qu'il ne commence. Un espace d'investissement privé piloté par Julien Moretto pour se positionner sur les grandes tendances : crypto, intelligence artificielle, actions US, semi-conducteurs et narratives macro du prochain cycle.",
   },

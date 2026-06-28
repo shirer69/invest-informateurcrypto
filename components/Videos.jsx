@@ -66,7 +66,7 @@ export default async function Videos() {
             </h2>
             <p className="mt-5 text-[16px] leading-relaxed text-mist">
               Analyses graphiques et géopolitiques hebdomadaires, en accès libre sur la
-              chaîne du Club des Informateurs.
+              chaîne du Cycle Partners.
             </p>
           </div>
           <a

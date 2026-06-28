@@ -19,7 +19,7 @@ const STEPS = [
   {
     n: "03",
     t: "Recevoir l'accès privé",
-    d: "Vous recevez votre lien Telegram vers le groupe privé du Pôle Invest.",
+    d: "Vous recevez votre accès au dashboard Cycle Partners et à l'espace investisseurs privé.",
   },
 ];
 
@@ -31,7 +31,7 @@ export default function HowToJoin() {
         <Reveal className="max-w-2xl">
           <span className="eyebrow">Adhésion</span>
           <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
-            Rejoindre le Pôle Invest en trois étapes
+            Accéder à Cycle Partners en trois étapes
           </h2>
         </Reveal>
 

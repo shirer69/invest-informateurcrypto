@@ -43,7 +43,7 @@ export function UnlockProvider({ children }) {
   }, [refresh]);
 
   // Ouverture automatique de la modal de déblocage (étape Kraken) quand on arrive
-  // via le lien mini-app `t.me/Clubdesinformateurs_bot/invest` (start_param "invest")
+  // via le lien mini-app `t.me/CyclePartners_bot/invest` (start_param "invest")
   // ou via l'URL `/dashboard?unlock=1` (ou ?startapp=invest).
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -36,8 +36,8 @@ const ITEMS = [
   },
   {
     Icon: IconVault,
-    t: "Communauté privée",
-    d: "Un cercle restreint, réservé aux membres, sans bruit ni promesses irréalistes.",
+    t: "Espace investisseurs",
+    d: "Un accès restreint aux co-investisseurs de Cycle Partners, sans bruit ni promesses irréalistes.",
   },
 ];
 
@@ -51,8 +51,8 @@ export default function Membership() {
             Ce que reçoivent les membres
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Un dispositif complet, pensé comme un desk d'investissement — et non comme un
-            flux de signaux décontextualisés.
+            Un accès complet à la gestion active de Cycle Partners — portefeuille live,
+            thèses d&apos;investissement et exécution en temps réel.
           </p>
         </Reveal>
 

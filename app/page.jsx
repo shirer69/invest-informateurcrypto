@@ -16,7 +16,7 @@ import TelegramRedirect from "@/components/TelegramRedirect";
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ProfessionalService",
-  name: "Club des Informateurs — Pôle Invest",
+  name: "Cycle Partners — Pôle Invest",
   url: "https://invest.informateurcrypto.fr",
   description:
     "Desk d'investissement privé piloté par Julien Moretto. Crypto, IA, actions US, semi-conducteurs et narratives macro du prochain cycle.",

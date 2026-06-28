@@ -39,7 +39,7 @@ const FEATURES = [
   { d: I.copy, t: "Copy trading auto", s: "Réplication des positions du desk, avec plafonds de risque." },
   { d: I.academy, t: "Academy", s: "Modules de formation : cycles, gestion du risque, exécution." },
   { d: I.video, t: "Vidéos", s: "Analyses hebdomadaires et formats longs, directement dans l'app." },
-  { d: I.chat, t: "Chat communautaire", s: "Échanges entre membres, modéré, en temps réel." },
+  { d: I.chat, t: "Espace co-investisseurs", s: "Échanges entre membres, modéré, en temps réel." },
   { d: I.vip, t: "Analyses & posts VIP", s: "Le flux d'intelligence du desk, structuré et contextualisé." },
 ];
 
@@ -74,7 +74,7 @@ export default function DashboardShowcase() {
             Un cockpit d'investissement, pas un simple groupe
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Le Pôle Invest s'accompagne d'un tableau de bord privé : suivi de portefeuille,
+            Cycle Partners s'accompagne d'un tableau de bord privé : suivi de portefeuille,
             spot, marge, perps, actions US et indices, copy trading, vidéos, chat et le flux
             d'analyses du desk — réunis dans une seule interface.
           </p>

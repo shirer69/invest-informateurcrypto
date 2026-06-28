@@ -2,20 +2,20 @@ import { Reveal } from "./Reveal";
 import { IconCheck, IconCross } from "./Icons";
 
 const OTHERS = [
-  "Meme coins",
-  "Leverage excessif",
-  "Dopamine trading",
-  "Hype Twitter",
-  "Signaux sans contexte",
+  "Gestion passive indicielle",
+  "Timing court terme",
+  "Exposition non sélective",
+  "Réaction au bruit médiatique",
+  "Diversification aveugle",
 ];
 
 const OURS = [
-  "Investissement structuré",
-  "Approche disciplinée",
-  "Faible leverage",
-  "Narration macro",
-  "Asymétrie du risque",
-  "Vision moyen / long terme",
+  "Portefeuille de conviction concentré",
+  "Sélection sur asymétrie risque/rendement",
+  "Positionnement pré-narratif",
+  "Gestion active du cycle",
+  "Exposition sectorielle ciblée",
+  "Capital alloué avec discipline",
 ];
 
 export default function Approach() {
@@ -25,11 +25,12 @@ export default function Approach() {
         <Reveal className="max-w-2xl">
           <span className="eyebrow">La méthode</span>
           <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
-            Une approche différente du bruit des marchés
+            La gestion active d&apos;un micro edge fund
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Nous ne faisons pas du trading casino. Nous construisons des positions
-            asymétriques sur les tendances majeures avant qu'elles ne deviennent mainstream.
+            Cycle Partners n&apos;est pas un groupe de signaux. C&apos;est un portefeuille géré
+            activement, avec une sélection concentrée sur les thèses à fort différentiel
+            d&apos;information avant qu&apos;elles ne deviennent consensus.
           </p>
         </Reveal>
 
@@ -39,10 +40,10 @@ export default function Approach() {
             <div className="h-full rounded-2xl border hairline bg-ink-800/40 p-8">
               <div className="flex items-center justify-between">
                 <h3 className="font-display text-[20px] text-mist">
-                  La plupart des groupes crypto
+                  La gestion traditionnelle
                 </h3>
                 <span className="font-mono text-[10px] uppercase tracking-widest2 text-mist/50">
-                  Le bruit
+                  Le marché
                 </span>
               </div>
               <ul className="mt-7 space-y-4">
@@ -66,7 +67,7 @@ export default function Approach() {
                 style={{ background: "radial-gradient(circle, rgba(46,230,168,0.18), transparent 70%)" }}
               />
               <div className="relative flex items-center justify-between">
-                <h3 className="font-display text-[20px] text-bone">Pôle Invest</h3>
+                <h3 className="font-display text-[20px] text-bone">Cycle Partners</h3>
                 <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
                   Le signal
                 </span>

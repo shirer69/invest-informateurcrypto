@@ -9,6 +9,7 @@ import IibanPendingAdmin from "@/components/admin/IibanPendingAdmin";
 import MoonXAdmin from "@/components/admin/MoonXAdmin";
 import SweepAdmin from "@/components/admin/SweepAdmin";
 import PresenceAdmin from "@/components/admin/PresenceAdmin";
+import ContestAdmin from "@/components/admin/ContestAdmin";
 
 const KEYK = "pi_admin_key";
 
@@ -62,6 +63,7 @@ const TABS = [
   { id: "trades_safe",  label: "📊 Trades Safe" },
   { id: "sweep",        label: "💸 Sweep" },
   { id: "presence",    label: "🟢 En ligne" },
+  { id: "contest",     label: "🎯 Concours BTC" },
 ];
 
 export default function Admin() {
@@ -186,6 +188,7 @@ export default function Admin() {
         {tab === "trades_safe"   && <TradesSafe adminKey={key} />}
         {tab === "sweep"         && <SweepAdmin adminKey={key} />}
         {tab === "presence"      && <PresenceAdmin adminKey={key} />}
+        {tab === "contest"       && <ContestAdmin adminKey={key} />}
       </div>
     </div>
   );

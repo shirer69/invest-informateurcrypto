@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/site";
 import TgPosts from "@/components/admin/TgPosts";
 import EmailAdmin from "@/components/admin/EmailAdmin";
 import DailyReminder from "@/components/admin/DailyReminder";
+import ScheduledAdmin from "@/components/admin/ScheduledAdmin";
 import SupportAdmin from "@/components/admin/SupportAdmin";
 import IibanPendingAdmin from "@/components/admin/IibanPendingAdmin";
 import MoonXAdmin from "@/components/admin/MoonXAdmin";
@@ -57,6 +58,7 @@ const TABS = [
   { id: "codes",    label: "Codes d'invitation" },
   { id: "posts",    label: "📨 Posts Telegram" },
   { id: "emails",   label: "📧 Emails" },
+  { id: "scheduled", label: "🕒 Programmés" },
   { id: "copy",     label: "Copy Auto" },
   { id: "support",  label: "💬 Support" },
   { id: "iiban_pending", label: "⏳ IIBAN Pending" },
@@ -183,6 +185,7 @@ export default function Admin() {
         {tab === "codes"     && <Codes adminKey={key} />}
         {tab === "posts"     && <TgPosts adminKey={key} />}
         {tab === "emails"    && <EmailAdmin adminKey={key} />}
+        {tab === "scheduled" && <ScheduledAdmin adminKey={key} />}
         {tab === "copy"      && <CopyAuto adminKey={key} />}
         {tab === "support"      && <SupportAdmin adminKey={key} />}
         {tab === "iiban_pending" && <IibanPendingAdmin adminKey={key} />}

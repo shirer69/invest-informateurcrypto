@@ -106,13 +106,14 @@ export default function Hero() {
                   Se connecter
                 </button>
               )}
-              <a
-                href="#approche"
-                className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
-              >
-                3 mois offert
-              </a>
             </div>
+            <p className="mt-4 inline-flex items-center gap-2 text-[13.5px] font-medium">
+              <span className="text-gold">✦</span>
+              <span>
+                <span className="text-gold font-semibold">3 mois d&apos;accès offerts</span>
+                <span className="text-mist"> — validez simplement votre compte Kraken pour en bénéficier, sans frais.</span>
+              </span>
+            </p>
           </motion.div>
 
           {/* trust strip */}

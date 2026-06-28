@@ -5,7 +5,7 @@ import { API_BASE } from "@/lib/site";
 
 const PREFIX = "📣 Acq";
 const TEST_EMAIL = "alexis.myc@gmail.com";
-const ADMIN_TG = "8463798074";
+const ADMIN_TG = "5389728045"; // L'Informateur Crypto (+33630892095) — cible des tests TG
 
 function todayKey() {
   const d = new Date();

@@ -50,6 +50,7 @@ export default function DailyReminder({ adminKey, onGo }) {
   const [pv, setPv] = useState(null); // {type, edit, html?}
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null);
+  const [schedAt, setSchedAt] = useState("");
   const [doneMail, setDoneMail] = useState(false);
   const [doneTg, setDoneTg] = useState(false);
 
@@ -176,6 +177,22 @@ export default function DailyReminder({ adminKey, onGo }) {
     setBusy("");
     if (d.ok) { markDone("tg"); setMsg({ ok: true, text: `Post TG en cours d'envoi (${d.reachable ?? "?"}).` }); setPv(null); }
     else setMsg({ ok: false, text: "Échec de l'envoi TG." });
+  }
+  async function scheduleSend() {
+    if (!schedAt) { setMsg({ ok: false, text: "Choisis une date et une heure." }); return; }
+    setBusy("sc"); setMsg(null);
+    let channel, payload;
+    if (pv.type === "mail") {
+      await apost("/api/admin/mail/templates", adminKey, pv.edit); // sauvegarde l'édition
+      channel = "mail"; payload = { template_id: pv.edit.id, audience: "all", subject_override: pv.edit.subject };
+    } else {
+      channel = "tg"; payload = { text: pv.edit.text, photo: pv.edit.photo || "", buttons: pv.edit.buttons || [], audience: "all" };
+    }
+    const r = await apost("/api/admin/schedule", adminKey, { channel, run_at_local: schedAt, payload });
+    const d = await r.json().catch(() => ({}));
+    setBusy("");
+    if (d.ok) { setMsg({ ok: true, text: `Programmé pour le ${schedAt.replace("T", " ")} (heure FR).` }); }
+    else setMsg({ ok: false, text: d.error === "past" ? "Choisis une heure future." : "Échec de la programmation (redémarrage backend requis ?)." });
   }
 
   if (!ready) return null;
@@ -344,6 +361,13 @@ export default function DailyReminder({ adminKey, onGo }) {
                   </div>
                 </>
               )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 px-5 py-2.5 border-t hairline">
+              <span className="text-[11px] text-mist/70">🕒 Programmer (heure FR) :</span>
+              <input type="datetime-local" value={schedAt} onChange={(e) => setSchedAt(e.target.value)}
+                     className="rounded-lg bg-ink-900 border hairline px-2 py-1.5 text-[12px] text-bone outline-none" />
+              <button className={Bsm} disabled={busy === "sc"} onClick={scheduleSend}>{busy === "sc" ? "…" : "Programmer l'envoi"}</button>
             </div>
 
             <div className="flex items-center justify-end gap-2 px-5 py-3 border-t hairline">

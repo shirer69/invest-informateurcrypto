@@ -30,6 +30,7 @@ const AUDIENCES = [
   { id: "all_except_members",  label: "Tous sauf membres actifs" },
   { id: "users",               label: "Utilisateurs Telegram uniquement" },
   { id: "copy",                label: "Membres avec copy actif" },
+  { id: "ANCIEN",              label: "📂 ANCIEN (liste importée — envoi manuel uniquement)" },
 ];
 
 /* ─── Sous-onglets ────────────────────────────────────────────────────────── */

@@ -7,6 +7,25 @@ const PREFIX = "📣 Acq";
 const TEST_EMAIL = "alexis.myc@gmail.com";
 const ADMIN_TG = "5389728045"; // L'Informateur Crypto (+33630892095) — cible des tests TG
 
+const MAIL_AUDIENCES = [
+  { id: "all",                label: "Tous (emails réels)" },
+  { id: "members",            label: "Membres actifs" },
+  { id: "all_except_members", label: "Tous sauf membres actifs" },
+  { id: "users",              label: "Utilisateurs Telegram" },
+  { id: "copy",               label: "Membres copy actif" },
+  { id: "ANCIEN",             label: "📂 ANCIEN (liste importée)" },
+];
+const TG_AUDIENCES = [
+  { id: "all",                label: "Tous (DMs)" },
+  { id: "members",            label: "Membres (email)" },
+  { id: "membres_actifs",     label: "Membres actifs" },
+  { id: "all_except_members", label: "Tous sauf actifs" },
+  { id: "users",              label: "Telegram uniquement" },
+  { id: "copy",               label: "Copy actifs" },
+  { id: "admins",             label: "Admins (moi)" },
+  { id: "none",               label: "Canaux seulement" },
+];
+
 function todayKey() {
   const d = new Date();
   return `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
@@ -117,6 +136,7 @@ export default function DailyReminder({ adminKey, onGo }) {
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null);
   const [schedAt, setSchedAt] = useState("");
+  const [aud, setAud] = useState("all");
   const [doneMail, setDoneMail] = useState(false);
   const [doneTg, setDoneTg] = useState(false);
 
@@ -168,13 +188,14 @@ export default function DailyReminder({ adminKey, onGo }) {
 
   // ── Aperçu (éditable) ──
   async function openMailPreview() {
-    setBusy("pm");
+    setBusy("pm"); setAud("all");
     const edit = { id: mail.id, name: mail.name, subject: mail.subject || "", intro: mail.intro || "",
       body_html: mail.body_html || "", cta_label: mail.cta_label || "", cta_url: mail.cta_url || "", footnote: mail.footnote || "" };
     const html = await (await apost("/api/admin/mail/preview", adminKey, { ...edit, editable: false })).text();
     setPv({ type: "mail", edit, html }); setBusy("");
   }
   function openTgPreview() {
+    setAud("all");
     setPv({ type: "tg", edit: { text: tg.text || "", buttons: tgButtons, name: tg.name } });
   }
   async function refreshMailPreview() {
@@ -219,11 +240,15 @@ export default function DailyReminder({ adminKey, onGo }) {
     const d = await r.json().catch(() => ({}));
     setBusy(""); setMsg(d.ok ? { ok: true, text: `Mail de test envoyé à ${TEST_EMAIL}.` } : { ok: false, text: "Échec du mail de test (redémarrage du backend requis ?)." });
   }
-  async function sendMail(c, edited) {
-    if (!confirm(`Envoyer le mail « ${c.name} » à toute la liste ?`)) return;
+  function audLabel(channel, id) {
+    const L = (channel === "mail" ? MAIL_AUDIENCES : TG_AUDIENCES).find((a) => a.id === id);
+    return L ? L.label : id;
+  }
+  async function sendMail(c, edited, audience = "all") {
+    if (!confirm(`Envoyer le mail « ${c.name} » à l'audience « ${audLabel("mail", audience)} » ?`)) return;
     setBusy("sm"); setMsg(null);
     if (edited) await apost("/api/admin/mail/templates", adminKey, c); // sauvegarde l'édition dans le template
-    const r = await apost("/api/admin/mail/campaigns", adminKey, { template_id: c.id, audience: "all" });
+    const r = await apost("/api/admin/mail/campaigns", adminKey, { template_id: c.id, audience });
     const d = await r.json().catch(() => ({}));
     setBusy("");
     if (d.ok) { markDone("mail"); setMsg({ ok: true, text: `Mail mis en file : ${d.queued ?? d.sent ?? "?"} destinataire(s).` }); setPv(null); }
@@ -235,10 +260,10 @@ export default function DailyReminder({ adminKey, onGo }) {
     const d = await r.json().catch(() => ({}));
     setBusy(""); setMsg(d.ok ? { ok: true, text: "Post de test envoyé sur ton Telegram." } : { ok: false, text: "Échec du test TG." });
   }
-  async function sendTg(text, buttons, photo = "") {
-    if (!confirm("Publier ce post Telegram à toute l'audience ?")) return;
+  async function sendTg(text, buttons, photo = "", audience = "all") {
+    if (!confirm(`Publier ce post Telegram à l'audience « ${audLabel("tg", audience)} » ?`)) return;
     setBusy("st"); setMsg(null);
-    const r = await apost("/api/admin/tg/send", adminKey, { text, photo: photo || "", buttons, audience: "all" });
+    const r = await apost("/api/admin/tg/send", adminKey, { text, photo: photo || "", buttons, audience });
     const d = await r.json().catch(() => ({}));
     setBusy("");
     if (d.ok) { markDone("tg"); setMsg({ ok: true, text: `Post TG en cours d'envoi (${d.reachable ?? "?"}).` }); setPv(null); }
@@ -250,9 +275,9 @@ export default function DailyReminder({ adminKey, onGo }) {
     let channel, payload;
     if (pv.type === "mail") {
       await apost("/api/admin/mail/templates", adminKey, pv.edit); // sauvegarde l'édition
-      channel = "mail"; payload = { template_id: pv.edit.id, audience: "all", subject_override: pv.edit.subject };
+      channel = "mail"; payload = { template_id: pv.edit.id, audience: aud, subject_override: pv.edit.subject };
     } else {
-      channel = "tg"; payload = { text: pv.edit.text, photo: pv.edit.photo || "", buttons: pv.edit.buttons || [], audience: "all" };
+      channel = "tg"; payload = { text: pv.edit.text, photo: pv.edit.photo || "", buttons: pv.edit.buttons || [], audience: aud };
     }
     const r = await apost("/api/admin/schedule", adminKey, { channel, run_at_local: schedAt, payload });
     const d = await r.json().catch(() => ({}));
@@ -439,6 +464,17 @@ export default function DailyReminder({ adminKey, onGo }) {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 px-5 py-2.5 border-t hairline">
+              <span className="text-[11px] text-mist/70">📨 Audience :</span>
+              <select value={aud} onChange={(e) => setAud(e.target.value)}
+                className="rounded-lg bg-ink-900 border hairline px-2 py-1.5 text-[12px] text-bone outline-none">
+                {(pv.type === "mail" ? MAIL_AUDIENCES : TG_AUDIENCES).map((a) => (
+                  <option key={a.id} value={a.id} style={{ background: "#1a1f2e", color: "#e5dfc8" }}>{a.label}</option>
+                ))}
+              </select>
+              <span className="text-[10.5px] text-mist/50">s&apos;applique à l&apos;envoi instantané et programmé</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 px-5 py-2.5 border-t hairline">
               <span className="text-[11px] text-mist/70">🕒 Programmer (heure FR) :</span>
               <input type="datetime-local" value={schedAt} onChange={(e) => setSchedAt(e.target.value)}
                      className="rounded-lg bg-ink-900 border hairline px-2 py-1.5 text-[12px] text-bone outline-none" />
@@ -450,12 +486,12 @@ export default function DailyReminder({ adminKey, onGo }) {
               {pv.type === "mail" ? (
                 <>
                   <button className={Bsm} disabled={busy === "tm"} onClick={() => testMail(pv.edit)}>{busy === "tm" ? "…" : "🧪 Test"}</button>
-                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "sm"} onClick={() => sendMail(pv.edit, true)}>{busy === "sm" ? "…" : "📤 Envoyer"}</button>
+                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "sm"} onClick={() => sendMail(pv.edit, true, aud)}>{busy === "sm" ? "…" : "📤 Envoyer"}</button>
                 </>
               ) : (
                 <>
                   <button className={Bsm} disabled={busy === "tt"} onClick={() => testTg(pv.edit.text, pv.edit.buttons, pv.edit.photo)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
-                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "st"} onClick={() => sendTg(pv.edit.text, pv.edit.buttons, pv.edit.photo)}>{busy === "st" ? "…" : "📤 Publier"}</button>
+                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "st"} onClick={() => sendTg(pv.edit.text, pv.edit.buttons, pv.edit.photo, aud)}>{busy === "st" ? "…" : "📤 Publier"}</button>
                 </>
               )}
             </div>

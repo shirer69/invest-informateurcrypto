@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { API_BASE } from "@/lib/site";
 
-const PREFIX = "📣 Acq"; // templates d'acquisition (rotation quotidienne)
+const PREFIX = "📣 Acq";
+const TEST_EMAIL = "alexis.myc@gmail.com";
+const ADMIN_TG = "8463798074";
 
 function todayKey() {
   const d = new Date();
@@ -14,22 +16,17 @@ function dayIndex() {
   const start = new Date(d.getFullYear(), 0, 0);
   return Math.floor((d - start) / 86400000);
 }
-
-// Rend le texte Telegram (sous-ensemble HTML : b/i/u/s/code/pre/a + sauts de ligne)
 function tgToHtml(s) {
   let h = (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   h = h.replace(/&lt;(\/?)(b|strong|i|em|u|s|code|pre)&gt;/g, "<$1$2>");
   h = h.replace(/&lt;a href="([^"]+)"&gt;/g, '<a href="$1">').replace(/&lt;\/a&gt;/g, "</a>");
   return h.replace(/\n/g, "<br/>");
 }
-
 async function aget(path, key) {
-  try {
-    const r = await fetch(`${API_BASE}${path}`, { headers: { "x-admin-key": key }, cache: "no-store" });
-    return await r.json();
-  } catch { return {}; }
+  try { return await (await fetch(`${API_BASE}${path}`, { headers: { "x-admin-key": key }, cache: "no-store" })).json(); }
+  catch { return {}; }
 }
-async function apost(path, key, body) {
+function apost(path, key, body) {
   return fetch(`${API_BASE}${path}`, {
     method: "POST", headers: { "x-admin-key": key, "Content-Type": "application/json" },
     body: JSON.stringify(body || {}),
@@ -43,7 +40,7 @@ export default function DailyReminder({ adminKey, onGo }) {
   const [tgs, setTgs] = useState([]);
   const [mIdx, setMIdx] = useState(0);
   const [tIdx, setTIdx] = useState(0);
-  const [preview, setPreview] = useState(null);
+  const [pv, setPv] = useState(null); // {type, edit, html?}
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null);
   const [doneMail, setDoneMail] = useState(false);
@@ -66,9 +63,7 @@ export default function DailyReminder({ adminKey, onGo }) {
       const tl = (t.templates || []).filter((x) => (x.name || "").startsWith(PREFIX));
       setMails(ml); setTgs(tl);
       const i = dayIndex();
-      // index du jour, ou choix mémorisé pour aujourd'hui s'il existe
-      let mi = ml.length ? i % ml.length : 0;
-      let ti = tl.length ? i % tl.length : 0;
+      let mi = ml.length ? i % ml.length : 0, ti = tl.length ? i % tl.length : 0;
       try {
         if (localStorage.getItem("pi_acq_day") === tk) {
           const sm = parseInt(localStorage.getItem("pi_acq_mi") ?? "", 10);
@@ -77,77 +72,82 @@ export default function DailyReminder({ adminKey, onGo }) {
           if (!isNaN(st) && tl.length) ti = ((st % tl.length) + tl.length) % tl.length;
         }
       } catch {}
-      setMIdx(mi); setTIdx(ti);
-      setReady(true);
+      setMIdx(mi); setTIdx(ti); setReady(true);
     })();
   }, [adminKey]);
 
   const mail = mails[mIdx] || null;
   const tg = tgs[tIdx] || null;
+  const tgButtons = (() => { try { return JSON.parse(tg?.buttons || "[]"); } catch { return []; } })();
 
-  function persistIdx(mi, ti) {
+  function persist(mi, ti) {
     try {
       localStorage.setItem("pi_acq_day", todayKey());
       localStorage.setItem("pi_acq_mi", String(mi));
       localStorage.setItem("pi_acq_ti", String(ti));
     } catch {}
   }
-  function cycleMail(dir) {
-    if (!mails.length) return;
-    const ni = ((mIdx + dir) % mails.length + mails.length) % mails.length;
-    setMIdx(ni); persistIdx(ni, tIdx); setMsg(null);
-  }
-  function cycleTg(dir) {
-    if (!tgs.length) return;
-    const ni = ((tIdx + dir) % tgs.length + tgs.length) % tgs.length;
-    setTIdx(ni); persistIdx(mIdx, ni); setMsg(null);
-  }
-
+  function cycleMail(d) { if (mails.length) { const n = ((mIdx + d) % mails.length + mails.length) % mails.length; setMIdx(n); persist(n, tIdx); setMsg(null); } }
+  function cycleTg(d) { if (tgs.length) { const n = ((tIdx + d) % tgs.length + tgs.length) % tgs.length; setTIdx(n); persist(mIdx, n); setMsg(null); } }
   function toggleMin(v) { setMin(v); try { localStorage.setItem("pi_reminder_min", v ? "1" : "0"); } catch {} }
-  function markDone(kind) {
-    try { localStorage.setItem(`pi_done_${kind}_` + todayKey(), "1"); } catch {}
-    if (kind === "mail") setDoneMail(true); else setDoneTg(true);
+  function markDone(k) { try { localStorage.setItem(`pi_done_${k}_` + todayKey(), "1"); } catch {} k === "mail" ? setDoneMail(true) : setDoneTg(true); }
+
+  // ── Aperçu (éditable) ──
+  async function openMailPreview() {
+    setBusy("pm");
+    const edit = { id: mail.id, name: mail.name, subject: mail.subject || "", intro: mail.intro || "",
+      body_html: mail.body_html || "", cta_label: mail.cta_label || "", cta_url: mail.cta_url || "", footnote: mail.footnote || "" };
+    const html = await (await apost("/api/admin/mail/preview", adminKey, { ...edit, editable: false })).text();
+    setPv({ type: "mail", edit, html }); setBusy("");
+  }
+  function openTgPreview() {
+    setPv({ type: "tg", edit: { text: tg.text || "", buttons: tgButtons, name: tg.name } });
+  }
+  async function refreshMailPreview() {
+    setBusy("rp");
+    const html = await (await apost("/api/admin/mail/preview", adminKey, { ...pv.edit, editable: false })).text();
+    setPv((p) => ({ ...p, html })); setBusy("");
   }
 
-  async function previewMail() {
-    setBusy("pm");
-    const r = await apost("/api/admin/mail/preview", adminKey, { ...mail, editable: false });
-    setPreview({ type: "mail", html: await r.text() });
-    setBusy("");
+  // ── Actions (content = template courant OU édité) ──
+  async function testMail(c) {
+    setBusy("tm"); setMsg(null);
+    const r = await apost("/api/admin/mail/test", adminKey, { email: TEST_EMAIL, ...c });
+    const d = await r.json().catch(() => ({}));
+    setBusy(""); setMsg(d.ok ? { ok: true, text: `Mail de test envoyé à ${TEST_EMAIL}.` } : { ok: false, text: "Échec du mail de test (redémarrage du backend requis ?)." });
   }
-  function previewTg() {
-    let buttons = [];
-    try { buttons = JSON.parse(tg.buttons || "[]"); } catch {}
-    setPreview({ type: "tg", text: tg.text || "", buttons });
-  }
-  async function sendMail() {
-    if (!confirm(`Envoyer le mail « ${mail.name} » à toute la liste (comptes email réels) ?`)) return;
+  async function sendMail(c, edited) {
+    if (!confirm(`Envoyer le mail « ${c.name} » à toute la liste ?`)) return;
     setBusy("sm"); setMsg(null);
-    const r = await apost("/api/admin/mail/campaigns", adminKey, { template_id: mail.id, audience: "all" });
+    if (edited) await apost("/api/admin/mail/templates", adminKey, c); // sauvegarde l'édition dans le template
+    const r = await apost("/api/admin/mail/campaigns", adminKey, { template_id: c.id, audience: "all" });
     const d = await r.json().catch(() => ({}));
     setBusy("");
-    if (d.ok) { markDone("mail"); setMsg({ ok: true, text: `Mail mis en file : ${d.queued ?? d.sent ?? "?"} destinataire(s).` }); }
+    if (d.ok) { markDone("mail"); setMsg({ ok: true, text: `Mail mis en file : ${d.queued ?? d.sent ?? "?"} destinataire(s).` }); setPv(null); }
     else setMsg({ ok: false, text: "Échec de l'envoi du mail." });
   }
-  async function sendTg() {
-    if (!confirm(`Publier le post Telegram « ${tg.name} » ?`)) return;
+  async function testTg(text, buttons) {
+    setBusy("tt"); setMsg(null);
+    const r = await apost("/api/admin/tg/preview", adminKey, { tg_id: ADMIN_TG, text, buttons, name: "Admin" });
+    const d = await r.json().catch(() => ({}));
+    setBusy(""); setMsg(d.ok ? { ok: true, text: "Post de test envoyé sur ton Telegram." } : { ok: false, text: "Échec du test TG." });
+  }
+  async function sendTg(text, buttons) {
+    if (!confirm("Publier ce post Telegram à toute l'audience ?")) return;
     setBusy("st"); setMsg(null);
-    let buttons = [];
-    try { buttons = JSON.parse(tg.buttons || "[]"); } catch {}
-    const r = await apost("/api/admin/tg/send", adminKey, { text: tg.text || "", photo: tg.photo || "", buttons, audience: "all" });
+    const r = await apost("/api/admin/tg/send", adminKey, { text, photo: tg.photo || "", buttons, audience: "all" });
     const d = await r.json().catch(() => ({}));
     setBusy("");
-    if (d.ok) { markDone("tg"); setMsg({ ok: true, text: `Post TG en cours d'envoi (${d.reachable ?? "?"} destinataire(s)).` }); }
+    if (d.ok) { markDone("tg"); setMsg({ ok: true, text: `Post TG en cours d'envoi (${d.reachable ?? "?"}).` }); setPv(null); }
     else setMsg({ ok: false, text: "Échec de l'envoi TG." });
   }
 
   if (!ready) return null;
   const allDone = doneMail && doneTg;
-  const SBtn = "rounded-lg px-2.5 py-1.5 text-[11.5px] border hairline text-mist hover:text-bone transition-colors disabled:opacity-50";
-  const Arrow = ({ dir, onClick }) => (
-    <button onClick={onClick} className="h-6 w-6 grid place-items-center rounded-md border hairline text-mist hover:text-bone text-[12px]" title="Changer de template">
-      {dir < 0 ? "‹" : "›"}
-    </button>
+  const Bsm = "rounded-lg px-2 py-1.5 text-[11px] border hairline text-mist hover:text-bone transition-colors disabled:opacity-50";
+  const Bgold = "rounded-lg px-2.5 py-1.5 text-[11px] btn-gold font-semibold disabled:opacity-60";
+  const Arrow = ({ d, onClick }) => (
+    <button onClick={onClick} className="h-6 w-6 grid place-items-center rounded-md border hairline text-mist hover:text-bone text-[12px]" title="Changer">{d < 0 ? "‹" : "›"}</button>
   );
   const Status = ({ done }) => done
     ? <span className="text-[10.5px] font-semibold text-emerald-400">✅ Envoyé</span>
@@ -156,21 +156,21 @@ export default function DailyReminder({ adminKey, onGo }) {
   if (min) {
     return (
       <button onClick={() => toggleMin(false)}
-        className={`fixed bottom-5 right-5 z-[200] rounded-full border px-4 py-2.5 text-[12.5px] font-semibold shadow-2xl backdrop-blur-md ${
-          allDone ? "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300" : "border-amber-400/40 bg-amber-400/[0.08] text-amber-300"}`}>
+        className={`fixed bottom-5 right-5 z-[200] rounded-full border px-4 py-2.5 text-[12.5px] font-semibold shadow-2xl backdrop-blur-md ${allDone ? "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300" : "border-amber-400/40 bg-amber-400/[0.08] text-amber-300"}`}>
         📨 Envois du jour : {(doneMail ? 1 : 0) + (doneTg ? 1 : 0)}/2 {allDone ? "✅" : ""}
       </button>
     );
   }
 
+  const mailContent = mail ? { id: mail.id, name: mail.name, subject: mail.subject, intro: mail.intro, body_html: mail.body_html, cta_label: mail.cta_label, cta_url: mail.cta_url, footnote: mail.footnote } : null;
+
   return (
     <>
-      <div className="fixed bottom-5 right-5 z-[200] w-[340px] max-w-[calc(100vw-2rem)]">
+      <div className="fixed bottom-5 right-5 z-[200] w-[348px] max-w-[calc(100vw-2rem)]">
         <div className={`rounded-2xl border bg-ink-900/95 backdrop-blur-md shadow-2xl overflow-hidden ${allDone ? "border-emerald-500/40" : "gold-line"}`}>
           <div className="flex items-center justify-between px-4 pt-3.5">
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">📨 Envois du jour</span>
-            <button onClick={() => toggleMin(true)} aria-label="Réduire" title="Réduire"
-                    className="h-7 w-7 grid place-items-center rounded-full border hairline text-mist hover:text-bone">
+            <button onClick={() => toggleMin(true)} title="Réduire" className="h-7 w-7 grid place-items-center rounded-full border hairline text-mist hover:text-bone">
               <span className="block w-3 h-px bg-current" />
             </button>
           </div>
@@ -180,88 +180,108 @@ export default function DailyReminder({ adminKey, onGo }) {
                        : <>Pense à envoyer <b>1 email</b> et <b>1 post Telegram</b> aujourd&apos;hui.</>}
             </p>
 
-            {/* Email du jour */}
+            {/* Email */}
             <div className="mt-3 rounded-xl border hairline bg-ink-800/50 p-2.5">
               <div className="flex items-center justify-between">
-                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Email du jour</div>
-                <Status done={doneMail} />
+                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Email du jour</div><Status done={doneMail} />
               </div>
               <div className="mt-1 flex items-center gap-1.5">
-                <Arrow dir={-1} onClick={() => cycleMail(-1)} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] text-bone truncate">{mail?.name || "—"}</div>
-                  {mail?.subject && <div className="text-[11px] text-mist/70 truncate">{mail.subject}</div>}
-                </div>
+                <Arrow d={-1} onClick={() => cycleMail(-1)} />
+                <div className="flex-1 min-w-0"><div className="text-[13px] text-bone truncate">{mail?.name || "—"}</div>{mail?.subject && <div className="text-[11px] text-mist/70 truncate">{mail.subject}</div>}</div>
                 <span className="font-mono text-[9px] text-mist/40">{mails.length ? mIdx + 1 : 0}/{mails.length}</span>
-                <Arrow dir={1} onClick={() => cycleMail(1)} />
+                <Arrow d={1} onClick={() => cycleMail(1)} />
               </div>
-              <div className="mt-2 flex gap-2">
-                <button className={SBtn} disabled={!mail || busy === "pm"} onClick={previewMail}>{busy === "pm" ? "…" : "👁 Aperçu"}</button>
-                <button className="rounded-lg px-2.5 py-1.5 text-[11.5px] btn-gold font-semibold disabled:opacity-60"
-                        disabled={!mail || busy === "sm"} onClick={sendMail}>{busy === "sm" ? "…" : (doneMail ? "↻ Renvoyer" : "📤 Envoyer")}</button>
+              <div className="mt-2 flex gap-1.5">
+                <button className={Bsm} disabled={!mail || busy === "pm"} onClick={openMailPreview}>{busy === "pm" ? "…" : "👁 Aperçu"}</button>
+                <button className={Bsm} disabled={!mail || busy === "tm"} onClick={() => testMail(mailContent)}>{busy === "tm" ? "…" : "🧪 Test"}</button>
+                <button className={Bgold} disabled={!mail || busy === "sm"} onClick={() => sendMail(mailContent, false)}>{busy === "sm" ? "…" : (doneMail ? "↻" : "📤 Envoyer")}</button>
               </div>
             </div>
 
-            {/* Post TG du jour */}
+            {/* Telegram */}
             <div className="mt-2 rounded-xl border hairline bg-ink-800/50 p-2.5">
               <div className="flex items-center justify-between">
-                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Post Telegram du jour</div>
-                <Status done={doneTg} />
+                <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Post Telegram du jour</div><Status done={doneTg} />
               </div>
               <div className="mt-1 flex items-center gap-1.5">
-                <Arrow dir={-1} onClick={() => cycleTg(-1)} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[13px] text-bone truncate">{tg?.name || "—"}</div>
-                </div>
+                <Arrow d={-1} onClick={() => cycleTg(-1)} />
+                <div className="flex-1 min-w-0"><div className="text-[13px] text-bone truncate">{tg?.name || "—"}</div></div>
                 <span className="font-mono text-[9px] text-mist/40">{tgs.length ? tIdx + 1 : 0}/{tgs.length}</span>
-                <Arrow dir={1} onClick={() => cycleTg(1)} />
+                <Arrow d={1} onClick={() => cycleTg(1)} />
               </div>
-              <div className="mt-2 flex gap-2">
-                <button className={SBtn} disabled={!tg} onClick={previewTg}>👁 Aperçu</button>
-                <button className="rounded-lg px-2.5 py-1.5 text-[11.5px] btn-gold font-semibold disabled:opacity-60"
-                        disabled={!tg || busy === "st"} onClick={sendTg}>{busy === "st" ? "…" : (doneTg ? "↻ Republier" : "📤 Publier")}</button>
+              <div className="mt-2 flex gap-1.5">
+                <button className={Bsm} disabled={!tg} onClick={openTgPreview}>👁 Aperçu</button>
+                <button className={Bsm} disabled={!tg || busy === "tt"} onClick={() => testTg(tg.text, tgButtons)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
+                <button className={Bgold} disabled={!tg || busy === "st"} onClick={() => sendTg(tg.text, tgButtons)}>{busy === "st" ? "…" : (doneTg ? "↻" : "📤 Publier")}</button>
               </div>
             </div>
 
             {msg && <div className={`mt-2.5 text-[12px] ${msg.ok ? "text-emerald-400" : "text-red-400"}`}>{msg.text}</div>}
-
-            <button onClick={() => { if (onGo) onGo(); }}
-                    className="mt-3 w-full rounded-full px-4 py-2 text-[12.5px] border hairline text-mist hover:text-bone">
-              Ouvrir l&apos;éditeur d&apos;emails
-            </button>
+            <button onClick={() => onGo && onGo()} className="mt-3 w-full rounded-full px-4 py-2 text-[12.5px] border hairline text-mist hover:text-bone">Ouvrir l&apos;éditeur d&apos;emails</button>
           </div>
         </div>
       </div>
 
-      {preview && (
+      {/* Modal aperçu éditable */}
+      {pv && (
         <div className="fixed inset-0 z-[210] grid place-items-center p-4">
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setPreview(null)} />
-          <div className="relative w-full max-w-2xl max-h-[88vh] rounded-2xl border gold-line bg-ink-900 overflow-hidden flex flex-col">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setPv(null)} />
+          <div className="relative w-full max-w-2xl max-h-[90vh] rounded-2xl border gold-line bg-ink-900 overflow-hidden flex flex-col">
             <div className="flex items-center justify-between px-5 py-3 border-b hairline">
               <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
-                Aperçu — {preview.type === "mail" ? mail?.name : tg?.name}
+                Aperçu éditable — {pv.type === "mail" ? pv.edit.name : pv.edit.name}
               </span>
-              <button onClick={() => setPreview(null)} className="text-mist hover:text-bone text-[13px]">Fermer ✕</button>
+              <button onClick={() => setPv(null)} className="text-mist hover:text-bone text-[13px]">Fermer ✕</button>
             </div>
-            <div className="overflow-auto p-4 bg-ink-800/40">
-              {preview.type === "mail" ? (
-                <iframe title="preview" srcDoc={preview.html} className="w-full h-[60vh] rounded-lg bg-white" />
+
+            <div className="overflow-auto p-4 bg-ink-800/40 space-y-3">
+              {pv.type === "mail" ? (
+                <>
+                  <label className="block text-[11px] text-mist/70">Objet
+                    <input value={pv.edit.subject} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, subject: e.target.value } }))}
+                      className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[13px] text-bone outline-none" />
+                  </label>
+                  <label className="block text-[11px] text-mist/70">Corps (HTML)
+                    <textarea rows={6} value={pv.edit.body_html} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, body_html: e.target.value } }))}
+                      className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
+                  </label>
+                  <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rafraîchir l'aperçu"}</button>
+                  <iframe title="preview" srcDoc={pv.html} className="w-full h-[42vh] rounded-lg bg-white" />
+                </>
               ) : (
-                // Aperçu fidèle Telegram : bulle de message
-                <div className="mx-auto max-w-md">
-                  <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3 shadow">
+                <>
+                  <label className="block text-[11px] text-mist/70">Texte du post (gras avec &lt;b&gt;…&lt;/b&gt;)
+                    <textarea rows={6} value={pv.edit.text} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, text: e.target.value } }))}
+                      className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[13px] text-bone outline-none" />
+                  </label>
+                  <div className="text-[11px] text-mist/60">Aperçu Telegram :</div>
+                  <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3">
                     <div className="text-[14.5px] leading-relaxed text-[#e7ebf2] [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"
-                         dangerouslySetInnerHTML={{ __html: tgToHtml(preview.text) }} />
-                    {(preview.buttons || []).flat().length > 0 && (
+                         dangerouslySetInnerHTML={{ __html: tgToHtml(pv.edit.text) }} />
+                    {(pv.edit.buttons || []).flat().length > 0 && (
                       <div className="mt-2.5 space-y-1.5">
-                        {(preview.buttons || []).flat().map((b, i) => (
+                        {(pv.edit.buttons || []).flat().map((b, i) => (
                           <div key={i} className="rounded-lg bg-[#2b5278] px-3 py-2 text-center text-[13.5px] text-[#cfe6ff]">{b.text}</div>
                         ))}
                       </div>
                     )}
-                    <div className="mt-1.5 text-right text-[10px] text-[#6d7e8f]">aperçu</div>
                   </div>
-                </div>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 px-5 py-3 border-t hairline">
+              {msg && <div className={`mr-auto text-[12px] ${msg.ok ? "text-emerald-400" : "text-red-400"}`}>{msg.text}</div>}
+              {pv.type === "mail" ? (
+                <>
+                  <button className={Bsm} disabled={busy === "tm"} onClick={() => testMail(pv.edit)}>{busy === "tm" ? "…" : "🧪 Test"}</button>
+                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "sm"} onClick={() => sendMail(pv.edit, true)}>{busy === "sm" ? "…" : "📤 Envoyer"}</button>
+                </>
+              ) : (
+                <>
+                  <button className={Bsm} disabled={busy === "tt"} onClick={() => testTg(pv.edit.text, pv.edit.buttons)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
+                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "st"} onClick={() => sendTg(pv.edit.text, pv.edit.buttons)}>{busy === "st" ? "…" : "📤 Publier"}</button>
+                </>
               )}
             </div>
           </div>

@@ -258,12 +258,11 @@ export default function Dashboard() {
   }
 
   // Gating inscription par nombre de connexions (utilisateurs non inscrits) :
-  //  • 1re–3e connexion → AUCUN gate (accès direct au dashboard verrouillé)
-  //  • 4e–7e connexion  → gate AVEC skip
-  //  • 8e connexion +   → gate OBLIGATOIRE (pas de skip)
+  //  • 1re–5e connexion → AUCUN gate (accès direct au dashboard en invité)
+  //  • 6e connexion +   → gate OBLIGATOIRE email (pas de skip)
   // ?code dans l'URL → on EXIGE la saisie du code d'invitation, quel que soit le
   // nombre de connexions (priorité sur la règle des visites).
-  if (!registered && !gateSkipped && (visitCount >= 4 || forceCode)) {
+  if (!registered && !gateSkipped && (visitCount >= 6 || forceCode)) {
     const isTgUser = emailLc.endsWith("@telegram.local");
 
     let isDirect = false;
@@ -272,9 +271,6 @@ export default function Dashboard() {
       const sp = window.Telegram?.WebApp?.initDataUnsafe?.start_param || "";
       isDirect = p.get("direct") === "1" || sp === "direct";
     } catch {}
-
-    // Skip possible entre la 4e et la 7e visite ; bloquant à partir de la 8e.
-    const canSkip = visitCount < 8 && !forceCode;
 
     const isUnlock = (() => { try { return new URLSearchParams(window.location.search).get("unlock") === "1"; } catch { return false; } })();
     const doneTab = isUnlock ? "copy" : forceCode ? "audio" : "portfolio";
@@ -285,7 +281,6 @@ export default function Dashboard() {
         <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />
         <SignupGate
           onDone={() => { window.location.href = `/dashboard?tab=${doneTab}`; }}
-          onSkip={canSkip ? () => setGateSkipped(true) : undefined}
           onLogin={() => setLoginOpen(true)}
           skipCode={!forceCode}
           initialCode={codePrefill}

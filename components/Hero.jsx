@@ -90,27 +90,14 @@ export default function Hero() {
             transition={{ duration: 1, delay: 0.38, ease }}
             className="mt-6"
           >
-            {logged && (
-              <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Votre espace</span>
-            )}
             <div className="mt-2.5 flex flex-wrap items-center gap-3.5">
-              {logged ? (
-                <a
-                  href="/dashboard"
-                  className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
-                >
-                  Mon dashboard
-                  <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </a>
-              ) : (
-                <button
-                  onClick={openJoin}
-                  className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
-                >
-                  S&apos;inscrire
-                  <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </button>
-              )}
+              <a
+                href="/dashboard"
+                className="btn-gold group inline-flex items-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold"
+              >
+                Mon dashboard
+                <IconArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </a>
               {!logged && (
                 <button
                   onClick={() => setLoginOpen(true)}
@@ -123,7 +110,7 @@ export default function Hero() {
                 href="#approche"
                 className="btn-ghost inline-flex items-center gap-2 rounded-full px-7 py-4 text-[15px]"
               >
-                Découvrir la méthode
+                3 mois offert
               </a>
             </div>
           </motion.div>

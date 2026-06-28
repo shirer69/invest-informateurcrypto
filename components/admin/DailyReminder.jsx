@@ -41,6 +41,18 @@ function tgToHtml(s) {
   h = h.replace(/&lt;a href="([^"]+)"&gt;/g, '<a href="$1">').replace(/&lt;\/a&gt;/g, "</a>");
   return h.replace(/\n/g, "<br/>");
 }
+const TRIG_LABELS = {
+  nouvelle_video: "🎬 Nouvelle vidéo", nouvelle_video_youtube: "🎬 Nouvelle vidéo",
+  nouveau_audio: "🎙️ Nouvel audio", inscription: "📝 Inscription", bienvenue_j1: "👋 Bienvenue J+1",
+  copy_access_granted: "✅ Accès copy", trade_cloture_safe: "📊 Trade clôturé",
+  iiban_pending_j3: "⏳ IIBAN relance J+3", iiban_pending_j7: "⏳ IIBAN relance J+7",
+};
+function trigLabel(id) { return TRIG_LABELS[id] || ("⚡ " + (id || "").replace(/_/g, " ")); }
+function hhmm(ts) {
+  try { return new Date(ts * 1000).toLocaleTimeString("fr-FR", { timeZone: "Europe/Paris", hour: "2-digit", minute: "2-digit" }); }
+  catch { return ""; }
+}
+function stripTags(s) { return (s || "").replace(/<[^>]+>/g, "").trim(); }
 async function aget(path, key) {
   try { return await (await fetch(`${API_BASE}${path}`, { headers: { "x-admin-key": key }, cache: "no-store" })).json(); }
   catch { return {}; }
@@ -139,6 +151,7 @@ export default function DailyReminder({ adminKey, onGo }) {
   const [aud, setAud] = useState("all");
   const [doneMail, setDoneMail] = useState(false);
   const [doneTg, setDoneTg] = useState(false);
+  const [trigs, setTrigs] = useState([]);
 
   useEffect(() => {
     if (!adminKey) return;
@@ -168,6 +181,13 @@ export default function DailyReminder({ adminKey, onGo }) {
       } catch {}
       setMIdx(mi); setTIdx(ti); setReady(true);
     })();
+    const loadTrigs = async () => {
+      const d = await aget("/api/admin/triggers/today", adminKey);
+      setTrigs(d.items || []);
+    };
+    loadTrigs();
+    const iv = setInterval(loadTrigs, 60000);
+    return () => clearInterval(iv);
   }, [adminKey]);
 
   const mail = mails[mIdx] || null;
@@ -311,6 +331,36 @@ export default function DailyReminder({ adminKey, onGo }) {
   return (
     <>
       <div className="fixed bottom-5 right-5 z-[200] w-[348px] max-w-[calc(100vw-2rem)]">
+        {/* Bloc : déclenchements automatiques du jour */}
+        <div className="mb-2 rounded-2xl border hairline bg-ink-900/95 backdrop-blur-md shadow-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 pt-3 pb-1.5">
+            <span className="font-mono text-[10px] uppercase tracking-widest2 text-sky-300/80">⚡ Déclenchés aujourd&apos;hui</span>
+            <span className="font-mono text-[9px] text-mist/50">{trigs.length}</span>
+          </div>
+          {trigs.length === 0 ? (
+            <p className="px-4 pb-3 text-[12px] text-mist/60">Aucun post mail/TG déclenché par un trigger aujourd&apos;hui.</p>
+          ) : (
+            <div className="px-3 pb-3 pt-0.5 max-h-[38vh] overflow-auto space-y-1.5">
+              {trigs.map((t, i) => (
+                <div key={i} className="rounded-xl border hairline bg-ink-800/50 px-2.5 py-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[12px] text-bone truncate">{t.kind === "mail" ? "📧" : "✈️"} {trigLabel(t.trigger)}</span>
+                    <span className="font-mono text-[9.5px] text-mist/50 shrink-0">{hhmm(t.ts)}</span>
+                  </div>
+                  {stripTags(t.title) && <div className="text-[11px] text-mist/70 truncate">{stripTags(t.title)}</div>}
+                  <div className="mt-0.5 text-[10px] text-mist/50">
+                    {t.kind === "mail"
+                      ? (t.pending > 0 ? `${t.pending} en file` : `${t.sent} envoyé${t.sent > 1 ? "s" : ""}`)
+                      : `${t.sent}/${t.total || t.sent} envoyé${t.sent > 1 ? "s" : ""}`}
+                    {t.failed > 0 && <span className="text-red-400/70"> · {t.failed} échec{t.failed > 1 ? "s" : ""}</span>}
+                    {t.audience && <span className="text-mist/40"> · {t.audience}</span>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
         <div className={`rounded-2xl border bg-ink-900/95 backdrop-blur-md shadow-2xl overflow-hidden ${allDone ? "border-emerald-500/40" : "gold-line"}`}>
           <div className="flex items-center justify-between px-4 pt-3.5">
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">📨 Envois du jour</span>

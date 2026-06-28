@@ -39,6 +39,7 @@ const MAIL_TABS = [
   { id: "campaigns",   label: "📤 Campagnes" },
   { id: "history",     label: "📜 Historique" },
   { id: "automations", label: "⚙️ Automatisations" },
+  { id: "stats",       label: "📊 Stats" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -87,6 +88,95 @@ export default function EmailAdmin({ adminKey }) {
       {sub === "campaigns"   && <CampaignsSection adminKey={adminKey} templates={templates} campaigns={campaigns} onReload={reload} />}
       {sub === "history"     && <HistorySection campaigns={campaigns} onReload={reload} />}
       {sub === "automations" && <AutomationsSection adminKey={adminKey} templates={templates} automations={automations} onReload={reload} />}
+      {sub === "stats"       && <StatsSection adminKey={adminKey} />}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SECTION — Stats (expédié / rebond / ouvert / cliqué)
+   ═══════════════════════════════════════════════════════════════════════════ */
+function StatsSection({ adminKey }) {
+  const [data, setData] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    const r = await aGet("/api/admin/mail/stats", adminKey);
+    setData(r || { campaigns: [], totals: {} });
+    setBusy(false);
+  }, [adminKey]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const pct = (a, b) => (b > 0 ? Math.round((a / b) * 100) : 0);
+  const T = data?.totals || {};
+  const rows = data?.campaigns || [];
+
+  const KPI = ({ label, value, sub }) => (
+    <div className="rounded-xl border hairline bg-ink-800/40 p-4">
+      <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60">{label}</div>
+      <div className="mt-1 font-display text-[24px] text-bone">{value ?? 0}</div>
+      {sub != null && <div className="text-[11px] text-mist/60">{sub}</div>}
+    </div>
+  );
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[13px] text-mist">
+          Statistiques d'envoi des emails (par campagne / objet). Ouvertures via pixel, clics via redirection.
+        </p>
+        <button onClick={load} className="rounded-lg px-3 py-1.5 text-[12.5px] border hairline text-mist hover:text-bone">
+          {busy ? "…" : "Rafraîchir"}
+        </button>
+      </div>
+
+      {/* KPIs globaux */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        <KPI label="Expédiés" value={T.sent} />
+        <KPI label="Rebonds" value={T.bounce} sub={`${pct(T.bounce, (T.sent || 0) + (T.bounce || 0))}%`} />
+        <KPI label="Ouverts" value={T.opened} sub={`${pct(T.opened, T.sent)}%`} />
+        <KPI label="Cliqués" value={T.clicked} sub={`${pct(T.clicked, T.sent)}%`} />
+        <KPI label="Bloqués (liste)" value={T.suppressed} />
+      </div>
+
+      {/* Tableau par campagne */}
+      <div className="rounded-2xl border hairline bg-ink-800/40 overflow-x-auto">
+        <table className="w-full text-[13px]">
+          <thead>
+            <tr className="text-left text-mist/60 font-mono text-[10px] uppercase tracking-widest2 border-b hairline">
+              <th className="px-4 py-3">Campagne</th>
+              <th className="px-3 py-3 text-right">Expédiés</th>
+              <th className="px-3 py-3 text-right">Rebonds</th>
+              <th className="px-3 py-3 text-right">Ouverts</th>
+              <th className="px-3 py-3 text-right">Cliqués</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.length === 0 && (
+              <tr><td colSpan={5} className="px-4 py-6 text-center text-mist/50">Aucun envoi pour l'instant.</td></tr>
+            )}
+            {rows.map((c, i) => (
+              <tr key={i} className="border-b hairline/50 hover:bg-white/[0.02]">
+                <td className="px-4 py-3 text-bone max-w-[280px] truncate">{c.campaign || "—"}</td>
+                <td className="px-3 py-3 text-right text-bone">{c.sent || 0}</td>
+                <td className="px-3 py-3 text-right text-red-400/80">{c.bounce || 0}</td>
+                <td className="px-3 py-3 text-right text-emerald-400/90">
+                  {c.opened || 0} <span className="text-mist/50 text-[11px]">({pct(c.opened, c.sent)}%)</span>
+                </td>
+                <td className="px-3 py-3 text-right text-gold">
+                  {c.clicked || 0} <span className="text-mist/50 text-[11px]">({pct(c.clicked, c.sent)}%)</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="text-[11px] text-mist/50">
+        Note : les rebonds détectés ici proviennent des refus SMTP et des domaines sans MX / adresses invalides
+        (ces adresses sont automatiquement exclues des envois suivants).
+      </p>
     </div>
   );
 }

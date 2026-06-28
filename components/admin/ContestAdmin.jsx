@@ -61,6 +61,11 @@ export default function ContestAdmin({ adminKey }) {
   const [pubMsg, setPubMsg] = useState("");
   const [templates, setTemplates] = useState(null);
 
+  // Email promo
+  const [emailBusy, setEmailBusy] = useState(false);
+  const [emailMsg, setEmailMsg] = useState("");
+  const [emailPreviewOpen, setEmailPreviewOpen] = useState(false);
+
   const headers = { "x-admin-key": adminKey, "Content-Type": "application/json" };
 
   const load = useCallback(async () => {
@@ -150,6 +155,22 @@ export default function ContestAdmin({ adminKey }) {
     if (!selected) return;
     await fetch(`${API_BASE}/api/admin/contest/mark-paid/${selected}`, { method: "POST", headers, body: "{}" });
     load();
+  }
+
+  async function handleSendEmail() {
+    if (!selected) return;
+    if (!window.confirm("Envoyer l'email promo à TOUS les utilisateurs de la base ?")) return;
+    setEmailBusy(true); setEmailMsg("");
+    const r = await fetch(`${API_BASE}/api/admin/contest/send-email/${selected}`, {
+      method: "POST", headers, body: "{}",
+    });
+    const d = await r.json();
+    setEmailBusy(false);
+    if (d.ok) {
+      setEmailMsg(`✓ Envoyé : ${d.sent} · Ignorés : ${d.skipped} · Échecs : ${d.failed} (total ${d.total})`);
+    } else {
+      setEmailMsg("Erreur : " + (d.error || "inconnue"));
+    }
   }
 
   async function handlePublish(e) {
@@ -410,6 +431,44 @@ export default function ContestAdmin({ adminKey }) {
             {pubBusy ? "Publication…" : `Publier sur ${pubChannels.length} canal${pubChannels.length > 1 ? "ux" : ""}`}
           </button>
           {pubMsg && <p className={`text-[12.5px] ${pubMsg.startsWith("✓") ? "text-emerald-400" : "text-rose-400"}`}>{pubMsg}</p>}
+        </div>
+
+        {/* Publication Email (promo uniquement) */}
+        <div className="rounded-2xl border hairline bg-ink-800/40 p-5 space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/70">Publication Email — Promo</div>
+              <p className="text-[12px] text-mist/50 mt-1">Envoie l&apos;email avec l&apos;image promo à tous les utilisateurs de la base.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEmailPreviewOpen((v) => !v)}
+              className="btn-ghost rounded-full px-4 py-1.5 text-[12px]">
+              {emailPreviewOpen ? "Masquer l'aperçu" : "👁 Aperçu email"}
+            </button>
+          </div>
+
+          {emailPreviewOpen && (
+            <iframe
+              src={`${API_BASE}/api/admin/contest/email-preview/${selected}?key=${adminKey}`}
+              title="Aperçu email"
+              className="w-full rounded-xl border border-white/10"
+              style={{ height: 520, background: "#070A0F" }}
+            />
+          )}
+
+          <button
+            type="button"
+            onClick={handleSendEmail}
+            disabled={emailBusy}
+            className="btn-gold w-full rounded-full py-3 text-[14px] font-semibold disabled:opacity-50">
+            {emailBusy ? "Envoi en cours…" : "📧 Envoyer l'email promo à tous les membres"}
+          </button>
+          {emailMsg && (
+            <p className={`text-[12.5px] ${emailMsg.startsWith("✓") ? "text-emerald-400" : "text-rose-400"}`}>
+              {emailMsg}
+            </p>
+          )}
         </div>
 
         {/* Classement */}

@@ -60,8 +60,6 @@ export default function ContestAdmin({ adminKey }) {
   const [pubBusy, setPubBusy] = useState(false);
   const [pubMsg, setPubMsg] = useState("");
   const [templates, setTemplates] = useState(null);
-  const [promoPreviewUrl, setPromoPreviewUrl] = useState(null);
-  const [previewBusy, setPreviewBusy] = useState(false);
 
   const headers = { "x-admin-key": adminKey, "Content-Type": "application/json" };
 
@@ -89,8 +87,10 @@ export default function ContestAdmin({ adminKey }) {
       .then((d) => {
         if (d.ok) {
           setTemplates(d);
-          setPubText(d.promo.text);
-          setPubBtnText(d.promo.buttons[0]?.text || "Participer →");
+          // Promo : image fixe + pas de texte par défaut
+          setPubPhoto(d.promo.photo || "");
+          setPubText("");
+          setPubBtnText(d.promo.buttons[0]?.text || "🎯 Participer maintenant →");
           setPubBtnUrl(d.promo.buttons[0]?.url || DASH_URL);
         }
       });
@@ -100,12 +100,14 @@ export default function ContestAdmin({ adminKey }) {
   useEffect(() => {
     if (!templates) return;
     if (pubKind === "promo") {
-      setPubText(templates.promo.text);
-      setPubBtnText(templates.promo.buttons[0]?.text || "Prédire maintenant →");
+      setPubPhoto(templates.promo.photo || "");
+      setPubText("");
+      setPubBtnText(templates.promo.buttons[0]?.text || "🎯 Participer maintenant →");
       setPubBtnUrl(templates.promo.buttons[0]?.url || DASH_URL);
     } else {
-      setPubText(templates.result.text);
-      setPubBtnText(templates.result.buttons[0]?.text || "Prochain concours →");
+      setPubPhoto("");
+      setPubText(templates.result.text || "");
+      setPubBtnText(templates.result.buttons[0]?.text || "🎯 Prochain concours →");
       setPubBtnUrl(templates.result.buttons[0]?.url || DASH_URL);
     }
   }, [pubKind, templates]);
@@ -148,19 +150,6 @@ export default function ContestAdmin({ adminKey }) {
     if (!selected) return;
     await fetch(`${API_BASE}/api/admin/contest/mark-paid/${selected}`, { method: "POST", headers, body: "{}" });
     load();
-  }
-
-  async function handlePreviewImage() {
-    if (!selected) return;
-    setPreviewBusy(true);
-    const ch = pubChannels[0] || "-1001175984072";
-    const url = `${API_BASE}/api/admin/contest/promo-image/${selected}?channel=${encodeURIComponent(ch)}`;
-    const r = await fetch(url, { headers: { "x-admin-key": adminKey } });
-    if (r.ok) {
-      const blob = await r.blob();
-      setPromoPreviewUrl(URL.createObjectURL(blob));
-    }
-    setPreviewBusy(false);
   }
 
   async function handlePublish(e) {
@@ -382,50 +371,18 @@ export default function ContestAdmin({ adminKey }) {
             </div>
           </div>
 
-          {/* Image promo générée automatiquement */}
-          {pubKind === "promo" && (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 flex-wrap">
-                <p className="text-[12px] text-mist/60">
-                  Image promo générée automatiquement à partir des données du concours.
-                </p>
-                <button type="button" onClick={handlePreviewImage} disabled={previewBusy}
-                  className="btn-ghost rounded-full px-4 py-1.5 text-[12px] disabled:opacity-50 shrink-0">
-                  {previewBusy ? "Génération…" : "🖼 Prévisualiser l'image"}
-                </button>
+          {/* Photo / aperçu */}
+          <div className="space-y-2">
+            <label className="block text-[12px] text-mist/60">URL photo</label>
+            {pubPhoto && (
+              <div className="rounded-xl overflow-hidden border border-white/10">
+                <img src={pubPhoto} alt="aperçu" className="w-full max-h-48 object-cover" />
               </div>
-              {promoPreviewUrl && (
-                <div className="rounded-2xl overflow-hidden border border-emerald-500/20">
-                  <img src={promoPreviewUrl} alt="Promo preview" className="w-full" />
-                  <div className="px-4 py-2 bg-ink-900/80 flex items-center justify-between">
-                    <span className="text-[11px] text-mist/50">Aperçu de l'image qui sera publiée</span>
-                    <a href={promoPreviewUrl} download={`concours-${selectedContest?.date}.png`}
-                      className="text-[11px] text-gold hover:text-gold-soft">
-                      ↓ Télécharger
-                    </a>
-                  </div>
-                </div>
-              )}
-              <div>
-                <label className="block text-[12px] text-mist/60 mb-1">
-                  URL photo custom (optionnel — remplace l&apos;image auto)
-                </label>
-                <input value={pubPhoto} onChange={(e) => setPubPhoto(e.target.value)}
-                  placeholder="https://... ou laisser vide pour l'image auto"
-                  className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50" />
-              </div>
-            </div>
-          )}
-
-          {/* Photo URL pour résultat */}
-          {pubKind === "result" && (
-            <div>
-              <label className="block text-[12px] text-mist/60 mb-1">URL photo (optionnel)</label>
-              <input value={pubPhoto} onChange={(e) => setPubPhoto(e.target.value)}
-                placeholder="https://... ou laisser vide"
-                className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50" />
-            </div>
-          )}
+            )}
+            <input value={pubPhoto} onChange={(e) => setPubPhoto(e.target.value)}
+              placeholder="https://..."
+              className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50" />
+          </div>
 
           {/* Texte */}
           <div>

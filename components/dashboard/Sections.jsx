@@ -1269,7 +1269,8 @@ export function MonitoringAudio() {
   const [likes, setLikes] = useState({});
   const [err, setErr] = useState(null);
   const authed = typeof window !== "undefined" && !!getToken();
-  const { openUnlock } = useUnlock();
+  const { locked, monitoringAccess, openUnlock } = useUnlock();
+  const hasFullAccess = !locked || monitoringAccess;
 
   const load = useEffect.bind ? undefined : undefined; // placeholder
   useEffect(() => {
@@ -1359,16 +1360,18 @@ export function MonitoringAudio() {
             )}
             {rest.length > 0 && (
               <>
-                <button
-                  onClick={openUnlock}
-                  className="w-full mb-3 flex items-center justify-center gap-2 rounded-xl btn-gold px-5 py-3 text-[13.5px] font-semibold shadow-lg"
-                >
-                  🔓 Obtenir l'accès <IconArrow className="h-3.5 w-3.5" />
-                </button>
+                {!hasFullAccess && (
+                  <button
+                    onClick={openUnlock}
+                    className="w-full mb-3 flex items-center justify-center gap-2 rounded-xl btn-gold px-5 py-3 text-[13.5px] font-semibold shadow-lg"
+                  >
+                    🔓 Obtenir l'accès <IconArrow className="h-3.5 w-3.5" />
+                  </button>
+                )}
                 <div className="font-mono text-[10px] uppercase tracking-widest2 text-mist/60 mb-2">Derniers posts</div>
                 <div className="space-y-3">
                   {rest.map((item) => (
-                    <div key={item.id} className="blur-[3px] select-none pointer-events-none opacity-60">
+                    <div key={item.id} className={!hasFullAccess ? "blur-[3px] select-none pointer-events-none opacity-60" : ""}>
                       {item.kind === "audio"
                         ? <AudioItem item={item} reactions={likes[String(item.msg_id)]} />
                         : <PostItem  item={item} reactions={likes[String(item.msg_id)]} first={item.id === firstPostId} />}

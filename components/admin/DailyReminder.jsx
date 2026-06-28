@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { API_BASE } from "@/lib/site";
 
 const PREFIX = "📣 Acq";
@@ -38,6 +38,72 @@ async function uploadImage(file, key) {
   const r = await fetch(`${API_BASE}/api/admin/tg/upload`, { method: "POST", headers: { "x-admin-key": key }, body: fd });
   const d = await r.json().catch(() => ({}));
   return d.url || "";
+}
+
+// Reconvertit le HTML édité (contentEditable) en markup Telegram (<b>/<i>/<u>/<s>/<a> + \n)
+function _htmlToTg(node) {
+  let out = "";
+  node.childNodes.forEach((n) => {
+    if (n.nodeType === 3) { out += n.nodeValue; return; }
+    if (n.nodeType !== 1) return;
+    const t = n.tagName.toLowerCase();
+    const inner = _htmlToTg(n);
+    if (t === "br") out += "\n";
+    else if (t === "div" || t === "p") { if (out && !out.endsWith("\n")) out += "\n"; out += inner; if (!out.endsWith("\n")) out += "\n"; }
+    else if (t === "b" || t === "strong") out += "<b>" + inner + "</b>";
+    else if (t === "i" || t === "em") out += "<i>" + inner + "</i>";
+    else if (t === "u") out += "<u>" + inner + "</u>";
+    else if (t === "s" || t === "strike" || t === "del") out += "<s>" + inner + "</s>";
+    else if (t === "a") out += '<a href="' + (n.getAttribute("href") || "") + '">' + inner + "</a>";
+    else out += inner;
+  });
+  return out;
+}
+function htmlToTgText(html) {
+  if (typeof document === "undefined") return html;
+  const d = document.createElement("div");
+  d.innerHTML = html;
+  return _htmlToTg(d).replace(/<b><\/b>|<i><\/i>|<u><\/u>/g, "").replace(/\n{3,}/g, "\n\n").replace(/^\n+|\n+$/g, "");
+}
+
+// Éditeur WYSIWYG : on édite directement le rendu. onChange reçoit l'innerHTML.
+function RichEditor({ initialHtml, onChange, dark }) {
+  const ref = useRef(null);
+  useEffect(() => { if (ref.current && ref.current.innerHTML !== (initialHtml || "")) ref.current.innerHTML = initialHtml || ""; }, []); // init une seule fois
+  const emit = () => { if (ref.current) onChange(ref.current.innerHTML); };
+  const anchorAt = () => {
+    const s = typeof window !== "undefined" && window.getSelection();
+    if (!s || !s.rangeCount) return null;
+    let n = s.getRangeAt(0).startContainer;
+    while (n && n !== ref.current) { if (n.nodeType === 1 && n.tagName === "A") return n; n = n.parentNode; }
+    return null;
+  };
+  const exec = (cmd, val) => { try { document.execCommand("styleWithCSS", false, false); document.execCommand(cmd, false, val); } catch {} emit(); };
+  const editLink = () => {
+    const a = anchorAt();
+    const url = window.prompt("Lien (URL) — laisser vide pour retirer le lien :", a ? a.getAttribute("href") || "" : "https://");
+    if (url === null) return;
+    if (a) { if (url.trim() === "") { a.replaceWith(document.createTextNode(a.textContent)); } else { a.setAttribute("href", url.trim()); } emit(); return; }
+    if (url.trim() === "") return;
+    const s = window.getSelection();
+    if (s && !s.isCollapsed) exec("createLink", url.trim());
+    else { document.execCommand("insertHTML", false, `<a href="${url.trim()}">${url.trim()}</a>`); emit(); }
+  };
+  const TB = "h-7 min-w-[28px] px-2 grid place-items-center rounded-md border hairline text-mist hover:text-bone text-[12px]";
+  return (
+    <div>
+      <div className="flex gap-1.5 mb-1.5">
+        <button type="button" title="Gras" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("bold")} className={TB}><b>B</b></button>
+        <button type="button" title="Italique" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("italic")} className={TB}><i>I</i></button>
+        <button type="button" title="Souligné" onMouseDown={(e) => e.preventDefault()} onClick={() => exec("underline")} className={TB}><u>U</u></button>
+        <button type="button" title="Ajouter / modifier un lien" onMouseDown={(e) => e.preventDefault()} onClick={editLink} className={TB + " min-w-0"}>🔗 Lien</button>
+      </div>
+      <div ref={ref} contentEditable suppressContentEditableWarning onInput={emit} spellCheck={false}
+        className={dark
+          ? "min-h-[120px] rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3 text-[14.5px] leading-relaxed text-[#e7ebf2] outline-none [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"
+          : "min-h-[180px] rounded-lg bg-white px-4 py-3 text-[14px] leading-relaxed text-[#1a1a1a] outline-none [&_a]:text-[#1a73e8] [&_a]:underline"} />
+    </div>
+  );
 }
 
 export default function DailyReminder({ adminKey, onGo }) {
@@ -140,7 +206,7 @@ export default function DailyReminder({ adminKey, onGo }) {
     const url = await uploadImage(file, adminKey); setBusy("");
     if (!url) { setMsg({ ok: false, text: "Échec de l'upload de l'image." }); return; }
     const img = `<img src="${url}" alt="" style="max-width:100%;border-radius:12px;display:block;margin:0 auto 14px"/>\n`;
-    setPv((p) => ({ ...p, edit: { ...p.edit, body_html: img + (p.edit.body_html || "") } }));
+    setPv((p) => ({ ...p, imgRev: (p.imgRev || 0) + 1, edit: { ...p.edit, body_html: img + (p.edit.body_html || "") } }));
     // recharge l'aperçu
     const html = await (await apost("/api/admin/mail/preview", adminKey, { ...pv.edit, body_html: img + (pv.edit.body_html || ""), editable: false })).text();
     setPv((p) => ({ ...p, html }));
@@ -294,10 +360,12 @@ export default function DailyReminder({ adminKey, onGo }) {
                     <input value={pv.edit.subject} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, subject: e.target.value } }))}
                       className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[13px] text-bone outline-none" />
                   </label>
-                  <label className="block text-[11px] text-mist/70">Corps (HTML)
-                    <textarea rows={6} value={pv.edit.body_html} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, body_html: e.target.value } }))}
-                      className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
-                  </label>
+                  <div className="text-[11px] text-mist/70">Corps de l&apos;email — édite directement le texte et les liens
+                    <div className="mt-1">
+                      <RichEditor key={"mb" + pv.edit.id + "-" + (pv.imgRev || 0)} initialHtml={pv.edit.body_html}
+                        onChange={(h) => setPv((p) => ({ ...p, edit: { ...p.edit, body_html: h } }))} />
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block text-[11px] text-mist/70">Libellé du bouton
                       <input value={pv.edit.cta_label || ""} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, cta_label: e.target.value } }))}
@@ -313,16 +381,21 @@ export default function DailyReminder({ adminKey, onGo }) {
                       {busy === "up" ? "Upload…" : "🖼 Ajouter une image"}
                       <input type="file" accept="image/*" className="hidden" onChange={(e) => pickMailImage(e.target.files?.[0])} />
                     </label>
-                    <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rafraîchir l'aperçu"}</button>
+                    <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rendu complet"}</button>
                   </div>
-                  <iframe title="preview" srcDoc={pv.html} className="w-full h-[42vh] rounded-lg bg-white" />
+                  <details>
+                    <summary className="text-[11px] text-mist/60 cursor-pointer select-none">Voir le rendu complet (en-tête + pied de page)</summary>
+                    <iframe title="preview" srcDoc={pv.html} className="mt-2 w-full h-[42vh] rounded-lg bg-white" />
+                  </details>
                 </>
               ) : (
                 <>
-                  <label className="block text-[11px] text-mist/70">Texte du post (gras avec &lt;b&gt;…&lt;/b&gt;)
-                    <textarea rows={6} value={pv.edit.text} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, text: e.target.value } }))}
-                      className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[13px] text-bone outline-none" />
-                  </label>
+                  <div className="text-[11px] text-mist/70">Aperçu du post — édite directement le texte et les liens
+                    <div className="mt-1">
+                      <RichEditor key={"tg" + (pv.edit.name || "")} dark initialHtml={tgToHtml(pv.edit.text)}
+                        onChange={(h) => setPv((p) => ({ ...p, edit: { ...p.edit, text: htmlToTgText(h) } }))} />
+                    </div>
+                  </div>
                   <div className="grid grid-cols-2 gap-2">
                     <label className="block text-[11px] text-mist/70">Libellé du bouton
                       <input value={pv.edit.buttons?.[0]?.[0]?.text || ""} onChange={(e) => setTgBtn("text", e.target.value)}
@@ -343,22 +416,24 @@ export default function DailyReminder({ adminKey, onGo }) {
                               className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-red-400/80 hover:text-red-400">Retirer l&apos;image</button>
                     )}
                   </div>
-                  <div className="text-[11px] text-mist/60">Aperçu Telegram :</div>
-                  <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3">
-                    {pv.edit.photo && (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={pv.edit.photo} alt="" className="w-full rounded-lg mb-2" />
-                    )}
-                    <div className="text-[14.5px] leading-relaxed text-[#e7ebf2] [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"
-                         dangerouslySetInnerHTML={{ __html: tgToHtml(pv.edit.text) }} />
-                    {(pv.edit.buttons || []).flat().length > 0 && (
-                      <div className="mt-2.5 space-y-1.5">
-                        {(pv.edit.buttons || []).flat().map((b, i) => (
-                          <div key={i} className="rounded-lg bg-[#2b5278] px-3 py-2 text-center text-[13.5px] text-[#cfe6ff]">{b.text}</div>
-                        ))}
+                  {(pv.edit.photo || (pv.edit.buttons || []).flat().length > 0) && (
+                    <>
+                      <div className="text-[11px] text-mist/60">Image &amp; boutons (aperçu) :</div>
+                      <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3 space-y-2">
+                        {pv.edit.photo && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={pv.edit.photo} alt="" className="w-full rounded-lg" />
+                        )}
+                        {(pv.edit.buttons || []).flat().length > 0 && (
+                          <div className="space-y-1.5">
+                            {(pv.edit.buttons || []).flat().map((b, i) => (
+                              <div key={i} className="rounded-lg bg-[#2b5278] px-3 py-2 text-center text-[13.5px] text-[#cfe6ff]">{b.text}</div>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </>
+                  )}
                 </>
               )}
             </div>

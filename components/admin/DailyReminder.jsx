@@ -32,6 +32,13 @@ function apost(path, key, body) {
     body: JSON.stringify(body || {}),
   });
 }
+async function uploadImage(file, key) {
+  const fd = new FormData();
+  fd.append("file", file);
+  const r = await fetch(`${API_BASE}/api/admin/tg/upload`, { method: "POST", headers: { "x-admin-key": key }, body: fd });
+  const d = await r.json().catch(() => ({}));
+  return d.url || "";
+}
 
 export default function DailyReminder({ adminKey, onGo }) {
   const [ready, setReady] = useState(false);
@@ -118,6 +125,25 @@ export default function DailyReminder({ adminKey, onGo }) {
       return { ...p, edit: { ...p.edit, buttons: btns } };
     });
   }
+  // Upload d'image → URL hébergée
+  async function pickTgImage(file) {
+    if (!file) return;
+    setBusy("up"); setMsg(null);
+    const url = await uploadImage(file, adminKey); setBusy("");
+    if (url) setPv((p) => ({ ...p, edit: { ...p.edit, photo: url } }));
+    else setMsg({ ok: false, text: "Échec de l'upload de l'image." });
+  }
+  async function pickMailImage(file) {
+    if (!file) return;
+    setBusy("up"); setMsg(null);
+    const url = await uploadImage(file, adminKey); setBusy("");
+    if (!url) { setMsg({ ok: false, text: "Échec de l'upload de l'image." }); return; }
+    const img = `<img src="${url}" alt="" style="max-width:100%;border-radius:12px;display:block;margin:0 auto 14px"/>\n`;
+    setPv((p) => ({ ...p, edit: { ...p.edit, body_html: img + (p.edit.body_html || "") } }));
+    // recharge l'aperçu
+    const html = await (await apost("/api/admin/mail/preview", adminKey, { ...pv.edit, body_html: img + (pv.edit.body_html || ""), editable: false })).text();
+    setPv((p) => ({ ...p, html }));
+  }
 
   // ── Actions (content = template courant OU édité) ──
   async function testMail(c) {
@@ -136,16 +162,16 @@ export default function DailyReminder({ adminKey, onGo }) {
     if (d.ok) { markDone("mail"); setMsg({ ok: true, text: `Mail mis en file : ${d.queued ?? d.sent ?? "?"} destinataire(s).` }); setPv(null); }
     else setMsg({ ok: false, text: "Échec de l'envoi du mail." });
   }
-  async function testTg(text, buttons) {
+  async function testTg(text, buttons, photo = "") {
     setBusy("tt"); setMsg(null);
-    const r = await apost("/api/admin/tg/preview", adminKey, { tg_id: ADMIN_TG, text, buttons, name: "Admin" });
+    const r = await apost("/api/admin/tg/preview", adminKey, { tg_id: ADMIN_TG, text, buttons, photo, name: "Admin" });
     const d = await r.json().catch(() => ({}));
     setBusy(""); setMsg(d.ok ? { ok: true, text: "Post de test envoyé sur ton Telegram." } : { ok: false, text: "Échec du test TG." });
   }
-  async function sendTg(text, buttons) {
+  async function sendTg(text, buttons, photo = "") {
     if (!confirm("Publier ce post Telegram à toute l'audience ?")) return;
     setBusy("st"); setMsg(null);
-    const r = await apost("/api/admin/tg/send", adminKey, { text, photo: tg.photo || "", buttons, audience: "all" });
+    const r = await apost("/api/admin/tg/send", adminKey, { text, photo: photo || "", buttons, audience: "all" });
     const d = await r.json().catch(() => ({}));
     setBusy("");
     if (d.ok) { markDone("tg"); setMsg({ ok: true, text: `Post TG en cours d'envoi (${d.reachable ?? "?"}).` }); setPv(null); }
@@ -221,8 +247,8 @@ export default function DailyReminder({ adminKey, onGo }) {
               </div>
               <div className="mt-2 flex gap-1.5">
                 <button className={Bsm} disabled={!tg} onClick={openTgPreview}>👁 Aperçu</button>
-                <button className={Bsm} disabled={!tg || busy === "tt"} onClick={() => testTg(tg.text, tgButtons)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
-                <button className={Bgold} disabled={!tg || busy === "st"} onClick={() => sendTg(tg.text, tgButtons)}>{busy === "st" ? "…" : (doneTg ? "↻" : "📤 Publier")}</button>
+                <button className={Bsm} disabled={!tg || busy === "tt"} onClick={() => testTg(tg.text, tgButtons, tg.photo || "")}>{busy === "tt" ? "…" : "🧪 Test"}</button>
+                <button className={Bgold} disabled={!tg || busy === "st"} onClick={() => sendTg(tg.text, tgButtons, tg.photo || "")}>{busy === "st" ? "…" : (doneTg ? "↻" : "📤 Publier")}</button>
               </div>
             </div>
 
@@ -265,7 +291,13 @@ export default function DailyReminder({ adminKey, onGo }) {
                         className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
                     </label>
                   </div>
-                  <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rafraîchir l'aperçu"}</button>
+                  <div className="flex gap-2">
+                    <label className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone cursor-pointer">
+                      {busy === "up" ? "Upload…" : "🖼 Ajouter une image"}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => pickMailImage(e.target.files?.[0])} />
+                    </label>
+                    <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rafraîchir l'aperçu"}</button>
+                  </div>
                   <iframe title="preview" srcDoc={pv.html} className="w-full h-[42vh] rounded-lg bg-white" />
                 </>
               ) : (
@@ -284,8 +316,22 @@ export default function DailyReminder({ adminKey, onGo }) {
                         className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
                     </label>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <label className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone cursor-pointer">
+                      {busy === "up" ? "Upload…" : "🖼 Ajouter une image"}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => pickTgImage(e.target.files?.[0])} />
+                    </label>
+                    {pv.edit.photo && (
+                      <button onClick={() => setPv((p) => ({ ...p, edit: { ...p.edit, photo: "" } }))}
+                              className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-red-400/80 hover:text-red-400">Retirer l&apos;image</button>
+                    )}
+                  </div>
                   <div className="text-[11px] text-mist/60">Aperçu Telegram :</div>
                   <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3">
+                    {pv.edit.photo && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pv.edit.photo} alt="" className="w-full rounded-lg mb-2" />
+                    )}
                     <div className="text-[14.5px] leading-relaxed text-[#e7ebf2] [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"
                          dangerouslySetInnerHTML={{ __html: tgToHtml(pv.edit.text) }} />
                     {(pv.edit.buttons || []).flat().length > 0 && (
@@ -309,8 +355,8 @@ export default function DailyReminder({ adminKey, onGo }) {
                 </>
               ) : (
                 <>
-                  <button className={Bsm} disabled={busy === "tt"} onClick={() => testTg(pv.edit.text, pv.edit.buttons)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
-                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "st"} onClick={() => sendTg(pv.edit.text, pv.edit.buttons)}>{busy === "st" ? "…" : "📤 Publier"}</button>
+                  <button className={Bsm} disabled={busy === "tt"} onClick={() => testTg(pv.edit.text, pv.edit.buttons, pv.edit.photo)}>{busy === "tt" ? "…" : "🧪 Test"}</button>
+                  <button className="rounded-full px-5 py-2 text-[13px] btn-gold font-semibold" disabled={busy === "st"} onClick={() => sendTg(pv.edit.text, pv.edit.buttons, pv.edit.photo)}>{busy === "st" ? "…" : "📤 Publier"}</button>
                 </>
               )}
             </div>

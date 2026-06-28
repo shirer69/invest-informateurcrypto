@@ -5,6 +5,7 @@ import { API_BASE } from "@/lib/site";
 
 const CHANNELS = [
   { id: "-1001175984072", label: "📢 L'Informateurcrypto" },
+  { id: "-1002073936792", label: "📣 Julien Club des Informateurs" },
   { id: "-1004262332671", label: "🔒 Pôle Invest VIP" },
 ];
 
@@ -51,7 +52,7 @@ export default function ContestAdmin({ adminKey }) {
 
   // Publish
   const [pubKind, setPubKind] = useState("promo");
-  const [pubChannels, setPubChannels] = useState(["-1001175984072"]);
+  const [pubChannels, setPubChannels] = useState(["-1001175984072", "-1002073936792"]);
   const [pubPhoto, setPubPhoto] = useState("");
   const [pubText, setPubText] = useState("");
   const [pubBtnText, setPubBtnText] = useState("");

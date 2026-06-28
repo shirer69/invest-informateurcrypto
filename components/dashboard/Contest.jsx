@@ -29,10 +29,21 @@ function Medal({ rank }) {
   return <span className="font-mono text-[12px] text-mist/50 w-6 text-right">{rank}</span>;
 }
 
+const CONTEST_EMAIL_KEY = "pi_contest_email";
+const CONTEST_NAME_KEY  = "pi_contest_name";
+
+function getTgId() {
+  try {
+    return window?.Telegram?.WebApp?.initDataUnsafe?.user?.id?.toString() || null;
+  } catch { return null; }
+}
+
 export default function Contest() {
   const [contest, setContest] = useState(undefined); // undefined = loading, null = aucun
   const [priceInput, setPriceInput] = useState("");
   const [nameInput, setNameInput] = useState("");
+  const [emailInput, setEmailInput] = useState("");
+  const [savedEmail, setSavedEmail] = useState(null); // email déjà connu (localStorage)
   const [submitState, setSubmitState] = useState("idle"); // idle | loading | done | error
   const [submitMsg, setSubmitMsg] = useState("");
   const [addressInput, setAddressInput] = useState("");
@@ -43,6 +54,16 @@ export default function Contest() {
 
   const user = getUser();
   const isLogged = !!getToken();
+
+  // Charger email mémorisé
+  useEffect(() => {
+    try {
+      const e = localStorage.getItem(CONTEST_EMAIL_KEY);
+      const n = localStorage.getItem(CONTEST_NAME_KEY);
+      if (e) { setSavedEmail(e); setEmailInput(e); }
+      if (n) setNameInput(n);
+    } catch {}
+  }, []);
 
   const load = useCallback(async () => {
     const r = await apiContestCurrent();
@@ -71,12 +92,38 @@ export default function Contest() {
     e.preventDefault();
     const price = parseFloat(priceInput.replace(/[^0-9.]/g, ""));
     if (!price || price <= 0) { setSubmitMsg("Prix invalide."); setSubmitState("error"); return; }
-    const name = isLogged ? (user?.name || "") : nameInput.trim();
-    if (!isLogged && !name) { setSubmitMsg("Entrez votre prénom pour participer."); setSubmitState("error"); return; }
+
+    let email = null;
+    let name  = "";
+    const tgId = getTgId();
+
+    if (isLogged) {
+      name = user?.name || "";
+    } else {
+      // Invité : email obligatoire
+      email = (emailInput || savedEmail || "").trim().toLowerCase();
+      name  = nameInput.trim();
+      if (!email || !email.includes("@")) {
+        setSubmitMsg("Entrez une adresse email valide pour participer.");
+        setSubmitState("error"); return;
+      }
+      if (!name) {
+        setSubmitMsg("Entrez votre prénom pour le classement.");
+        setSubmitState("error"); return;
+      }
+    }
 
     setSubmitState("loading");
-    const r = await apiContestPredict(price, name);
+    const r = await apiContestPredict(price, name, email, tgId);
     if (r.ok) {
+      // Mémoriser l'email pour les prochaines fois
+      if (email) {
+        try { localStorage.setItem(CONTEST_EMAIL_KEY, email); } catch {}
+      }
+      if (name) {
+        try { localStorage.setItem(CONTEST_NAME_KEY, name); } catch {}
+      }
+      setSavedEmail(email || savedEmail);
       setSubmitState("done");
       setSubmitMsg("Prédiction enregistrée ✓");
       await load();
@@ -257,14 +304,41 @@ export default function Contest() {
             </p>
           ) : (
             <form onSubmit={handlePredict} className="space-y-3">
-              {!isLogged && (
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Votre prénom (affiché dans le classement)"
-                  maxLength={40}
-                  className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50"
-                />
+              {/* Invité sans email mémorisé → demander email + prénom */}
+              {!isLogged && !savedEmail && (
+                <div className="space-y-2">
+                  <input
+                    type="email"
+                    value={emailInput}
+                    onChange={(e) => setEmailInput(e.target.value)}
+                    placeholder="Votre email (pour valider votre participation)"
+                    autoComplete="email"
+                    required
+                    className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50"
+                  />
+                  <input
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder="Votre prénom (affiché dans le classement)"
+                    maxLength={40}
+                    required
+                    className="w-full rounded-xl border hairline bg-ink-900 px-4 py-2.5 text-[13px] text-bone placeholder-mist/40 focus:outline-none focus:border-gold/50"
+                  />
+                  <p className="text-[11.5px] text-mist/50">
+                    Un compte est créé automatiquement avec votre email pour valider la prédiction.
+                  </p>
+                </div>
+              )}
+              {/* Invité avec email mémorisé → afficher l'email connu, champ prénom si vide */}
+              {!isLogged && savedEmail && (
+                <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] px-4 py-2.5">
+                  <span className="text-[12px] text-mist/60">Participation sous</span>
+                  <span className="text-[12.5px] text-emerald-300 font-medium">{savedEmail}</span>
+                  <button type="button" onClick={() => { setSavedEmail(null); setEmailInput(""); setNameInput(""); try { localStorage.removeItem(CONTEST_EMAIL_KEY); localStorage.removeItem(CONTEST_NAME_KEY); } catch {} }}
+                    className="ml-auto text-[11px] text-mist/40 hover:text-mist underline">
+                    changer
+                  </button>
+                </div>
               )}
               <div className="flex gap-2 flex-wrap">
                 <div className="relative flex-1 min-w-[140px]">

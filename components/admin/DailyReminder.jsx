@@ -108,6 +108,16 @@ export default function DailyReminder({ adminKey, onGo }) {
     const html = await (await apost("/api/admin/mail/preview", adminKey, { ...pv.edit, editable: false })).text();
     setPv((p) => ({ ...p, html })); setBusy("");
   }
+  // Édite le 1er bouton inline TG (label/url)
+  function setTgBtn(field, value) {
+    setPv((p) => {
+      const btns = JSON.parse(JSON.stringify(p.edit.buttons || []));
+      if (!btns.length) btns.push([]);
+      if (!btns[0].length) btns[0].push({ text: "", url: "" });
+      btns[0][0] = { ...btns[0][0], [field]: value };
+      return { ...p, edit: { ...p.edit, buttons: btns } };
+    });
+  }
 
   // ── Actions (content = template courant OU édité) ──
   async function testMail(c) {
@@ -245,6 +255,16 @@ export default function DailyReminder({ adminKey, onGo }) {
                     <textarea rows={6} value={pv.edit.body_html} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, body_html: e.target.value } }))}
                       className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
                   </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-[11px] text-mist/70">Libellé du bouton
+                      <input value={pv.edit.cta_label || ""} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, cta_label: e.target.value } }))}
+                        className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none" />
+                    </label>
+                    <label className="block text-[11px] text-mist/70">Lien du bouton
+                      <input value={pv.edit.cta_url || ""} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, cta_url: e.target.value } }))}
+                        className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
+                    </label>
+                  </div>
                   <button onClick={refreshMailPreview} className="rounded-lg px-3 py-1.5 text-[12px] border hairline text-mist hover:text-bone">{busy === "rp" ? "…" : "↻ Rafraîchir l'aperçu"}</button>
                   <iframe title="preview" srcDoc={pv.html} className="w-full h-[42vh] rounded-lg bg-white" />
                 </>
@@ -254,6 +274,16 @@ export default function DailyReminder({ adminKey, onGo }) {
                     <textarea rows={6} value={pv.edit.text} onChange={(e) => setPv((p) => ({ ...p, edit: { ...p.edit, text: e.target.value } }))}
                       className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[13px] text-bone outline-none" />
                   </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="block text-[11px] text-mist/70">Libellé du bouton
+                      <input value={pv.edit.buttons?.[0]?.[0]?.text || ""} onChange={(e) => setTgBtn("text", e.target.value)}
+                        className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none" />
+                    </label>
+                    <label className="block text-[11px] text-mist/70">Lien du bouton
+                      <input value={pv.edit.buttons?.[0]?.[0]?.url || ""} onChange={(e) => setTgBtn("url", e.target.value)}
+                        className="mt-1 w-full rounded-lg bg-ink-900 border hairline px-3 py-2 text-[12.5px] text-bone outline-none font-mono" />
+                    </label>
+                  </div>
                   <div className="text-[11px] text-mist/60">Aperçu Telegram :</div>
                   <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3">
                     <div className="text-[14.5px] leading-relaxed text-[#e7ebf2] [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"

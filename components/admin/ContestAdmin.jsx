@@ -157,6 +157,13 @@ export default function ContestAdmin({ adminKey }) {
     load();
   }
 
+  async function handleDelete(id) {
+    if (!window.confirm("Supprimer ce concours et toutes ses prédictions ?")) return;
+    await fetch(`${API_BASE}/api/admin/contest/${id}`, { method: "DELETE", headers });
+    if (view === "detail") { setView("list"); setSelected(null); }
+    load();
+  }
+
   async function handleSendEmail() {
     if (!selected) return;
     if (!window.confirm("Envoyer l'email promo à TOUS les utilisateurs de la base ?")) return;
@@ -236,7 +243,13 @@ export default function ContestAdmin({ adminKey }) {
                     <span className="font-display text-[16px] text-bone">📅 {c.date}</span>
                     <StatusBadge status={c.status} paid={c.paid} />
                   </div>
-                  <span className="text-[13px] text-mist">{c.participants} participant{c.participants !== 1 ? "s" : ""}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[13px] text-mist">{c.participants} participant{c.participants !== 1 ? "s" : ""}</span>
+                    <button onClick={(e) => { e.stopPropagation(); handleDelete(c.id); }}
+                      className="text-[11px] text-rose-500/60 hover:text-rose-400 transition-colors px-2 py-1">
+                      ✕ Supprimer
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-3 text-[12.5px] text-mist/70">
                   <span>Gain : <span className="text-bone">{fmtPrice(c.prize_usd)}</span></span>
@@ -306,6 +319,10 @@ export default function ContestAdmin({ adminKey }) {
           <h2 className="font-display text-[20px] text-bone">📅 Concours du {c.date}</h2>
           <StatusBadge status={c.status} paid={c.paid} />
           {btcPrice && <span className="text-[12px] text-mist/60">BTC live : <span className="text-gold font-semibold">{fmtPrice(btcPrice)}</span></span>}
+          <button onClick={() => handleDelete(c.id)}
+            className="ml-auto text-[12px] text-rose-500/60 hover:text-rose-400 transition-colors border border-rose-500/20 rounded-full px-3 py-1">
+            ✕ Supprimer
+          </button>
         </div>
 
         <div className="grid sm:grid-cols-4 gap-3">

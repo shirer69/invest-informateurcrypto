@@ -1511,8 +1511,6 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
 
       <FuturesCTAs />
 
-      <ChallengeBlock />
-
       {/* Titre Portefeuille Trading */}
       <div className="mb-4 mt-1 flex items-center gap-2.5 flex-wrap">
         <h4 className="font-display text-[16px] text-bone">
@@ -1655,6 +1653,8 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
           </span>
         </div>
       </button>
+
+      <ChallengeBlock />
 
       {/* Historique des trades */}
       {(() => {

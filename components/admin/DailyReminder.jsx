@@ -15,6 +15,14 @@ function dayIndex() {
   return Math.floor((d - start) / 86400000);
 }
 
+// Rend le texte Telegram (sous-ensemble HTML : b/i/u/s/code/pre/a + sauts de ligne)
+function tgToHtml(s) {
+  let h = (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  h = h.replace(/&lt;(\/?)(b|strong|i|em|u|s|code|pre)&gt;/g, "<$1$2>");
+  h = h.replace(/&lt;a href="([^"]+)"&gt;/g, '<a href="$1">').replace(/&lt;\/a&gt;/g, "</a>");
+  return h.replace(/\n/g, "<br/>");
+}
+
 async function aget(path, key) {
   try {
     const r = await fetch(`${API_BASE}${path}`, { headers: { "x-admin-key": key }, cache: "no-store" });
@@ -31,8 +39,10 @@ async function apost(path, key, body) {
 export default function DailyReminder({ adminKey, onGo }) {
   const [ready, setReady] = useState(false);
   const [min, setMin] = useState(false);
-  const [mail, setMail] = useState(null);
-  const [tg, setTg] = useState(null);
+  const [mails, setMails] = useState([]);
+  const [tgs, setTgs] = useState([]);
+  const [mIdx, setMIdx] = useState(0);
+  const [tIdx, setTIdx] = useState(0);
   const [preview, setPreview] = useState(null);
   const [busy, setBusy] = useState("");
   const [msg, setMsg] = useState(null);
@@ -52,22 +62,50 @@ export default function DailyReminder({ adminKey, onGo }) {
         aget("/api/admin/mail/templates", adminKey),
         aget("/api/admin/tg/templates", adminKey),
       ]);
-      const mails = (m.templates || []).filter((x) => (x.name || "").startsWith(PREFIX));
-      const tgs = (t.templates || []).filter((x) => (x.name || "").startsWith(PREFIX));
+      const ml = (m.templates || []).filter((x) => (x.name || "").startsWith(PREFIX));
+      const tl = (t.templates || []).filter((x) => (x.name || "").startsWith(PREFIX));
+      setMails(ml); setTgs(tl);
       const i = dayIndex();
-      if (mails.length) setMail(mails[i % mails.length]);
-      if (tgs.length) setTg(tgs[i % tgs.length]);
+      // index du jour, ou choix mémorisé pour aujourd'hui s'il existe
+      let mi = ml.length ? i % ml.length : 0;
+      let ti = tl.length ? i % tl.length : 0;
+      try {
+        if (localStorage.getItem("pi_acq_day") === tk) {
+          const sm = parseInt(localStorage.getItem("pi_acq_mi") ?? "", 10);
+          const st = parseInt(localStorage.getItem("pi_acq_ti") ?? "", 10);
+          if (!isNaN(sm) && ml.length) mi = ((sm % ml.length) + ml.length) % ml.length;
+          if (!isNaN(st) && tl.length) ti = ((st % tl.length) + tl.length) % tl.length;
+        }
+      } catch {}
+      setMIdx(mi); setTIdx(ti);
       setReady(true);
     })();
   }, [adminKey]);
 
-  function toggleMin(v) {
-    setMin(v);
-    try { localStorage.setItem("pi_reminder_min", v ? "1" : "0"); } catch {}
+  const mail = mails[mIdx] || null;
+  const tg = tgs[tIdx] || null;
+
+  function persistIdx(mi, ti) {
+    try {
+      localStorage.setItem("pi_acq_day", todayKey());
+      localStorage.setItem("pi_acq_mi", String(mi));
+      localStorage.setItem("pi_acq_ti", String(ti));
+    } catch {}
   }
+  function cycleMail(dir) {
+    if (!mails.length) return;
+    const ni = ((mIdx + dir) % mails.length + mails.length) % mails.length;
+    setMIdx(ni); persistIdx(ni, tIdx); setMsg(null);
+  }
+  function cycleTg(dir) {
+    if (!tgs.length) return;
+    const ni = ((tIdx + dir) % tgs.length + tgs.length) % tgs.length;
+    setTIdx(ni); persistIdx(mIdx, ni); setMsg(null);
+  }
+
+  function toggleMin(v) { setMin(v); try { localStorage.setItem("pi_reminder_min", v ? "1" : "0"); } catch {} }
   function markDone(kind) {
-    const tk = todayKey();
-    try { localStorage.setItem(`pi_done_${kind}_` + tk, "1"); } catch {}
+    try { localStorage.setItem(`pi_done_${kind}_` + todayKey(), "1"); } catch {}
     if (kind === "mail") setDoneMail(true); else setDoneTg(true);
   }
 
@@ -106,20 +144,20 @@ export default function DailyReminder({ adminKey, onGo }) {
   if (!ready) return null;
   const allDone = doneMail && doneTg;
   const SBtn = "rounded-lg px-2.5 py-1.5 text-[11.5px] border hairline text-mist hover:text-bone transition-colors disabled:opacity-50";
+  const Arrow = ({ dir, onClick }) => (
+    <button onClick={onClick} className="h-6 w-6 grid place-items-center rounded-md border hairline text-mist hover:text-bone text-[12px]" title="Changer de template">
+      {dir < 0 ? "‹" : "›"}
+    </button>
+  );
   const Status = ({ done }) => done
     ? <span className="text-[10.5px] font-semibold text-emerald-400">✅ Envoyé</span>
     : <span className="text-[10.5px] font-semibold text-amber-400">⏳ À faire</span>;
 
-  // Vue repliée : petite pastille permanente avec le statut du jour
   if (min) {
     return (
-      <button
-        onClick={() => toggleMin(false)}
+      <button onClick={() => toggleMin(false)}
         className={`fixed bottom-5 right-5 z-[200] rounded-full border px-4 py-2.5 text-[12.5px] font-semibold shadow-2xl backdrop-blur-md ${
-          allDone ? "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300"
-                  : "border-amber-400/40 bg-amber-400/[0.08] text-amber-300"
-        }`}
-      >
+          allDone ? "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300" : "border-amber-400/40 bg-amber-400/[0.08] text-amber-300"}`}>
         📨 Envois du jour : {(doneMail ? 1 : 0) + (doneTg ? 1 : 0)}/2 {allDone ? "✅" : ""}
       </button>
     );
@@ -131,16 +169,15 @@ export default function DailyReminder({ adminKey, onGo }) {
         <div className={`rounded-2xl border bg-ink-900/95 backdrop-blur-md shadow-2xl overflow-hidden ${allDone ? "border-emerald-500/40" : "gold-line"}`}>
           <div className="flex items-center justify-between px-4 pt-3.5">
             <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">📨 Envois du jour</span>
-            <button onClick={() => toggleMin(true)} aria-label="Réduire"
-                    className="h-7 w-7 grid place-items-center rounded-full border hairline text-mist hover:text-bone" title="Réduire">
+            <button onClick={() => toggleMin(true)} aria-label="Réduire" title="Réduire"
+                    className="h-7 w-7 grid place-items-center rounded-full border hairline text-mist hover:text-bone">
               <span className="block w-3 h-px bg-current" />
             </button>
           </div>
           <div className="px-4 pb-4 pt-2">
             <p className="text-[12.5px] text-mist leading-snug">
-              {allDone
-                ? <span className="text-emerald-400 font-semibold">Tout est envoyé aujourd&apos;hui 🎉</span>
-                : <>Pense à envoyer <b>1 email</b> et <b>1 post Telegram</b> aujourd&apos;hui.</>}
+              {allDone ? <span className="text-emerald-400 font-semibold">Tout est envoyé aujourd&apos;hui 🎉</span>
+                       : <>Pense à envoyer <b>1 email</b> et <b>1 post Telegram</b> aujourd&apos;hui.</>}
             </p>
 
             {/* Email du jour */}
@@ -149,8 +186,15 @@ export default function DailyReminder({ adminKey, onGo }) {
                 <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Email du jour</div>
                 <Status done={doneMail} />
               </div>
-              <div className="text-[13px] text-bone truncate">{mail?.name || "—"}</div>
-              {mail?.subject && <div className="text-[11px] text-mist/70 truncate">{mail.subject}</div>}
+              <div className="mt-1 flex items-center gap-1.5">
+                <Arrow dir={-1} onClick={() => cycleMail(-1)} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] text-bone truncate">{mail?.name || "—"}</div>
+                  {mail?.subject && <div className="text-[11px] text-mist/70 truncate">{mail.subject}</div>}
+                </div>
+                <span className="font-mono text-[9px] text-mist/40">{mails.length ? mIdx + 1 : 0}/{mails.length}</span>
+                <Arrow dir={1} onClick={() => cycleMail(1)} />
+              </div>
               <div className="mt-2 flex gap-2">
                 <button className={SBtn} disabled={!mail || busy === "pm"} onClick={previewMail}>{busy === "pm" ? "…" : "👁 Aperçu"}</button>
                 <button className="rounded-lg px-2.5 py-1.5 text-[11.5px] btn-gold font-semibold disabled:opacity-60"
@@ -164,7 +208,14 @@ export default function DailyReminder({ adminKey, onGo }) {
                 <div className="font-mono text-[9px] uppercase tracking-widest2 text-mist/60">Post Telegram du jour</div>
                 <Status done={doneTg} />
               </div>
-              <div className="text-[13px] text-bone truncate">{tg?.name || "—"}</div>
+              <div className="mt-1 flex items-center gap-1.5">
+                <Arrow dir={-1} onClick={() => cycleTg(-1)} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13px] text-bone truncate">{tg?.name || "—"}</div>
+                </div>
+                <span className="font-mono text-[9px] text-mist/40">{tgs.length ? tIdx + 1 : 0}/{tgs.length}</span>
+                <Arrow dir={1} onClick={() => cycleTg(1)} />
+              </div>
               <div className="mt-2 flex gap-2">
                 <button className={SBtn} disabled={!tg} onClick={previewTg}>👁 Aperçu</button>
                 <button className="rounded-lg px-2.5 py-1.5 text-[11.5px] btn-gold font-semibold disabled:opacity-60"
@@ -196,13 +247,19 @@ export default function DailyReminder({ adminKey, onGo }) {
               {preview.type === "mail" ? (
                 <iframe title="preview" srcDoc={preview.html} className="w-full h-[60vh] rounded-lg bg-white" />
               ) : (
-                <div className="mx-auto max-w-md rounded-2xl border hairline bg-ink-900 p-4">
-                  <div className="whitespace-pre-wrap text-[14px] text-bone"
-                       dangerouslySetInnerHTML={{ __html: (preview.text || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/&lt;b&gt;/g, "<b>").replace(/&lt;\/b&gt;/g, "</b>") }} />
-                  <div className="mt-3 space-y-2">
-                    {(preview.buttons || []).flat().map((b, i) => (
-                      <div key={i} className="rounded-lg border gold-line bg-gold/[0.06] px-3 py-2 text-center text-[13px] text-gold">{b.text}</div>
-                    ))}
+                // Aperçu fidèle Telegram : bulle de message
+                <div className="mx-auto max-w-md">
+                  <div className="rounded-2xl rounded-tl-md bg-[#182533] px-3.5 py-3 shadow">
+                    <div className="text-[14.5px] leading-relaxed text-[#e7ebf2] [&_b]:font-bold [&_a]:text-[#6ab3f3] [&_a]:underline"
+                         dangerouslySetInnerHTML={{ __html: tgToHtml(preview.text) }} />
+                    {(preview.buttons || []).flat().length > 0 && (
+                      <div className="mt-2.5 space-y-1.5">
+                        {(preview.buttons || []).flat().map((b, i) => (
+                          <div key={i} className="rounded-lg bg-[#2b5278] px-3 py-2 text-center text-[13.5px] text-[#cfe6ff]">{b.text}</div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-1.5 text-right text-[10px] text-[#6d7e8f]">aperçu</div>
                   </div>
                 </div>
               )}

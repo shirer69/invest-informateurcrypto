@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { API_BASE } from "@/lib/site";
 import TgPosts from "@/components/admin/TgPosts";
 import EmailAdmin from "@/components/admin/EmailAdmin";
+import DailyReminder from "@/components/admin/DailyReminder";
 import SupportAdmin from "@/components/admin/SupportAdmin";
 import IibanPendingAdmin from "@/components/admin/IibanPendingAdmin";
 import MoonXAdmin from "@/components/admin/MoonXAdmin";
@@ -130,6 +131,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen aura">
+      <DailyReminder adminKey={key} onGo={() => setTab("emails")} />
       <header className="sticky top-0 z-40 glass border-b hairline">
         <div className="mx-auto max-w-[1280px] px-4 sm:px-5 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">

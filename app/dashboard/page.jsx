@@ -7,7 +7,13 @@ import PortfolioKraken from "@/components/dashboard/PortfolioKraken";
 import Academy from "@/components/dashboard/Academy";
 import VipFeed from "@/components/dashboard/VipFeed";
 import LoginModal from "@/components/dashboard/LoginModal";
-import { UnlockProvider, Locked } from "@/components/dashboard/UnlockProvider";
+import { UnlockProvider, Locked, useUnlock } from "@/components/dashboard/UnlockProvider";
+
+function AutoUnlock() {
+  const { openUnlock } = useUnlock();
+  useEffect(() => { openUnlock(); }, [openUnlock]);
+  return null;
+}
 import Billing from "@/components/dashboard/Billing";
 import VideosFeed from "@/components/dashboard/VideosFeed";
 import Account from "@/components/dashboard/Account";
@@ -292,8 +298,11 @@ export default function Dashboard() {
     );
   }
 
+  const isUnlockParam = (() => { try { return new URLSearchParams(window.location.search).get("unlock") === "1"; } catch { return false; } })();
+
   return (
     <UnlockProvider>
+    {isUnlockParam && <AutoUnlock />}
     <div className="min-h-screen aura">
       <Script src="https://telegram.org/js/telegram-web-app.js" strategy="afterInteractive" />
       <LoginModal open={loginOpen} onClose={() => setLoginOpen(false)} />

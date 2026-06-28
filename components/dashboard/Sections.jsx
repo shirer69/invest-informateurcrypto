@@ -27,7 +27,7 @@ const DemoTag = () => (
   </span>
 );
 
-const RECALL_TG = "https://t.me/cyclepartners?text=" + encodeURIComponent("Bonjour, je souhaite être rappelé à propos du copy auto Kraken.");
+const RECALL_TG = "https://t.me/clubdesinformateurs?text=" + encodeURIComponent("Bonjour, je souhaite être rappelé à propos du copy auto Kraken.");
 const RecallButton = () => (
   <a href={RECALL_TG} target="_blank" rel="noopener noreferrer"
     className="inline-flex items-center gap-2 rounded-full border hairline px-4 py-2.5 text-[13px] text-mist hover:text-bone hover:border-gold/40 transition-colors">
@@ -618,7 +618,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
               <span className="text-[13px] text-amber-400 font-medium">Demande envoyée — en attente de validation</span>
             </div>
             <a
-              href="https://t.me/cyclepartners?text=Bonjour%2C%20je%20souhaite%20ouvrir%20un%20sous-compte%20Kraken%20d%C3%A9di%C3%A9%20au%20copy."
+              href="https://t.me/clubdesinformateurs?text=Bonjour%2C%20je%20souhaite%20ouvrir%20un%20sous-compte%20Kraken%20d%C3%A9di%C3%A9%20au%20copy."
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center justify-between gap-3 rounded-xl border border-sky-500/30 bg-sky-500/[0.07] px-4 py-2.5 hover:border-sky-400/50 transition-colors"
@@ -629,7 +629,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
                 </svg>
                 <div className="min-w-0">
                   <p className="text-[13px] text-sky-300 font-medium leading-tight">Étape suivante — Créer un sous-compte Kraken</p>
-                  <p className="text-[10.5px] text-mist/50 mt-0.5 truncate">Contacter @cyclepartners sur Telegram</p>
+                  <p className="text-[10.5px] text-mist/50 mt-0.5 truncate">Contacter @clubdesinformateurs sur Telegram</p>
                 </div>
               </div>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-[11px] font-semibold text-sky-300 whitespace-nowrap shrink-0">
@@ -639,7 +639,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
           </div>
         ) : (
           <a
-            href="https://t.me/cyclepartners"
+            href="https://t.me/clubdesinformateurs"
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-between gap-3 rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"
@@ -737,7 +737,7 @@ export function ChallengeBlock({ onGoTrading }) {
           </button>
         ) : (
           <a
-            href="https://t.me/cyclepartners"
+            href="https://t.me/clubdesinformateurs"
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 hover:bg-emerald-400 transition-colors px-5 py-2.5 text-[13px] font-semibold text-ink-900"
@@ -1470,7 +1470,7 @@ export function Monitoring({ onGoCopy, onGoMonitoring }) {
   const FuturesCTAs = () => (
     <div className="mb-5">
       <a
-        href="https://t.me/cyclepartners"
+        href="https://t.me/clubdesinformateurs"
         target="_blank"
         rel="noopener noreferrer"
         className="w-full flex items-center gap-2 justify-between rounded-xl border gold-line bg-gradient-to-r from-ink-700/60 to-ink-900 px-4 py-2.5 hover:border-gold/50 transition-colors"

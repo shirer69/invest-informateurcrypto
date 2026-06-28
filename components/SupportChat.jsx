@@ -4,7 +4,7 @@
 export default function SupportChat() {
   return (
     <a
-      href="https://t.me/cyclepartners"
+      href="https://t.me/clubdesinformateurs"
       target="_blank"
       rel="noopener noreferrer"
       className="fixed z-[9998] flex items-center justify-center w-14 h-14 shadow-2xl bg-gold text-ink-900 transition-transform hover:scale-105 active:scale-95

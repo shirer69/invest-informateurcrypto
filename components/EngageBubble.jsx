@@ -2,7 +2,7 @@
 
 import { usePageEngagement } from "@/lib/usePageEngagement";
 
-const TG_URL = "https://t.me/cyclepartners";
+const TG_URL = "https://t.me/clubdesinformateurs";
 
 export default function EngageBubble() {
   const { showBubble, dismissBubble } = usePageEngagement();

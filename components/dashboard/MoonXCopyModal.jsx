@@ -235,7 +235,7 @@ export default function MoonXCopyModal({ open, onClose }) {
                       Contactez Julien directement sur Telegram en mentionnant votre email MoonX pour recevoir votre invitation au groupe privé.
                     </p>
                     <a
-                      href="https://t.me/cyclepartners?text=Bonjour%20Julien%2C%20je%20viens%20de%20m%27inscrire%20sur%20MoonX%20et%20j%27ai%20effectu%C3%A9%20mon%20d%C3%A9p%C3%B4t.%20Je%20souhaite%20rejoindre%20le%20copy%20auto%20et%20le%20groupe%20VIP."
+                      href="https://t.me/clubdesinformateurs?text=Bonjour%20Julien%2C%20je%20viens%20de%20m%27inscrire%20sur%20MoonX%20et%20j%27ai%20effectu%C3%A9%20mon%20d%C3%A9p%C3%B4t.%20Je%20souhaite%20rejoindre%20le%20copy%20auto%20et%20le%20groupe%20VIP."
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 rounded-full bg-gold text-ink-900 font-semibold text-[13px] px-5 py-2.5 hover:bg-gold-soft transition-colors"

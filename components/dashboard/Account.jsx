@@ -4,7 +4,7 @@ import { useState } from "react";
 import { getUser, apiChangePassword, apiChangeEmail, apiDeleteAccount } from "@/lib/clientStore";
 import { IconArrow } from "@/components/Icons";
 
-const SUPPORT_TG = "https://t.me/cyclepartners";
+const SUPPORT_TG = "https://t.me/clubdesinformateurs";
 
 const ERR = {
   invalid_current_password: "Mot de passe actuel incorrect.",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { apiContestCurrent, apiContestPredict, apiContestWinnerAddress, getUser, getToken } from "@/lib/clientStore";
+import { apiContestCurrent, apiContestPredict, apiContestWinnerAddress, getUser, getToken, storeToken } from "@/lib/clientStore";
 
 function fmtPrice(p) {
   if (p == null) return "—";
@@ -124,8 +124,15 @@ export default function Contest() {
         try { localStorage.setItem(CONTEST_NAME_KEY, name); } catch {}
       }
       setSavedEmail(email || savedEmail);
-      setSubmitState("done");
-      setSubmitMsg("Prédiction enregistrée ✓");
+      // Compte existant avec mdp → auto-connexion + nouveau mdp envoyé par mail
+      if (r.auto_login && r.token) {
+        storeToken(r.token);
+        setSubmitState("done");
+        setSubmitMsg("Prédiction enregistrée ✓ — Votre compte a été retrouvé, un nouveau mot de passe vous a été envoyé par email.");
+      } else {
+        setSubmitState("done");
+        setSubmitMsg("Prédiction enregistrée ✓");
+      }
       await load();
     } else if (r.error === "already_predicted") {
       setSubmitState("error"); setSubmitMsg("Vous avez déjà prédit pour ce concours.");

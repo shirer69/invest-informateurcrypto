@@ -39,6 +39,8 @@ export default function Contest() {
   const [addrState, setAddrState] = useState("idle");
   const [addrMsg, setAddrMsg] = useState("");
 
+  const [btcLive, setBtcLive] = useState(null);
+
   const user = getUser();
   const isLogged = !!getToken();
 
@@ -47,11 +49,21 @@ export default function Contest() {
     setContest(r.ok ? (r.contest || null) : null);
   }, []);
 
+  const loadBtc = useCallback(async () => {
+    try {
+      const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd");
+      const d = await r.json();
+      if (d?.bitcoin?.usd) setBtcLive(d.bitcoin.usd);
+    } catch {}
+  }, []);
+
   useEffect(() => {
     load();
-    const iv = setInterval(load, 30000);
-    return () => clearInterval(iv);
-  }, [load]);
+    loadBtc();
+    const iv1 = setInterval(load, 30000);
+    const iv2 = setInterval(loadBtc, 60000);
+    return () => { clearInterval(iv1); clearInterval(iv2); };
+  }, [load, loadBtc]);
 
   const countdown = useCountdown(contest?.deadline_ts);
 
@@ -127,8 +139,28 @@ export default function Contest() {
 
   return (
     <div className="space-y-6">
+      {btcLive && (
+        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/[0.06] px-5 py-4 flex items-center justify-between gap-4">
+          <div>
+            <div className="font-mono text-[10px] uppercase tracking-widest2 text-emerald-400/70">Prix Bitcoin actuel</div>
+            <div className="font-display text-[32px] leading-none text-emerald-400 font-semibold mt-1">
+              {fmtPrice(btcLive)}
+            </div>
+          </div>
+          <svg viewBox="0 0 64 64" className="h-12 w-12 opacity-30" aria-hidden>
+            <path d="M6 40V31a26 26 0 0 1 52 0v9Z" fill="#34d399" />
+            <g fill="#34d399">
+              <rect x="6" y="34" width="9.8" height="25" rx="4.9" />
+              <rect x="20.07" y="34" width="9.8" height="25" rx="4.9" />
+              <rect x="34.13" y="34" width="9.8" height="25" rx="4.9" />
+              <rect x="48.2" y="34" width="9.8" height="25" rx="4.9" />
+            </g>
+          </svg>
+        </div>
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <h3 className="font-display text-[18px] text-bone">🎯 Concours BTC — {fmtPrice(10)} à gagner</h3>
+        <h3 className="font-display text-[18px] text-bone">🎯 Concours BTC — {fmtPrice(contest?.prize_usd ?? 10)} à gagner</h3>
         <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-mono uppercase tracking-widest border ${
           isResolved ? "border-emerald-500/40 text-emerald-400" :
           isClosed   ? "border-amber-500/40 text-amber-400" :

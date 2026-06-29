@@ -2,6 +2,7 @@ import { Reveal } from "./Reveal";
 import KrakenLogo from "./KrakenLogo";
 import HyperliquidLogo from "./HyperliquidLogo";
 import OkxLogo from "./OkxLogo";
+import MoonXLogo from "./MoonXLogo";
 import { KRAKEN_SITE } from "@/lib/site";
 import { IconArrow, IconCheck } from "./Icons";
 
@@ -9,6 +10,7 @@ const PARTNERS = [
   { Logo: KrakenLogo, href: "https://www.kraken.com", note: "Exécution & conservation" },
   { Logo: HyperliquidLogo, href: "https://hyperliquid.xyz", note: "Perps on-chain" },
   { Logo: OkxLogo, href: "https://www.okx.com", note: "Liquidité & dérivés" },
+  { Logo: MoonXLogo, href: "https://moonx.farm", note: "Copy-trading & desk" },
 ];
 
 const POINTS = [
@@ -39,7 +41,7 @@ export default function Partners() {
 
         {/* Rangée partenaires */}
         <Reveal delay={0.05}>
-          <div className="mt-10 grid sm:grid-cols-3 gap-4">
+          <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {PARTNERS.map(({ Logo, href, note }, i) => (
               <a key={i} href={href} target="_blank" rel="noopener noreferrer"
                  className="group rounded-2xl border hairline bg-ink-800/40 px-6 py-7 flex flex-col items-center justify-center gap-3 hover:border-gold/30 transition-colors">

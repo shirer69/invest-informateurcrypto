@@ -15,7 +15,7 @@ const TIMELINE = [
   {
     period: "Aujourd'hui",
     title: "Conseiller financier indépendant — CIF",
-    desc: "Co-fondateur de Cycle Partners. Pilote un portefeuille de conviction concentré et accompagne une vingtaine de clients en gestion privée, avec un track record public sur +3 ans.",
+    desc: "Co-fondateur de Club des Informateurs. Pilote un portefeuille de conviction concentré et accompagne une vingtaine de clients en gestion privée, avec un track record public sur +3 ans.",
   },
   {
     period: "+2 ans",
@@ -77,14 +77,14 @@ export default function Founder() {
         {/* Récit + timeline */}
         <div>
           <Reveal>
-            <span className="eyebrow">Co-fondateur — Cycle Partners</span>
+            <span className="eyebrow">Co-fondateur — Club des Informateurs</span>
             <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
               Une expérience construite des deux côtés du marché
             </h2>
             <p className="mt-6 text-[16px] leading-relaxed text-mist max-w-prose2">
               De la recherche crypto chez Coinhouse à la gestion de patrimoine privé, jusqu&apos;au
               trading financé sur propfirm : un parcours qui mêle rigueur institutionnelle et
-              compréhension fine des cycles d&apos;actifs. Co-fondateur de Cycle Partners,
+              compréhension fine des cycles d&apos;actifs. Co-fondateur de Club des Informateurs,
               Julien pilote aujourd&apos;hui un portefeuille de conviction concentré sur les
               thèses structurelles du prochain cycle.
             </p>

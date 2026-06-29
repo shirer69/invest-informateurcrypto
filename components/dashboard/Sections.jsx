@@ -59,7 +59,7 @@ export function Overview({ tgLink }) {
                style={{ background: "radial-gradient(circle, rgba(46,230,168,0.20), transparent 70%)" }} />
           <div className="relative">
             <div className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">Espace investisseurs</div>
-            <h3 className="mt-2 font-display text-[20px] text-bone">Cycle Partners — Accès privé</h3>
+            <h3 className="mt-2 font-display text-[20px] text-bone">Club des Informateurs — Accès privé</h3>
             <p className="mt-2 text-[13px] leading-relaxed text-mist">
               Validez votre compte Kraken pour débloquer l&apos;accès complet au portefeuille et aux analyses en direct.
             </p>

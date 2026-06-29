@@ -28,7 +28,7 @@ export default function Approach() {
             La gestion active d&apos;un micro edge fund
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Cycle Partners n&apos;est pas un groupe de signaux. C&apos;est un portefeuille géré
+            Club des Informateurs n&apos;est pas un groupe de signaux. C&apos;est un portefeuille géré
             activement, avec une sélection concentrée sur les thèses à fort différentiel
             d&apos;information avant qu&apos;elles ne deviennent consensus.
           </p>
@@ -67,7 +67,7 @@ export default function Approach() {
                 style={{ background: "radial-gradient(circle, rgba(46,230,168,0.18), transparent 70%)" }}
               />
               <div className="relative flex items-center justify-between">
-                <h3 className="font-display text-[20px] text-bone">Cycle Partners</h3>
+                <h3 className="font-display text-[20px] text-bone">Club des Informateurs</h3>
                 <span className="font-mono text-[10px] uppercase tracking-widest2 text-gold/80">
                   Le signal
                 </span>

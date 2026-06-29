@@ -4,7 +4,7 @@ export default function LogoMark({ className = "h-9 w-9" }) {
   return (
     <img
       src="/logo.png"
-      alt="Cycle Partners"
+      alt="Club des Informateurs"
       className={`${className} object-contain select-none`}
       draggable="false"
     />

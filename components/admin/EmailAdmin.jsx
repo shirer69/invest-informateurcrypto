@@ -332,7 +332,7 @@ function TemplatesSection({ adminKey, templates, onReload }) {
         <div>
           <label className="field-label">Note de bas de page <span className="normal-case text-mist/50">(optionnel)</span></label>
           <textarea rows={2} value={form.footnote} onChange={(e) => set("footnote", e.target.value)}
-            placeholder="Cet email vous a été envoyé car vous êtes membre du Cycle Partners."
+            placeholder="Cet email vous a été envoyé car vous êtes membre du Club des Informateurs."
             className="field-textarea" />
         </div>
 

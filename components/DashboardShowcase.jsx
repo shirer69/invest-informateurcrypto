@@ -74,7 +74,7 @@ export default function DashboardShowcase() {
             Un cockpit d'investissement, pas un simple groupe
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Cycle Partners s'accompagne d'un tableau de bord privé : suivi de portefeuille,
+            Club des Informateurs s'accompagne d'un tableau de bord privé : suivi de portefeuille,
             spot, marge, perps, actions US et indices, copy trading, vidéos, chat et le flux
             d'analyses du desk — réunis dans une seule interface.
           </p>

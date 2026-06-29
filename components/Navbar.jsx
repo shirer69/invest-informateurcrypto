@@ -51,10 +51,10 @@ export default function Navbar() {
           <LogoMark className="hidden sm:block h-12 w-12" />
           <span className="leading-tight">
             <span className="block font-display text-[15px] tracking-tight text-bone">
-              Cycle Partners
+              Club des Informateurs
             </span>
             <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
-              Julien M. — Cycle Partners
+              Julien M. — Club des Informateurs
             </span>
           </span>
         </a>
@@ -135,7 +135,7 @@ export default function Navbar() {
                   onClick={() => { setOpen(false); openJoin(); }}
                   className="btn-gold rounded-full px-5 py-3 text-center text-sm font-semibold"
                 >
-                  Demander mon accès à Cycle Partners
+                  Demander mon accès à Club des Informateurs
                 </button>
               </>
             ) : (

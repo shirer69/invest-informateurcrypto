@@ -60,7 +60,7 @@ export default function Testimonials() {
             Ce que disent les membres
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Des retours libres et non filtrés, partagés par les co-investisseurs de Cycle Partners. La rigueur
+            Des retours libres et non filtrés, partagés par les co-investisseurs de Club des Informateurs. La rigueur
             du money management revient dans presque chaque message.
           </p>
         </Reveal>
@@ -72,7 +72,7 @@ export default function Testimonials() {
         </div>
 
         <p className="mt-6 text-[11.5px] text-mist/60">
-          Témoignages de co-investisseurs de Cycle Partners. Les expériences individuelles ne
+          Témoignages de co-investisseurs de Club des Informateurs. Les expériences individuelles ne
           constituent pas une garantie de résultat.
         </p>
       </div>

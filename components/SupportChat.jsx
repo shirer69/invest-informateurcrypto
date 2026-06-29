@@ -1,6 +1,6 @@
 "use client";
 
-// Bulle flottante : redirige vers le Telegram public du Cycle Partners.
+// Bulle flottante : redirige vers le Telegram public du Club des Informateurs.
 export default function SupportChat() {
   return (
     <a

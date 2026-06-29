@@ -17,12 +17,12 @@ export default function WhyNow() {
             <Reveal>
               <span className="eyebrow">Le bon moment</span>
               <h2 className="mt-5 font-display font-light text-[32px] md:text-[44px] leading-[1.08] tracking-tightest text-bone">
-                Pourquoi nous lançons Cycle Partners maintenant
+                Pourquoi nous lançons Club des Informateurs maintenant
               </h2>
             </Reveal>
             <Reveal delay={0.1}>
               <div className="mt-8 space-y-5 text-[16px] leading-relaxed text-mist max-w-prose2">
-                <p>Cycle Partners est un micro edge fund co-fondé par Julien Moretto, gérant de portefeuille et conseiller financier indépendant.</p>
+                <p>Club des Informateurs est un micro edge fund co-fondé par Julien Moretto, gérant de portefeuille et conseiller financier indépendant.</p>
                 <p>
                   Notre thèse est simple :{" "}
                   <span className="text-bone">

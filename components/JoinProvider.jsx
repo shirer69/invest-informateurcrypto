@@ -210,7 +210,7 @@ export default function JoinProvider({ children }) {
 
               {/* header — sticky pour que la croix reste visible en scroll mobile */}
               <div className="sticky top-0 z-10 flex items-center justify-between px-7 pt-6 pb-3 bg-ink-800/95 backdrop-blur-sm rounded-t-3xl">
-                <span className="eyebrow">Accès à Cycle Partners</span>
+                <span className="eyebrow">Accès à Club des Informateurs</span>
                 <button
                   onClick={close}
                   aria-label="Fermer"
@@ -232,7 +232,7 @@ export default function JoinProvider({ children }) {
                       Entrez votre code d'invitation
                     </h3>
                     <p className="mt-3 text-[14px] leading-relaxed text-mist">
-                      L'accès à Cycle Partners se fait sur invitation. Saisissez votre code
+                      L'accès à Club des Informateurs se fait sur invitation. Saisissez votre code
                       pour découvrir les étapes d'adhésion.
                     </p>
                     <form onSubmit={submitCode} className="mt-6">

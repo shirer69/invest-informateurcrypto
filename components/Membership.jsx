@@ -37,7 +37,7 @@ const ITEMS = [
   {
     Icon: IconVault,
     t: "Espace investisseurs",
-    d: "Un accès restreint aux co-investisseurs de Cycle Partners, sans bruit ni promesses irréalistes.",
+    d: "Un accès restreint aux co-investisseurs de Club des Informateurs, sans bruit ni promesses irréalistes.",
   },
 ];
 
@@ -51,7 +51,7 @@ export default function Membership() {
             Ce que reçoivent les membres
           </h2>
           <p className="mt-5 text-[16px] leading-relaxed text-mist">
-            Un accès complet à la gestion active de Cycle Partners — portefeuille live,
+            Un accès complet à la gestion active de Club des Informateurs — portefeuille live,
             thèses d&apos;investissement et exécution en temps réel.
           </p>
         </Reveal>

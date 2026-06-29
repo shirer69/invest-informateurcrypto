@@ -14,10 +14,10 @@ export default function Footer() {
               </span>
               <span className="leading-tight">
                 <span className="block font-display text-[15px] text-bone">
-                  Cycle Partners
+                  Club des Informateurs
                 </span>
                 <span className="block font-mono text-[9.5px] uppercase tracking-widest2 text-gold/80">
-                  Cycle Partners
+                  Club des Informateurs
                 </span>
               </span>
             </div>
@@ -84,7 +84,7 @@ export default function Footer() {
         <LegalDisclaimer />
 
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-mist/60">
-          <span>© 2026 Cycle Partners. Tous droits réservés.</span>
+          <span>© 2026 Club des Informateurs. Tous droits réservés.</span>
           <span className="font-mono">invest.informateurcrypto.fr</span>
         </div>
       </div>

@@ -200,7 +200,9 @@ export default function ContestAdmin({ adminKey }) {
     if (d.ok) {
       const ok = d.results.filter((r) => r.ok).length;
       const fail = d.results.length - ok;
-      setPubMsg(`✓ Publié sur ${ok}/${d.results.length} canal${ok > 1 ? "ux" : ""}${fail ? ` (${fail} échec)` : ""}`);
+      const f = d.results.find((r) => !r.ok);
+      const why = f && (f.detail?.description || f.detail?.error);
+      setPubMsg(`✓ Publié sur ${ok}/${d.results.length} canal${ok > 1 ? "ux" : ""}${fail ? ` (${fail} échec${why ? ` : ${why}` : ""})` : ""}`);
     } else setPubMsg("Erreur : " + (d.error || "inconnue"));
   }
 

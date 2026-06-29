@@ -46,6 +46,7 @@ export default function Contest() {
   const [savedEmail, setSavedEmail] = useState(null); // email déjà connu (localStorage)
   const [submitState, setSubmitState] = useState("idle"); // idle | loading | done | error
   const [submitMsg, setSubmitMsg] = useState("");
+  const [askIdentity, setAskIdentity] = useState(false); // invité : email+prénom demandés APRÈS la saisie du prix
   const [addressInput, setAddressInput] = useState("");
   const [addrState, setAddrState] = useState("idle");
   const [addrMsg, setAddrMsg] = useState("");
@@ -92,6 +93,15 @@ export default function Contest() {
     e.preventDefault();
     const price = parseFloat(priceInput.replace(/[^0-9.]/g, ""));
     if (!price || price <= 0) { setSubmitMsg("Prix invalide."); setSubmitState("error"); return; }
+
+    // Invité sans identité connue : on demande email + prénom UNIQUEMENT après
+    // que la prédiction de prix a été saisie (1er clic = valider le prix, 2e = participer).
+    if (!isLogged && !savedEmail && !askIdentity) {
+      setAskIdentity(true);
+      setSubmitMsg("");
+      setSubmitState("idle");
+      return;
+    }
 
     let email = null;
     let name  = "";
@@ -311,9 +321,15 @@ export default function Contest() {
             </p>
           ) : (
             <form onSubmit={handlePredict} className="space-y-3">
-              {/* Invité sans email mémorisé → demander email + prénom */}
-              {!isLogged && !savedEmail && (
-                <div className="space-y-2">
+              {/* Invité : email + prénom demandés UNIQUEMENT après la saisie du prix */}
+              {!isLogged && !savedEmail && askIdentity && (
+                <div className="space-y-2 rounded-xl border border-gold/20 bg-gold/[0.04] p-3">
+                  <p className="text-[12.5px] text-bone">
+                    Votre prédiction : <span className="font-semibold text-gold">{fmtPrice(parseFloat(priceInput.replace(/[^0-9.]/g, "")) || 0)}</span>
+                    <button type="button" onClick={() => { setAskIdentity(false); setSubmitMsg(""); }}
+                      className="ml-2 text-[11px] text-mist/40 hover:text-mist underline">modifier</button>
+                  </p>
+                  <p className="text-[12px] text-mist/70">Indiquez votre email et prénom pour valider votre participation :</p>
                   <input
                     type="email"
                     value={emailInput}
@@ -364,7 +380,8 @@ export default function Contest() {
                 <button type="submit"
                   disabled={submitState === "loading" || submitState === "done"}
                   className="btn-gold rounded-full px-6 py-2.5 text-[13px] font-semibold whitespace-nowrap">
-                  {submitState === "loading" ? "…" : submitState === "done" ? "Enregistré ✓" : "Prédire"}
+                  {submitState === "loading" ? "…" : submitState === "done" ? "Enregistré ✓"
+                    : (!isLogged && !savedEmail && askIdentity) ? "Valider ma participation" : "Prédire"}
                 </button>
               </div>
               {submitMsg && (

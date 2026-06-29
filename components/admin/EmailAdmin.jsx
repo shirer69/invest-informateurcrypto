@@ -444,9 +444,12 @@ function TemplatesSection({ adminKey, templates, onReload }) {
 /* ═══════════════════════════════════════════════════════════════════════════
    SECTION — Campagnes
    ═══════════════════════════════════════════════════════════════════════════ */
+const TEST_EMAIL = "alexis.myc@gmail.com";
+
 function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
   const [form, setForm]     = useState({ template_id: "", audience: "all", subject: "" });
   const [busy, setBusy]     = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
   const [msg,  setMsg]      = useState(null);
   const [confirm, setConfirm] = useState(false);
   const sendingRef = useRef(false);
@@ -470,6 +473,23 @@ function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
       onReload();
     } else {
       setMsg({ ok: false, t: `Erreur : ${r.error || "envoi impossible"}` });
+    }
+  }
+
+  async function sendTest() {
+    if (!form.template_id) { setMsg({ ok: false, t: "Sélectionnez un template." }); return; }
+    setTestBusy(true);
+    setMsg({ ok: true, t: `Envoi test → ${TEST_EMAIL}…` });
+    const r = await aPost("/api/admin/mail/campaigns", adminKey, {
+      template_id: Number(form.template_id),
+      audience: TEST_EMAIL,
+      subject: form.subject.trim() || null,
+    });
+    setTestBusy(false);
+    if (r.ok) {
+      setMsg({ ok: true, t: `✓ Test envoyé à ${TEST_EMAIL}` });
+    } else {
+      setMsg({ ok: false, t: `Erreur test : ${r.error || "envoi impossible"}` });
     }
   }
 
@@ -518,24 +538,30 @@ function CampaignsSection({ adminKey, templates, campaigns, onReload }) {
           </div>
         </div>
 
-        <div className="pt-2">
-          {!confirm ? (
-            <button onClick={() => { if (!form.template_id) { setMsg({ ok: false, t: "Sélectionnez un template." }); return; } setConfirm(true); }}
-              disabled={busy}
-              className="btn-gold rounded-full px-7 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
-              Envoyer la campagne
-            </button>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span className="text-[13px] text-bone">Confirmer l'envoi à « {AUDIENCES.find((a) => a.id === form.audience)?.label} » ?</span>
-              <button onClick={send} disabled={busy}
-                className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60">
-                {busy ? "Envoi…" : "Oui, envoyer"}
+        <div className="pt-2 space-y-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {!confirm ? (
+              <button onClick={() => { if (!form.template_id) { setMsg({ ok: false, t: "Sélectionnez un template." }); return; } setConfirm(true); }}
+                disabled={busy || testBusy}
+                className="btn-gold rounded-full px-7 py-2.5 text-[13.5px] font-semibold disabled:opacity-60">
+                Envoyer la campagne
               </button>
-              <button onClick={() => setConfirm(false)} className="btn-ghost rounded-full px-5 py-2.5 text-[13px]">Annuler</button>
-            </div>
-          )}
-          {msg && <div className={`mt-2 text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</div>}
+            ) : (
+              <>
+                <span className="text-[13px] text-bone">Confirmer l'envoi à « {AUDIENCES.find((a) => a.id === form.audience)?.label} » ?</span>
+                <button onClick={send} disabled={busy}
+                  className="btn-gold rounded-full px-5 py-2.5 text-[13px] font-semibold disabled:opacity-60">
+                  {busy ? "Envoi…" : "Oui, envoyer"}
+                </button>
+                <button onClick={() => setConfirm(false)} className="btn-ghost rounded-full px-5 py-2.5 text-[13px]">Annuler</button>
+              </>
+            )}
+            <button onClick={sendTest} disabled={testBusy || busy}
+              className="btn-ghost rounded-full px-5 py-2.5 text-[13px] disabled:opacity-60 border-sky-500/30 text-sky-400 hover:text-sky-300">
+              {testBusy ? "Envoi…" : `🧪 Test → ${TEST_EMAIL}`}
+            </button>
+          </div>
+          {msg && <div className={`text-[12.5px] ${msg.ok ? "text-pos" : "text-flag"}`}>{msg.t}</div>}
         </div>
       </div>
 

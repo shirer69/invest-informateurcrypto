@@ -2788,8 +2788,8 @@ export function XStocks() {
         </div>
       )}
 
-      {/* Hero KPIs — label visible, valeur floutée */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+      {/* Hero KPIs — masqués pour les membres non-actifs */}
+      {!blurred && <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
         {[
           { label: "Valeur totale",   value: totalMkt > 0 ? fmtUsd(totalMkt) : "—",                cls: "text-bone" },
           { label: "P&L non réalisé", value: totalPnl != null ? signed(totalPnl) : "—",            cls: totalPnl != null ? signCls(totalPnl) : "text-mist/60" },
@@ -2801,9 +2801,9 @@ export function XStocks() {
             <div className={`font-display text-[20px] leading-none ${cls} ${bCls}`}>{value}</div>
           </div>
         ))}
-      </div>
+      </div>}
 
-      {holdings.length > 0 && (
+      {!blurred && holdings.length > 0 && (
         <>
         {/* Répartition portefeuille */}
         <div className="grid sm:grid-cols-2 gap-4 mb-5">

@@ -667,7 +667,7 @@ export function Analytics({ copyAccess, copyRequest, hasAccess, tgInvite, onRequ
 
       <AssetTables />
 
-      <TradeHistory />
+      {hasAccess && <TradeHistory />}
     </div>
   );
 }
